@@ -1,65 +1,163 @@
-import Image from "next/image";
+import Link from "next/link";
+
+const TOOLS = [
+  {
+    name: "Background Remover",
+    description: "Remove backgrounds from images using AI. Fast, accurate, and runs entirely in your browser.",
+    href: "/bg-remover",
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
+    badge: "Ready",
+  },
+  {
+    name: "Image Compressor",
+    description: "Compress images without losing quality. Supports PNG, JPG, and WebP formats.",
+    href: "#",
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+    ),
+    badge: "Coming Soon",
+  },
+  {
+    name: "Image Resizer",
+    description: "Resize images to any dimension. Perfect for social media, web, or print.",
+    href: "#",
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+      </svg>
+    ),
+    badge: "Coming Soon",
+  },
+  {
+    name: "Format Converter",
+    description: "Convert images between formats. PNG, JPG, WebP, and more.",
+    href: "#",
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+      </svg>
+    ),
+    badge: "Coming Soon",
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Header */}
+      <header className="border-b border-border">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <h1 className="text-2xl font-bold tracking-tight">PicEdit</h1>
+          <p className="text-muted mt-1">Free online image tools. No uploads, everything runs in your browser.</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* Main content */}
+      <main className="max-w-6xl mx-auto px-4 py-12">
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-lg font-semibold mb-1">Image Tools</h2>
+            <p className="text-sm text-muted">Select a tool to get started</p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {TOOLS.map((tool) => {
+              const isReady = tool.badge === "Ready";
+              const Component = isReady ? Link : "div";
+
+              return (
+                <Component
+                  key={tool.name}
+                  href={tool.href}
+                  className={`group relative flex flex-col p-6 bg-surface border border-border rounded-xl transition-all duration-200 ${
+                    isReady
+                      ? "hover:border-accent hover:bg-surface-hover cursor-pointer"
+                      : "opacity-60 cursor-not-allowed"
+                  }`}
+                >
+                  {/* Badge */}
+                  <span
+                    className={`absolute top-3 right-3 px-2 py-0.5 text-xs rounded-full ${
+                      isReady
+                        ? "bg-green-500/20 text-green-400"
+                        : "bg-muted/20 text-muted"
+                    }`}
+                  >
+                    {tool.badge}
+                  </span>
+
+                  {/* Icon */}
+                  <div className={`mb-4 text-muted ${isReady ? "group-hover:text-accent" : ""} transition-colors`}>
+                    {tool.icon}
+                  </div>
+
+                  {/* Content */}
+                  <h3 className="font-medium mb-2">{tool.name}</h3>
+                  <p className="text-sm text-muted leading-relaxed">{tool.description}</p>
+
+                  {/* Arrow for ready tools */}
+                  {isReady && (
+                    <div className="mt-4 flex items-center text-sm text-accent opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span>Get started</span>
+                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  )}
+                </Component>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Features section */}
+        <div className="mt-16 pt-12 border-t border-border">
+          <div className="grid gap-8 sm:grid-cols-3">
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-4 flex items-center justify-center rounded-full bg-accent/10 text-accent">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h3 className="font-medium mb-2">100% Private</h3>
+              <p className="text-sm text-muted">Your images never leave your device. All processing happens locally in your browser.</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-4 flex items-center justify-center rounded-full bg-accent/10 text-accent">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 className="font-medium mb-2">Lightning Fast</h3>
+              <p className="text-sm text-muted">Powered by WebGPU and modern AI models. Get results in seconds.</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-4 flex items-center justify-center rounded-full bg-accent/10 text-accent">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="font-medium mb-2">Completely Free</h3>
+              <p className="text-sm text-muted">No sign-up, no limits, no watermarks. Use as much as you want.</p>
+            </div>
+          </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border mt-16">
+        <div className="max-w-6xl mx-auto px-4 py-6 text-center text-sm text-muted">
+          <p>Built by AriajSarkar</p>
+        </div>
+      </footer>
     </div>
   );
 }

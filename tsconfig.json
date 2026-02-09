@@ -19,7 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/bg-remover/*": ["./src/bg-remover/*"],
+      "@/types": ["./src/bg-remover/types"],
+      "@/lib/*": ["./src/bg-remover/lib/*"]
     }
   },
   "include": [
