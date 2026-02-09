@@ -112,26 +112,132 @@ export async function applyEdits(
   return canvas.toDataURL(state.outputFormat, state.outputQuality);
 }
 
-export function downloadImage(
+// Embed metadata into PNG using tEXt chunks
+async function embedPngMetadata(dataUrl: string): Promise<string> {
+  const metadata = {
+    Software: "PicEdit - Free Online Image Editor",
+    Source: "https://github.com/AriajSarkar/PicEdit",
+    Author: "AriajSarkar",
+    Comment: "Processed with PicEdit - Free online background remover and image editing tools",
+    Copyright: "PicEdit by AriajSarkar - Open Source",
+    Keywords: "PicEdit, background remover, image editor, free, online, AI, open source",
+  };
+
+  const base64 = dataUrl.split(",")[1];
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  // PNG signature check
+  const pngSignature = [137, 80, 78, 71, 13, 10, 26, 10];
+  for (let i = 0; i < 8; i++) {
+    if (bytes[i] !== pngSignature[i]) return dataUrl;
+  }
+
+  // Create tEXt chunks for metadata
+  const textChunks: Uint8Array[] = [];
+  for (const [key, value] of Object.entries(metadata)) {
+    const keyBytes = new TextEncoder().encode(key);
+    const valueBytes = new TextEncoder().encode(value);
+    const chunkData = new Uint8Array(keyBytes.length + 1 + valueBytes.length);
+    chunkData.set(keyBytes, 0);
+    chunkData[keyBytes.length] = 0; // null separator
+    chunkData.set(valueBytes, keyBytes.length + 1);
+
+    // Calculate CRC32
+    const chunkType = new TextEncoder().encode("tEXt");
+    const crcData = new Uint8Array(4 + chunkData.length);
+    crcData.set(chunkType, 0);
+    crcData.set(chunkData, 4);
+    const crc = crc32(crcData);
+
+    // Build chunk: length(4) + type(4) + data + crc(4)
+    const chunk = new Uint8Array(12 + chunkData.length);
+    const view = new DataView(chunk.buffer);
+    view.setUint32(0, chunkData.length);
+    chunk.set(chunkType, 4);
+    chunk.set(chunkData, 8);
+    view.setUint32(8 + chunkData.length, crc);
+    textChunks.push(chunk);
+  }
+
+  // Find IHDR end (insert after IHDR)
+  let insertPos = 8; // After signature
+  const view = new DataView(bytes.buffer);
+  const ihdrLength = view.getUint32(8);
+  insertPos = 8 + 4 + 4 + ihdrLength + 4; // signature + length + type + data + crc
+
+  // Build new PNG
+  const totalMetaSize = textChunks.reduce((sum, c) => sum + c.length, 0);
+  const newBytes = new Uint8Array(bytes.length + totalMetaSize);
+  newBytes.set(bytes.subarray(0, insertPos), 0);
+  let offset = insertPos;
+  for (const chunk of textChunks) {
+    newBytes.set(chunk, offset);
+    offset += chunk.length;
+  }
+  newBytes.set(bytes.subarray(insertPos), offset);
+
+  // Convert back to base64
+  let newBinary = "";
+  for (let i = 0; i < newBytes.length; i++) {
+    newBinary += String.fromCharCode(newBytes[i]);
+  }
+  return `data:image/png;base64,${btoa(newBinary)}`;
+}
+
+// CRC32 for PNG chunks
+function crc32(data: Uint8Array): number {
+  let crc = 0xffffffff;
+  const table = getCrc32Table();
+  for (let i = 0; i < data.length; i++) {
+    crc = (crc >>> 8) ^ table[(crc ^ data[i]) & 0xff];
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+let crc32Table: Uint32Array | null = null;
+function getCrc32Table(): Uint32Array {
+  if (crc32Table) return crc32Table;
+  crc32Table = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let j = 0; j < 8; j++) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    }
+    crc32Table[i] = c;
+  }
+  return crc32Table;
+}
+
+export async function downloadImage(
   dataUrl: string,
   format: OutputFormat,
   originalFileName: string
-): void {
+): Promise<void> {
   const extensions: Record<OutputFormat, string> = {
     "image/png": "png",
     "image/jpeg": "jpg",
     "image/webp": "webp",
   };
 
-  // Use original filename + -AriajSarkar
+  // Embed metadata for PNG
+  let finalDataUrl = dataUrl;
+  if (format === "image/png") {
+    finalDataUrl = await embedPngMetadata(dataUrl);
+  }
+
+  // Clean filename without branding
   const ext = extensions[format];
   const fileName = originalFileName
-    ? `${originalFileName}-AriajSarkar.${ext}`
-    : `bg-removed-${Date.now()}-AriajSarkar.${ext}`;
+    ? `${originalFileName}-nobg.${ext}`
+    : `image-nobg-${Date.now()}.${ext}`;
 
   const link = document.createElement("a");
   link.download = fileName;
-  link.href = dataUrl;
+  link.href = finalDataUrl;
   link.click();
 }
 

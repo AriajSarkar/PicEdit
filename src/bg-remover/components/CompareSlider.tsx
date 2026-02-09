@@ -65,7 +65,7 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
   return (
     <div
       ref={containerRef}
-      className="relative w-full aspect-video rounded-xl overflow-hidden cursor-ew-resize select-none checkerboard"
+      className="relative w-full aspect-video rounded-t-2xl overflow-hidden cursor-ew-resize select-none checkerboard"
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
     >
@@ -95,17 +95,14 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
         className="absolute top-0 bottom-0 w-0.5 bg-white pointer-events-none"
         style={{
           left: `${sliderPosition}%`,
-          transform: 'translateX(-50%)',
-          boxShadow: '0 0 8px rgba(0,0,0,0.5)'
+          transform: "translateX(-50%)",
+          boxShadow: "0 0 12px rgba(0,0,0,0.5)",
         }}
       >
         {/* Slider handle */}
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center pointer-events-auto cursor-ew-resize"
-          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
-        >
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-xl flex items-center justify-center pointer-events-auto cursor-ew-resize">
           <svg
-            className="w-5 h-5 text-gray-700"
+            className="w-5 h-5 text-gray-600"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -114,18 +111,18 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M11 19l-7-7 7-7m6 14l7-7-7-7"
+              d="M8 9l4-4 4 4m0 6l-4 4-4-4"
             />
           </svg>
         </div>
       </div>
 
       {/* Labels */}
-      <div className="absolute top-3 left-3 px-2 py-1 bg-black/60 rounded text-xs font-medium pointer-events-none">
+      <div className="absolute top-3 left-3 px-2.5 py-1 bg-black/60 backdrop-blur-sm rounded-md text-xs font-medium pointer-events-none">
         Original
       </div>
-      <div className="absolute top-3 right-3 px-2 py-1 bg-black/60 rounded text-xs font-medium pointer-events-none">
-        Processed
+      <div className="absolute top-3 right-3 px-2.5 py-1 bg-black/60 backdrop-blur-sm rounded-md text-xs font-medium pointer-events-none">
+        Result
       </div>
     </div>
   );
