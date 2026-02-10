@@ -112,7 +112,7 @@ export function ImageUploader({
       />
 
       {isProcessing && progress ? (
-        /* Processing State */
+        /* Processing State — uses same detailed overlay as editor view */
         <div className="flex flex-col items-center px-8">
           <div className="mb-6 p-4 rounded-2xl bg-indigo-500/20">
             <svg
@@ -131,23 +131,37 @@ export function ImageUploader({
           </div>
 
           <div className="w-72 mb-4">
+            {/* Stage label */}
             <div className="flex justify-between text-xs text-white/50 mb-2">
-              <span>{progress.stage === "downloading" ? "Downloading model" : "Processing"}</span>
+              <span>
+                {progress.stage === "preprocessing" && "Pre-processing"}
+                {progress.stage === "downloading" && "Downloading model"}
+                {progress.stage === "processing" && "AI inference"}
+                {progress.stage === "postprocessing" && "Post-processing"}
+                {progress.stage !== "preprocessing" && progress.stage !== "downloading" && progress.stage !== "processing" && progress.stage !== "postprocessing" && progress.stage}
+              </span>
               <span>{progress.progress}%</span>
             </div>
+            {/* Stage progress bar */}
             <div className="h-2 bg-white/10 rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                className={`h-full bg-gradient-to-r ${
+                  progress.stage === "preprocessing" ? "from-amber-500 to-orange-500" :
+                  progress.stage === "downloading" ? "from-blue-500 to-cyan-500" :
+                  progress.stage === "processing" ? "from-indigo-500 to-purple-500" :
+                  progress.stage === "postprocessing" ? "from-emerald-500 to-teal-500" :
+                  "from-indigo-500 to-purple-500"
+                }`}
                 initial={{ width: 0 }}
                 animate={{ width: `${progress.progress}%` }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.2 }}
               />
             </div>
           </div>
 
           <p className="text-sm text-white/70 mb-1">{progress.message}</p>
           {progress.stage === "downloading" && (
-            <p className="text-xs text-white/40">First time only - model will be cached</p>
+            <p className="text-xs text-white/40">First time only — model will be cached</p>
           )}
         </div>
       ) : (
