@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   images: { unoptimized: true },
   basePath: isProd ? "/PicEdit" : "",
   assetPrefix: isProd ? "/PicEdit/" : "",
+  env: {
+    NEXT_PUBLIC_BASE_PATH: isProd ? "/PicEdit" : "",
+  },
 };
 
 export default nextConfig;

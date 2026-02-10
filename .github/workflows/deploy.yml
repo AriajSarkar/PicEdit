@@ -30,6 +30,14 @@ jobs:
           node-version: "22"
           cache: "pnpm"
 
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 

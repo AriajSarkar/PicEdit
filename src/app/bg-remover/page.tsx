@@ -89,7 +89,7 @@ export default function BGRemoverPage() {
       setPrevDevice(device);
       setPrevModel(model);
 
-      processImage(originalImage, device, model).then(async (result) => {
+      processImage(originalImage, device, model, originalImage).then(async (result) => {
         if (result) {
           setProcessedImage(result);
           const applied = await applyEdits(result, originalImage, state);
@@ -113,7 +113,7 @@ export default function BGRemoverPage() {
       setImageInfo(info);
       initializeFromImage(img.width, img.height);
 
-      const result = await processImage(dataUrl, device, model);
+      const result = await processImage(dataUrl, device, model, dataUrl);
       if (result) {
         setProcessedImage(result);
         setFinalImage(result);
