@@ -97,7 +97,8 @@ Items extend `BatchItem { id, status, progress, stage, error? }`.
 ## Deployment
 
 - **Target:** GitHub Pages at `/PicEdit`
-- `basePath: "/PicEdit"` in `next.config.ts` (production only)
+- `basePath` only set when `PAGES_BASE_PATH=/PicEdit` env var is present (GH Pages workflow)
+- Vercel / local dev: no basePath — app served at root `/`
 - `process.env.NEXT_PUBLIC_BASE_PATH` for runtime asset paths
 - Cross-origin isolation via `coi-serviceworker.js` (required for WASM SharedArrayBuffer)
 - CI: `.github/workflows/deploy.yml` (Pages), `.github/workflows/build-wasm.yml` (auto-commit WASM artifacts)
