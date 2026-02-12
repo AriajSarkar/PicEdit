@@ -12,7 +12,8 @@ self.onmessage = async (e: MessageEvent) => {
     try {
       // Dynamic import of the wasm-pack generated JS
       const mod = await import(/* webpackIgnore: true */ msg.wasmJsUrl);
-      await mod.default(msg.wasmBgUrl);
+      
+      await mod.default({ module_or_path: msg.wasmBgUrl });
       wasmModule = mod;
       self.postMessage({ type: "ready" });
     } catch (err) {

@@ -10,7 +10,6 @@
 /// - Two-pass separable: horizontal then vertical
 /// - Process R,G,B together per neighbor (cache-friendly)
 /// - Reciprocal multiply for normalization
-
 pub fn bilateral_separable(rgba: &mut [u8], w: usize, h: usize, radius: usize) {
     let r = radius.min(7); // Cap for WASM perf
     let sigma_s = r as f32;
@@ -20,6 +19,7 @@ pub fn bilateral_separable(rgba: &mut [u8], w: usize, h: usize, radius: usize) {
     let kernel_len = 2 * r + 1;
     let inv_2ss = -0.5 / (sigma_s * sigma_s);
     let mut spatial_w = vec![0.0f32; kernel_len];
+    #[allow(clippy::needless_range_loop)]
     for i in 0..kernel_len {
         let d = i as f32 - r as f32;
         spatial_w[i] = (inv_2ss * d * d).exp();
@@ -49,6 +49,7 @@ pub fn bilateral_separable(rgba: &mut [u8], w: usize, h: usize, radius: usize) {
             let mut sb = 0.0f32;
             let mut sw = 0.0f32;
 
+            #[allow(clippy::needless_range_loop)]
             for ki in 0..kernel_len {
                 let sx = x as isize + ki as isize - ri;
                 if sx < 0 || sx >= w as isize {
@@ -92,6 +93,7 @@ pub fn bilateral_separable(rgba: &mut [u8], w: usize, h: usize, radius: usize) {
             let mut sb = 0.0f32;
             let mut sw = 0.0f32;
 
+            #[allow(clippy::needless_range_loop)]
             for ki in 0..kernel_len {
                 let sy = y as isize + ki as isize - ri;
                 if sy < 0 || sy >= h as isize {

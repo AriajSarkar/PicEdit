@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { AnimatePresence } from "motion/react";
 
 // Components
@@ -44,8 +44,6 @@ export default function BGRemoverPage() {
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [finalImage, setFinalImage] = useState<string | null>(null);
   const [imageInfo, setImageInfo] = useState<ImageInfo>(DEFAULT_IMAGE_INFO);
-  const [prevDevice, setPrevDevice] = useState<DeviceType | null>(null);
-  const [prevModel, setPrevModel] = useState<ModelType | null>(null);
 
   // Hooks
   const { processImage, progress, isProcessing } = useBackgroundRemoval();
@@ -61,11 +59,14 @@ export default function BGRemoverPage() {
   }, [finalImage]);
 
   // Restore session - DON'T auto-open, just sync settings
+  const sessionRestoredRef = useRef(false);
   useEffect(() => {
-    if (!sessionLoaded) return;
+    if (!sessionLoaded || sessionRestoredRef.current) return;
+    sessionRestoredRef.current = true;
     // Only restore device/model preferences, not the image
     if (session.device) setDevice(session.device);
     if (session.model) setModel(session.model);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionLoaded]);
 
   // Apply edits when state changes
@@ -76,18 +77,20 @@ export default function BGRemoverPage() {
   }, [processedImage, originalImage, state]);
 
   // Handle device/model change
+  const prevDeviceRef = useRef<DeviceType | null>(null);
+  const prevModelRef = useRef<ModelType | null>(null);
   useEffect(() => {
     if (!originalImage || !sessionLoaded || isProcessing) return;
 
-    if (prevDevice === null || prevModel === null) {
-      setPrevDevice(device);
-      setPrevModel(model);
+    if (prevDeviceRef.current === null || prevModelRef.current === null) {
+      prevDeviceRef.current = device;
+      prevModelRef.current = model;
       return;
     }
 
-    if (prevDevice !== device || prevModel !== model) {
-      setPrevDevice(device);
-      setPrevModel(model);
+    if (prevDeviceRef.current !== device || prevModelRef.current !== model) {
+      prevDeviceRef.current = device;
+      prevModelRef.current = model;
 
       processImage(originalImage, device, model, originalImage).then(async (result) => {
         if (result) {
@@ -98,6 +101,7 @@ export default function BGRemoverPage() {
         }
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [device, model, originalImage, sessionLoaded, isProcessing]);
 
   // Handlers

@@ -38,10 +38,7 @@ pub fn generate_trimap_bfs(alpha: &[f32], w: usize, h: usize, radius: usize) -> 
             if y + 1 < h && (alpha[idx + w] - a).abs() > 0.3 { is_edge = true; }
 
             // Also seed from any transition pixel
-            if a > BG_THRESH && a < FG_THRESH {
-                dist[idx] = 0;
-                queue.push_back(idx);
-            } else if is_edge {
+            if (a > BG_THRESH && a < FG_THRESH) || is_edge {
                 dist[idx] = 0;
                 queue.push_back(idx);
             }

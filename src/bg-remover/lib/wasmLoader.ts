@@ -26,16 +26,14 @@ async function loadModule(name: string): Promise<WasmModule | null> {
   loadPromises[name] = (async () => {
     try {
       const basePath = getBasePath();
-      // Dynamic import of wasm-pack generated JS glue
       // The .js files and .wasm files are served from public/wasm/<crate>/
       const jsUrl = `${basePath}/wasm/${name}/${name.replace(/-/g, "_")}.js`;
       const wasmUrl = `${basePath}/wasm/${name}/${name.replace(/-/g, "_")}_bg.wasm`;
 
-      // @ts-ignore
       const mod = await import(/* webpackIgnore: true */ jsUrl);
 
-      // Initialize with explicit WASM URL
-      await mod.default(wasmUrl);
+      // Initialize with explicit WASM URL (passed as object to avoid warnings)
+      await mod.default({ module_or_path: wasmUrl });
 
       modules[name] = mod;
       return mod;

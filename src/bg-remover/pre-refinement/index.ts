@@ -82,7 +82,7 @@ export async function preProcess(
   const t0 = performance.now();
   console.log("[pre-refinement] Starting WASM processing...");
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const onMessage = (e: MessageEvent<PreProcessResult>) => {
       worker!.removeEventListener("message", onMessage);
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { HistoryItem, MODEL_INFO } from "@/types";
+import { HistoryItem } from "@/types";
 
 interface HistoryPanelProps {
   history: HistoryItem[];

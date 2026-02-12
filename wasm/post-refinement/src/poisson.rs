@@ -8,7 +8,6 @@
 ///
 /// Only operates on "free" pixels (transition zone 0.02 < α < 0.98).
 /// Definite FG/BG pixels are locked as boundary conditions.
-
 pub fn poisson_sor(
     alpha: &mut [f32],
     guide: &[f32],

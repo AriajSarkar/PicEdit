@@ -27,9 +27,7 @@ function formatSpeed(bytesPerSec: number): string {
 
 export function useBackgroundRemoval() {
   const processingRef = useRef(false);
-  const preloadingRef = useRef(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isPreloading, setIsPreloading] = useState(false);
   const [progress, setProgress] = useState<ProcessingProgress>(DEFAULT_PROGRESS);
 
   // Track download speed
@@ -327,7 +325,6 @@ export function useBackgroundRemoval() {
     isModelCached,
     progress,
     isProcessing,
-    isPreloading,
   };
 }
 

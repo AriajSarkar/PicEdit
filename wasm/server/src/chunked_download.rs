@@ -1,4 +1,3 @@
-use js_sys;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{IdbTransactionMode, Request, Response};
@@ -31,7 +30,7 @@ async fn open_db(db_name: &str, store_name: &str) -> Result<web_sys::IdbDatabase
         }
 
         if !found {
-            let mut params = web_sys::IdbObjectStoreParameters::new();
+            let params = web_sys::IdbObjectStoreParameters::new();
             params.set_key_path(Some(&JsValue::from_str("key")).as_ref().unwrap());
             db.create_object_store_with_optional_parameters(&store_name_owned, &params)
                 .unwrap();

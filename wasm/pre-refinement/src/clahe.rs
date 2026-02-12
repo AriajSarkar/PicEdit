@@ -6,7 +6,6 @@
 /// - CDF stored as u8 LUT (no f32 during apply phase)
 /// - Bilinear interpolation between tile CDFs using precomputed reciprocals
 /// - Fused RGB rescale via 16.16 fixed-point multiply
-
 #[inline(always)]
 fn rgb_to_lum(r: u8, g: u8, b: u8) -> u8 {
     ((r as u32 * 77 + g as u32 * 150 + b as u32 * 29) >> 8) as u8
@@ -14,14 +13,15 @@ fn rgb_to_lum(r: u8, g: u8, b: u8) -> u8 {
 
 pub fn apply_clahe(rgba: &mut [u8], w: usize, h: usize, clip_limit: f32, grid_size: usize) {
     let grid = grid_size.max(2);
-    let tile_w = (w + grid - 1) / grid;
-    let tile_h = (h + grid - 1) / grid;
+    let tile_w = w.div_ceil(grid);
+    let tile_h = h.div_ceil(grid);
     let npx = w * h;
     let ntx = grid;
     let nty = grid;
 
     // === Pass 1: Extract luminance ===
     let mut lum = vec![0u8; npx];
+    #[allow(clippy::needless_range_loop)]
     for i in 0..npx {
         let off = i * 4;
         lum[i] = rgb_to_lum(rgba[off], rgba[off + 1], rgba[off + 2]);
@@ -51,6 +51,7 @@ pub fn apply_clahe(rgba: &mut [u8], w: usize, h: usize, clip_limit: f32, grid_si
 
             if count == 0 {
                 let lut = &mut cdf_lut[ty * ntx + tx];
+                #[allow(clippy::needless_range_loop)]
                 for i in 0..256 {
                     lut[i] = i as u8;
                 }

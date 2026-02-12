@@ -9,7 +9,6 @@
 /// - Same or faster speed (running sum vs 3x3 convolution)
 ///
 /// Uses luminance-proportional scaling to preserve color ratios.
-
 #[inline(always)]
 fn rgb_to_lum_f32(r: u8, g: u8, b: u8) -> f32 {
     r as f32 * 0.299 + g as f32 * 0.587 + b as f32 * 0.114
@@ -25,6 +24,7 @@ pub fn unsharp_mask(rgba: &mut [u8], w: usize, h: usize, strength: f32) {
 
     // Step 1: Extract luminance
     let mut lum = vec![0.0f32; npx];
+    #[allow(clippy::needless_range_loop)]
     for i in 0..npx {
         let off = i * 4;
         lum[i] = rgb_to_lum_f32(rgba[off], rgba[off + 1], rgba[off + 2]);

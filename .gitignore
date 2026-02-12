@@ -47,4 +47,3 @@ next-env.d.ts
 # Rust/WASM build artifacts
 wasm/target/
 wasm/*/pkg/
-public/wasm/

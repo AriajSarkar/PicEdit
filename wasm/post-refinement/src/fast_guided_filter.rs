@@ -7,11 +7,11 @@
 /// - Fused ip/ii computation in single loop
 /// - Reuse SAT buffers where possible
 /// - Precomputed reciprocals in box_mean
-
+///
 /// Downsample by factor s using box averaging
 fn downsample(data: &[f32], w: usize, h: usize, s: usize) -> (Vec<f32>, usize, usize) {
-    let sw = (w + s - 1) / s;
-    let sh = (h + s - 1) / s;
+    let sw = w.div_ceil(s);
+    let sh = h.div_ceil(s);
     let mut out = vec![0.0f32; sw * sh];
 
     for sy in 0..sh {

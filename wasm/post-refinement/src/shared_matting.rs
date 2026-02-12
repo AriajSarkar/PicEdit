@@ -11,7 +11,6 @@
 /// - Multi-sample averaging (K=3) for robustness
 /// - Early termination once both FG and BG found
 /// - Squared distance comparison (avoid sqrt in inner loop)
-
 const MAX_SAMPLES: usize = 3; // Number of FG/BG samples to collect
 
 struct ColorSample {

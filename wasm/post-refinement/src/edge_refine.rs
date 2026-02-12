@@ -8,7 +8,6 @@
 /// - Better rotational symmetry (less directional bias)
 /// - Same computational cost (6 adds, 4 multiplies)
 /// - More accurate gradient magnitude for diagonal edges
-
 pub fn refine_edges_scharr(
     alpha: &mut [f32],
     guide: &[f32],

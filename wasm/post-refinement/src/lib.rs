@@ -19,6 +19,7 @@ use wasm_bindgen::prelude::*;
 /// - Poisson: SOR with ω=1.5 (2x faster convergence than Gauss-Seidel)
 /// - Feather: Separable running-sum box blur
 #[wasm_bindgen]
+#[allow(clippy::too_many_arguments)]
 pub fn post_process(
     mask_rgba: &[u8],
     original_rgba: &[u8],
