@@ -145,7 +145,7 @@ export default function RootLayout({
           }}
         />
         {/* Enable Cross-Origin Isolation for WASM threads */}
-        <script src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/workers/coi-serviceworker.js`} async></script>
+        <script src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/coi-serviceworker.js`} async></script>
       </head>
       <body
         className={`${outfit.variable} ${firaCode.variable} antialiased`}
