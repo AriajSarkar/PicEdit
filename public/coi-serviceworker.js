@@ -66,14 +66,19 @@ if (typeof window === 'undefined') {
     } else {
       if (coi.shouldRegister()) {
         const src = document.currentScript.src;
+
+        // Listen for the SW to actually claim this client before reloading.
+        // This prevents an infinite reload loop where register() succeeds
+        // but the SW hasn't called clients.claim() yet on the reloaded page.
+        if (coi.doReload()) {
+          n.serviceWorker.addEventListener("controllerchange", () => {
+            window.location.reload();
+          }, { once: true });
+        }
+
         n.serviceWorker.register(src).then(
-          (registration) => {
+          () => {
             if (!coi.quiet) console.log("coi-serviceworker registered");
-            
-            // Reload page on first register to enable the headers
-            if (coi.doReload()) {
-               window.location.reload();
-            }
           },
           (err) => {
             if (!coi.quiet) console.error("coi-serviceworker registration failed: ", err);
