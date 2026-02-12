@@ -87,7 +87,9 @@ pub fn post_process(
     }
 
     // === Compose output ===
-    let mut output = mask_rgba.to_vec();
+    // Use the ORIGINAL image pixel data for RGB channels to preserve quality
+    // Use the REFINED alpha channel for the mask
+    let mut output = original_rgba.to_vec();
     for i in 0..npx {
         output[i * 4 + 3] = (refined[i] * 255.0).clamp(0.0, 255.0) as u8;
     }

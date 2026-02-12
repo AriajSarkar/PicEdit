@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect } from "react";
 
 interface CompareSliderProps {
   originalImage: string;
@@ -8,17 +8,35 @@ interface CompareSliderProps {
 }
 
 export function CompareSlider({ originalImage, processedImage }: CompareSliderProps) {
-  const [sliderPosition, setSliderPosition] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
+  const clipperRef = useRef<HTMLDivElement>(null);
+  const sliderLineRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
+  const requestRef = useRef<number>(0);
+
+  // Use a ref to track the last drawn position to avoid redundant DOM writes
+  const currentPosRef = useRef(50);
+
+  const updateDOM = useCallback((percent: number) => {
+    if (clipperRef.current) {
+      clipperRef.current.style.clipPath = `inset(0 ${100 - percent}% 0 0)`;
+    }
+    if (sliderLineRef.current) {
+      sliderLineRef.current.style.left = `${percent}%`;
+    }
+    currentPosRef.current = percent;
+  }, []);
 
   const updatePosition = useCallback((clientX: number) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
     const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    setSliderPosition(percent);
-  }, []);
+    
+    // Use requestAnimationFrame for smooth visual updates
+    cancelAnimationFrame(requestRef.current);
+    requestRef.current = requestAnimationFrame(() => updateDOM(percent));
+  }, [updateDOM]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -34,6 +52,7 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
 
   const handleMouseUp = useCallback(() => {
     isDragging.current = false;
+    cancelAnimationFrame(requestRef.current);
   }, []);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -59,6 +78,7 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleMouseUp);
+      cancelAnimationFrame(requestRef.current);
     };
   }, [handleMouseMove, handleMouseUp, handleTouchMove]);
 
@@ -77,10 +97,11 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
         draggable={false}
       />
 
-      {/* Original image (left side, clipped with clip-path) */}
+      {/* Original Image (left side, clipped) */}
       <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
+        ref={clipperRef}
+        className="absolute inset-0 pointer-events-none will-change-[clip-path]"
+        style={{ clipPath: `inset(0 50% 0 0)` }}
       >
         <img
           src={originalImage}
@@ -92,9 +113,10 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
 
       {/* Slider line */}
       <div
-        className="absolute top-0 bottom-0 w-0.5 bg-white pointer-events-none"
+        ref={sliderLineRef}
+        className="absolute top-0 bottom-0 w-0.5 bg-white pointer-events-none will-change-left"
         style={{
-          left: `${sliderPosition}%`,
+          left: `50%`,
           transform: "translateX(-50%)",
           boxShadow: "0 0 12px rgba(0,0,0,0.5)",
         }}
@@ -118,10 +140,10 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
       </div>
 
       {/* Labels */}
-      <div className="absolute top-3 left-3 px-2.5 py-1 bg-black/60 backdrop-blur-sm rounded-md text-xs font-medium pointer-events-none">
+      <div className="absolute top-3 left-3 px-2.5 py-1 bg-black/60 backdrop-blur-sm rounded-md text-xs font-medium pointer-events-none text-white">
         Original
       </div>
-      <div className="absolute top-3 right-3 px-2.5 py-1 bg-black/60 backdrop-blur-sm rounded-md text-xs font-medium pointer-events-none">
+      <div className="absolute top-3 right-3 px-2.5 py-1 bg-black/60 backdrop-blur-sm rounded-md text-xs font-medium pointer-events-none text-white">
         Result
       </div>
     </div>

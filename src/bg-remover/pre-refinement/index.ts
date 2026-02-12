@@ -79,11 +79,16 @@ export async function preProcess(
     return imageData;
   }
 
+  const t0 = performance.now();
+  console.log("[pre-refinement] Starting WASM processing...");
+
   return new Promise((resolve, reject) => {
     const onMessage = (e: MessageEvent<PreProcessResult>) => {
       worker!.removeEventListener("message", onMessage);
 
       if (e.data.type === "result") {
+        const t1 = performance.now();
+        console.log(`[pre-refinement] Finished in ${(t1 - t0).toFixed(1)}ms`);
         resolve({
           data: new Uint8Array(e.data.rgba!),
           width: e.data.width!,
