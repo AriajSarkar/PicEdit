@@ -7,7 +7,7 @@ import {
   putInStore,
   deleteFromStore,
   clearStore,
-} from "@/lib/indexedDB";
+} from "@/bg-remover/lib/indexedDB";
 
 const MAX_HISTORY = 10;
 const STORE_NAME = "history";

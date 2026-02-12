@@ -1,7 +1,8 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { motion } from "motion/react";
-import { HistoryItem, MODEL_INFO } from "@/types";
+import { HistoryItem } from "@/types";
 
 interface HistoryPanelProps {
   history: HistoryItem[];
@@ -19,13 +20,13 @@ export function HistoryPanel({ history, onSelect, onRemove, onClear }: HistoryPa
         <h3 className="text-xs font-medium text-white/40">Recent</h3>
         <button
           onClick={onClear}
-          className="text-xs text-white/30 hover:text-white/60 transition-colors"
+          className="text-xs text-white/30 hover:text-white/60 transition-colors px-2 py-1.5 min-h-[44px] sm:min-h-0 flex items-center"
         >
           Clear all
         </button>
       </div>
 
-      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
+      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-2">
         {history.map((item) => (
           <motion.div
             key={item.id}
@@ -53,7 +54,7 @@ export function HistoryPanel({ history, onSelect, onRemove, onClear }: HistoryPa
                 e.stopPropagation();
                 onRemove(item.id);
               }}
-              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs"
+              className="absolute -top-1 -right-1 w-7 h-7 sm:w-5 sm:h-5 bg-red-500 text-white rounded-full opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs"
             >
               ×
             </button>

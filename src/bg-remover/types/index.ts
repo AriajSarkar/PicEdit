@@ -46,10 +46,26 @@ export interface HistoryItem {
   imageInfo: ImageInfo;
 }
 
+export type ProcessingStage =
+  | "preprocessing"
+  | "downloading"
+  | "processing"
+  | "postprocessing"
+  | "complete"
+  | "error";
+
 export interface ProcessingProgress {
-  stage: "downloading" | "processing" | "complete" | "error";
+  stage: ProcessingStage;
   progress: number;
   message: string;
+  /** Bytes downloaded so far (download stage only) */
+  bytesLoaded?: number;
+  /** Total bytes to download (download stage only) */
+  bytesTotal?: number;
+  /** Download speed in bytes/sec (download stage only) */
+  speed?: number;
+  /** Elapsed time in ms since stage started */
+  elapsed?: number;
 }
 
 export interface ModelCacheStatus {

@@ -1,0 +1,63 @@
+# PicEdit — Build WASM Artifacts
+#
+# Builds all Rust WASM crates and commits the artifacts to the repo.
+# This ensures Vercel/Netlify/any serverless host can deploy without
+# needing wasm-pack or Rust installed.
+#
+# Triggers:
+#  - Push to any branch that modifies wasm/ source files
+#  - Manual dispatch (workflow_dispatch)
+
+name: Build WASM
+
+on:
+  push:
+    paths:
+      - 'wasm/**/*.rs'
+      - 'wasm/**/*.toml'
+      - 'scripts/build-wasm.mjs'
+    branches: [main, dev]
+  workflow_dispatch:
+
+jobs:
+  build-wasm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: wasm
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build WASM crates
+        run: node scripts/build-wasm.mjs
+
+      - name: Commit WASM artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/wasm/
+          if git diff --staged --quiet; then
+            echo "No WASM changes to commit"
+          else
+            git commit -m "build: update pre-built WASM artifacts"
+            git push
+          fi

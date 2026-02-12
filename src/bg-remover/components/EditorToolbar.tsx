@@ -2,6 +2,7 @@
 
 import { EditorState, BackgroundType, OutputFormat } from "@/types";
 import { formatBytes } from "@/lib/imageUtils";
+// bg-remover-specific imports come from @/bg-remover/lib/
 
 interface EditorToolbarProps {
   state: EditorState;
@@ -35,7 +36,7 @@ export function EditorToolbar({
   ];
 
   return (
-    <div className="p-4 bg-[#0c0c0e] rounded-2xl border border-white/5 space-y-4">
+    <div className="p-4 bg-[var(--bg-surface)] rounded-2xl border border-[var(--border)] space-y-4">
       {/* Background */}
       <div>
         <label className="text-xs text-white/40 mb-2 block">Background</label>
@@ -45,7 +46,7 @@ export function EditorToolbar({
               <button
                 key={opt.type}
                 onClick={() => updateState({ backgroundType: opt.type })}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                className={`px-3 py-2.5 sm:py-1.5 text-xs font-medium rounded-md transition-all ${
                   state.backgroundType === opt.type
                     ? "bg-white/10 text-white"
                     : "text-white/40 hover:text-white/70"
@@ -61,7 +62,7 @@ export function EditorToolbar({
               type="color"
               value={state.backgroundColor}
               onChange={(e) => updateState({ backgroundColor: e.target.value })}
-              className="w-8 h-8 rounded-lg border-0 cursor-pointer bg-transparent"
+              className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg border-0 cursor-pointer bg-transparent"
             />
           )}
 
@@ -73,7 +74,7 @@ export function EditorToolbar({
                 max="50"
                 value={state.backgroundBlur}
                 onChange={(e) => updateState({ backgroundBlur: Number(e.target.value) })}
-                className="w-20"
+                className="w-full sm:w-20"
               />
               <span className="text-xs text-white/40">{state.backgroundBlur}px</span>
             </div>
@@ -88,7 +89,7 @@ export function EditorToolbar({
           <div className="flex bg-white/5 rounded-lg p-0.5">
             <button
               onClick={() => updateState({ rotation: (state.rotation - 90 + 360) % 360 })}
-              className="p-2 rounded-md text-white/40 hover:text-white/80 hover:bg-white/5 transition-all"
+              className="p-3 sm:p-2 rounded-md text-white/40 hover:text-white/80 hover:bg-white/5 transition-all"
               title="Rotate left"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,7 +98,7 @@ export function EditorToolbar({
             </button>
             <button
               onClick={() => updateState({ rotation: (state.rotation + 90) % 360 })}
-              className="p-2 rounded-md text-white/40 hover:text-white/80 hover:bg-white/5 transition-all"
+              className="p-3 sm:p-2 rounded-md text-white/40 hover:text-white/80 hover:bg-white/5 transition-all"
               title="Rotate right"
             >
               <svg className="w-4 h-4 scale-x-[-1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,7 +107,7 @@ export function EditorToolbar({
             </button>
             <button
               onClick={() => updateState({ flipH: !state.flipH })}
-              className={`p-2 rounded-md transition-all ${
+              className={`p-3 sm:p-2 rounded-md transition-all ${
                 state.flipH ? "bg-white/10 text-white" : "text-white/40 hover:text-white/80 hover:bg-white/5"
               }`}
               title="Flip horizontal"
@@ -117,7 +118,7 @@ export function EditorToolbar({
             </button>
             <button
               onClick={() => updateState({ flipV: !state.flipV })}
-              className={`p-2 rounded-md transition-all ${
+              className={`p-3 sm:p-2 rounded-md transition-all ${
                 state.flipV ? "bg-white/10 text-white" : "text-white/40 hover:text-white/80 hover:bg-white/5"
               }`}
               title="Flip vertical"
@@ -145,7 +146,7 @@ export function EditorToolbar({
             <button
               key={s}
               onClick={() => setScale(s)}
-              className={`py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`py-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-all ${
                 Math.abs(currentScale - s) < 0.01
                   ? "bg-white/10 text-white"
                   : "bg-white/5 text-white/40 hover:text-white/70"
@@ -172,7 +173,7 @@ export function EditorToolbar({
             <button
               key={opt.format}
               onClick={() => updateState({ outputFormat: opt.format })}
-              className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
+              className={`flex-1 py-3 sm:py-2 rounded-lg text-xs font-medium transition-all ${
                 state.outputFormat === opt.format
                   ? "bg-white/10 text-white ring-1 ring-white/20"
                   : "bg-white/5 text-white/40 hover:text-white/70"
@@ -208,7 +209,7 @@ export function EditorToolbar({
         <button
           onClick={onDownload}
           disabled={isProcessing}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium text-sm hover:from-indigo-500 hover:to-purple-500 transition-all disabled:opacity-50"
+          className="w-full py-3 rounded-xl btn-primary text-sm disabled:opacity-50"
         >
           Download {formatOptions.find((f) => f.format === state.outputFormat)?.label}
         </button>

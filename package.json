@@ -4,7 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "pnpm build:wasm && pnpm build:next",
+    "build:next": "next build",
+    "build:wasm": "node scripts/build-wasm.mjs",
+    "build:wasm:dev": "node scripts/build-wasm.mjs --dev",
+    "build:wasm:pre": "wasm-pack build wasm/pre-refinement --target web --out-dir ../../public/wasm/pre-refinement --release",
+    "build:wasm:post": "wasm-pack build wasm/post-refinement --target web --out-dir ../../public/wasm/post-refinement --release",
+    "build:wasm:server": "wasm-pack build wasm/server --target web --out-dir ../../public/wasm/server --release",
+    "build:rust": "cargo build --manifest-path wasm/Cargo.toml --target wasm32-unknown-unknown --release",
+    "check:rust": "cargo check --manifest-path wasm/Cargo.toml --target wasm32-unknown-unknown",
+    "preview": "node scripts/preview.mjs",
     "start": "next start",
     "lint": "eslint"
   },

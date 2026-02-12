@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PicEdit
 
-## Getting Started
+PicEdit is a static, client-side image editing suite built with Next.js + React + TypeScript + Rust/WASM.
 
-First, run the development server:
+It currently includes:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Background Remover** (`/bg-remover`) with pre/post-processing and refinement pipeline
+- **Image Compressor** (`/img-compressor`) with batch processing, retry/cancel controls, and ZIP export
+
+## Highlights
+
+- ⚡ **Static export architecture** (`output: "export"`) — no backend required
+- 🧠 **Rust/WASM acceleration** for image processing workloads
+- 🧰 **Batch processor engine** shared across tools (`useBatchProcessor`)
+- 🎨 **Obsidian Studio design system** (Tailwind v4 + CSS variables)
+- 📦 **Multi-file download** via in-browser ZIP generation
+
+## Tech Stack
+
+- **Next.js 16.1.6** (App Router, static export)
+- **React 19** + **TypeScript 5**
+- **Tailwind CSS v4**
+- **Motion** (`motion/react`)
+- **Rust + wasm-pack** (workspace crates in `wasm/`)
+- **pnpm** package manager
+
+## Project Structure
+
+```text
+src/app/                    # Thin route shells (pages/layouts)
+src/bg-remover/             # Background remover domain module
+src/imgcompressor/          # Image compressor domain module
+src/components/             # Shared UI components
+src/hooks/                  # Shared hooks (includes useBatchProcessor)
+src/lib/                    # Shared utilities (worker pool, zip, image utils)
+public/wasm/                # Committed WASM build artifacts
+wasm/                       # Rust workspace crates
+scripts/build-wasm.mjs      # Universal WASM build script
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Local Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerequisites
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Node.js 20+
+- pnpm 10+
+- (Optional) Rust toolchain + Cargo if you want to rebuild WASM locally
 
-## Learn More
+### Install
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm install
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Run Dev Server
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm dev
+```
 
-## Deploy on Vercel
+App runs at `http://localhost:3000`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Build Commands
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm build         # build:wasm then build:next
+pnpm build:wasm    # build all WASM crates
+pnpm build:next    # Next.js static export build only
+pnpm lint          # ESLint
+pnpm preview       # local static preview for /out
+```
+
+## WASM Build Behavior
+
+`scripts/build-wasm.mjs` is designed to be resilient across environments:
+
+- If `wasm-pack` is missing and Cargo exists, it will auto-install `wasm-pack`
+- If Rust/Cargo is unavailable (e.g., serverless CI), it falls back to prebuilt files in `public/wasm/`
+- It removes wasm-pack junk files (`.gitignore`, `package.json`, `README.md`) from output folders
+- Core crates (`pre-refinement`, `post-refinement`, `server`) are required; `compressor` is optional with Canvas fallback
+
+## Rust/WASM Crates
+
+| Crate | Purpose |
+|------|---------|
+| `pre-refinement` | CLAHE, denoise, sharpen for background-removal preprocessing |
+| `post-refinement` | Edge refinement, guided filter, Poisson blend |
+| `server` | Chunked model download helpers |
+| `compressor` | Compression algorithms (denoise, quantization, SSIM, PNG filtering) |
+
+## Deployment
+
+- Target deployment: **GitHub Pages** (`/PicEdit`)
+- `next.config.ts` sets `basePath` and `assetPrefix` to `/PicEdit` in production
+- Static output is generated in `out/`
+
+## Notes
+
+- This project is fully client-side (no API routes, no middleware)
+- WASM artifacts in `public/wasm/` are committed intentionally for serverless/static environments
