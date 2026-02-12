@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { removeBackground, Config } from "@imgly/background-removal";
 import { DeviceType, ModelType, ProcessingProgress, MODEL_INFO } from "@/types";
-import { cachedFetch } from "@/lib/modelCache";
+import { cachedFetch } from "@/bg-remover/lib/modelCache";
 import { dataUrlToImageData, blobToImageData, imageDataToBlob } from "@/bg-remover/lib/dataConversion";
 import { preProcess } from "@/bg-remover/pre-refinement";
 import { postProcess } from "@/bg-remover/post-refinement";
@@ -27,6 +27,7 @@ function formatSpeed(bytesPerSec: number): string {
 
 export function useBackgroundRemoval() {
   const processingRef = useRef(false);
+  const cancelledRef = useRef(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState<ProcessingProgress>(DEFAULT_PROGRESS);
 
@@ -59,6 +60,7 @@ export function useBackgroundRemoval() {
     ): Promise<string | null> => {
       if (processingRef.current) return null;
       processingRef.current = true;
+      cancelledRef.current = false;
       setIsProcessing(true);
 
       try {
@@ -114,6 +116,8 @@ export function useBackgroundRemoval() {
         }
 
         // --- STAGE 2: MODEL DOWNLOAD + AI INFERENCE ---
+        if (cancelledRef.current) throw new Error('Cancelled');
+
         // Reset download tracking
         downloadStartRef.current = performance.now();
         lastBytesRef.current = 0;
@@ -209,6 +213,8 @@ export function useBackgroundRemoval() {
         };
 
         const aiResult = await removeBackground(sourceForAI, config);
+
+        if (cancelledRef.current) throw new Error('Cancelled');
 
         // --- STAGE 3: POST-PROCESSING (Rust/WASM) ---
         updateProgress({
@@ -306,8 +312,16 @@ export function useBackgroundRemoval() {
         updateProgress({ stage: "complete", progress: 100, message: "Done!" });
         return dataUrl;
       } catch (error) {
+        if (cancelledRef.current) {
+          updateProgress({ stage: "complete", progress: 0, message: "Cancelled" });
+          return null;
+        }
         const msg =
           error instanceof Error ? error.message : "Processing failed";
+        if (msg === 'Cancelled') {
+          updateProgress({ stage: "complete", progress: 0, message: "Cancelled" });
+          return null;
+        }
         console.error("Background removal failed:", error);
         updateProgress({ stage: "error", progress: 0, message: msg });
         return null;
@@ -319,12 +333,20 @@ export function useBackgroundRemoval() {
     [updateProgress]
   );
 
+  const cancel = useCallback(() => {
+    cancelledRef.current = true;
+    processingRef.current = false;
+    setIsProcessing(false);
+    setProgress({ stage: "complete", progress: 0, message: "Cancelled" });
+  }, []);
+
   return {
     processImage,
     preloadModel,
     isModelCached,
     progress,
     isProcessing,
+    cancel,
   };
 }
 

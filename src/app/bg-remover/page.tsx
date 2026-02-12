@@ -11,6 +11,8 @@ import { ProcessingOverlay } from "@/bg-remover/components/ProcessingOverlay";
 import { ImageInfoBar } from "@/bg-remover/components/ImageInfoBar";
 import { EditorToolbar } from "@/bg-remover/components/EditorToolbar";
 import { HistoryPanel } from "@/bg-remover/components/HistoryPanel";
+import { RetryButton } from "@/components/RetryButton";
+import { CancelButton } from "@/components/CancelButton";
 
 // Hooks
 import { useBackgroundRemoval } from "@/bg-remover/hooks/useBackgroundRemoval";
@@ -30,11 +32,10 @@ import {
   fileToDataUrl,
   loadImage,
   getImageInfo,
-  applyEdits,
-  downloadImage,
   generateId,
   estimateDataUrlSize,
 } from "@/lib/imageUtils";
+import { applyEdits, downloadImage } from "@/bg-remover/lib/imageUtils";
 
 export default function BGRemoverPage() {
   // State
@@ -46,7 +47,7 @@ export default function BGRemoverPage() {
   const [imageInfo, setImageInfo] = useState<ImageInfo>(DEFAULT_IMAGE_INFO);
 
   // Hooks
-  const { processImage, progress, isProcessing } = useBackgroundRemoval();
+  const { processImage, progress, isProcessing, cancel } = useBackgroundRemoval();
   const { state, updateState, initializeFromImage, setScale, currentScale } = useImageEditor();
   const { history, addToHistory, removeFromHistory, clearHistory, isLoaded: historyLoaded } = useHistory();
   const { session, saveSession, isLoaded: sessionLoaded } = useSession();
@@ -185,8 +186,23 @@ export default function BGRemoverPage() {
     setImageInfo(DEFAULT_IMAGE_INFO);
   }, []);
 
+  // Retry: re-process same image with current device/model/settings
+  const handleRetry = useCallback(async () => {
+    if (!originalImage || isProcessing) return;
+    const result = await processImage(originalImage, device, model, originalImage);
+    if (result) {
+      setProcessedImage(result);
+      const applied = await applyEdits(result, originalImage, state);
+      setFinalImage(applied);
+      saveSession({
+        originalImage, processedImage: result, finalImage: applied,
+        device, model, imageInfo, editorState: state,
+      });
+    }
+  }, [originalImage, device, model, processImage, state, saveSession, imageInfo, isProcessing]);
+
   return (
-    <div className="min-h-screen bg-[#09090b] text-white">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--foreground)]">
       <Header
         device={device}
         setDevice={setDevice}
@@ -218,9 +234,9 @@ export default function BGRemoverPage() {
           // Editor View
           <div className="grid lg:grid-cols-[1fr,340px] gap-6">
             {/* Preview */}
-            <div className="relative rounded-2xl overflow-hidden bg-[#0c0c0e] border border-white/5">
+            <div className="relative rounded-2xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border)]">
               <AnimatePresence>
-                {isProcessing && <ProcessingOverlay progress={progress} />}
+                {isProcessing && <ProcessingOverlay progress={progress} onCancel={cancel} />}
               </AnimatePresence>
 
               <CompareSlider
@@ -234,6 +250,33 @@ export default function BGRemoverPage() {
                 estimatedSize={estimatedSize}
                 onNewImage={handleNewImage}
               />
+
+              {/* Retry / Cancel bar */}
+              {!isProcessing && hasImage && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-elevated)] border-t border-[var(--border)]">
+                  <RetryButton
+                    onClick={handleRetry}
+                    label="Re-process"
+                    disabled={isProcessing}
+                    size="md"
+                  />
+                  <span className="text-xs text-[var(--muted)] ml-auto">
+                    Retry with current settings
+                  </span>
+                </div>
+              )}
+              {isProcessing && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-elevated)] border-t border-[var(--border)]">
+                  <CancelButton
+                    onClick={cancel}
+                    label="Cancel"
+                    size="md"
+                  />
+                  <span className="text-xs text-[var(--muted)] ml-auto">
+                    Stop current processing
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Toolbar */}

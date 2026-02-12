@@ -5,6 +5,7 @@ import { ProcessingProgress } from "@/types";
 
 interface ProcessingOverlayProps {
   progress: ProcessingProgress;
+  onCancel?: () => void;
 }
 
 const STAGE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
@@ -80,7 +81,7 @@ function formatElapsed(ms: number | undefined): string {
   return `${Math.floor(sec / 60)}m ${sec % 60}s`;
 }
 
-export function ProcessingOverlay({ progress }: ProcessingOverlayProps) {
+export function ProcessingOverlay({ progress, onCancel }: ProcessingOverlayProps) {
   const config = STAGE_CONFIG[progress.stage] || STAGE_CONFIG.processing;
   const overall = getOverallProgress(progress.stage, progress.progress);
   const elapsed = formatElapsed(progress.elapsed);
@@ -164,6 +165,16 @@ export function ProcessingOverlay({ progress }: ProcessingOverlayProps) {
           <p className="mt-2 text-[10px] text-white/30">
             First time only — model will be cached
           </p>
+        )}
+
+        {/* Cancel button */}
+        {onCancel && (
+          <button
+            onClick={onCancel}
+            className="mt-4 w-full px-4 py-2 rounded-lg text-xs font-medium text-red-300 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 transition-colors"
+          >
+            Cancel Processing
+          </button>
         )}
       </div>
     </motion.div>

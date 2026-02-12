@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { getFromStore, putInStore, deleteFromStore } from "@/lib/indexedDB";
+import { getFromStore, putInStore, deleteFromStore } from "@/bg-remover/lib/indexedDB";
 import { DeviceType, ModelType, ImageInfo, DEFAULT_IMAGE_INFO, EditorState } from "@/types";
 
 const STORE_NAME = "settings";

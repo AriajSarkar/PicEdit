@@ -211,7 +211,7 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
         className="absolute top-0 bottom-0 pointer-events-none"
         style={{ left: "50%", transform: "translateX(-50%)", width: 0 }}
       >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full pointer-events-auto cursor-ew-resize"
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11 h-11 sm:w-9 sm:h-9 rounded-full pointer-events-auto cursor-ew-resize"
           style={{
             background: "rgba(255,255,255,0.95)",
             boxShadow: "0 2px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,255,255,0.2)",

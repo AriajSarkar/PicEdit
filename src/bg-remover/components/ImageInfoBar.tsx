@@ -2,6 +2,7 @@
 
 import { ImageInfo, EditorState } from "@/types";
 import { formatBytes } from "@/lib/imageUtils";
+// shared utility, now at @/lib/imageUtils
 
 interface ImageInfoBarProps {
   imageInfo: ImageInfo;
@@ -30,7 +31,7 @@ export function ImageInfoBar({
       : 0;
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-white/[0.02] border-t border-white/5">
+    <div className="flex items-center justify-between px-4 py-3 bg-[var(--bg-surface)] border-t border-[var(--border)]">
       <div className="flex items-center gap-4 text-xs">
         <span className="text-white/40">
           {outputWidth} × {outputHeight}
