@@ -1,90 +1,133 @@
-/*! coi-serviceworker v0.1.7 - Guido Zuidhof, licensed under MIT */
-let coepCredentialless = false;
-if (typeof window === 'undefined') {
+/**
+ * PicEdit — Cross-Origin Isolation Service Worker
+ *
+ * Enables SharedArrayBuffer for WASM threads by injecting COEP/COOP headers
+ * on navigation responses ONLY. Sub-resource requests (model downloads, CDN
+ * assets, images) pass through untouched to avoid:
+ *   - Blocking CDN resources lacking Cross-Origin-Resource-Policy
+ *   - Re-streaming large model files through the SW (adds latency)
+ *   - Breaking third-party fetch requests
+ *
+ * Uses "credentialless" COEP mode for broader CDN compatibility.
+ *
+ * Based on coi-serviceworker v0.1.7 — Guido Zuidhof, MIT license.
+ */
+
+if (typeof window === "undefined") {
+  // ── Service Worker scope ──────────────────────────────────────
+
+  const COEP = "credentialless"; // "credentialless" is more permissive than "require-corp"
+
   self.addEventListener("install", () => self.skipWaiting());
-  self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+
+  self.addEventListener("activate", (event) => {
+    event.waitUntil(self.clients.claim());
+  });
 
   self.addEventListener("message", (ev) => {
-    if (!ev.data) {
-      return;
-    } else if (ev.data.type === "deregister") {
-      self.registration.unregister();
-    } else if (ev.data.type === "coepCredentialless") {
-      coepCredentialless = ev.data.value;
+    if (!ev.data) return;
+    if (ev.data.type === "deregister") {
+      self.registration
+        .unregister()
+        .then(() => self.clients.matchAll())
+        .then((clients) =>
+          clients.forEach((c) => c.navigate(c.url))
+        );
     }
   });
 
-  self.addEventListener("fetch", function (event) {
-    const r = event.request;
-    if (r.cache === "only-if-cached" && r.mode !== "same-origin") {
-      return;
-    }
+  self.addEventListener("fetch", (event) => {
+    const req = event.request;
 
-    const coep = coepCredentialless ? "credentialless" : "require-corp";
+    // Skip cache-only + cross-mode (browser spec edge case)
+    if (req.cache === "only-if-cached" && req.mode !== "same-origin") return;
+
+    // ★ Only modify navigation requests (HTML documents).
+    //   Sub-resources (JS, WASM, ONNX models, images, fonts) pass through
+    //   directly — no overhead, no CORP blocking, no re-streaming.
+    if (req.mode !== "navigate") return;
 
     event.respondWith(
-      fetch(r)
-        .then((response) => {
-          if (response.status === 0) {
-            return response;
-          }
+      fetch(req)
+        .then((res) => {
+          // Opaque redirects / network errors — pass as-is
+          if (res.status === 0) return res;
 
-          const newHeaders = new Headers(response.headers);
-          newHeaders.set("Cross-Origin-Embedder-Policy", coep);
-          newHeaders.set("Cross-Origin-Opener-Policy", "same-origin");
+          const headers = new Headers(res.headers);
+          headers.set("Cross-Origin-Embedder-Policy", COEP);
+          headers.set("Cross-Origin-Opener-Policy", "same-origin");
 
-          return new Response(response.body, {
-            status: response.status,
-            statusText: response.statusText,
-            headers: newHeaders,
+          return new Response(res.body, {
+            status: res.status,
+            statusText: res.statusText,
+            headers,
           });
         })
-        .catch((e) => console.error(e))
+        .catch(() => {
+          // Network error during navigation — return a minimal offline page
+          return new Response(
+            "<!DOCTYPE html><html><head><meta charset=utf-8><title>Offline</title></head>" +
+              '<body style="font-family:system-ui;text-align:center;padding:4rem">' +
+              "<h1>You are offline</h1><p>Please check your connection and try again.</p>" +
+              "<button onclick=location.reload()>Retry</button></body></html>",
+            { status: 503, headers: { "Content-Type": "text/html" } }
+          );
+        })
     );
   });
 } else {
+  // ── Window scope (registration) ───────────────────────────────
+
   (() => {
-    const coi = {
+    const cfg = {
       shouldRegister: () => true,
       shouldDeregister: () => false,
-      coepCredentialless: () => false,
-      doReload: () => window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1',
+      doReload: () =>
+        window.location.hostname !== "localhost" &&
+        window.location.hostname !== "127.0.0.1",
       quiet: false,
-      ...window.coi
+      ...window.coi,
     };
 
-    const n = navigator;
-    if (n.serviceWorker && n.serviceWorker.controller) {
-      n.serviceWorker.controller.postMessage({
-        type: "coepCredentialless",
-        value: coi.coepCredentialless(),
-      });
+    const sw = navigator.serviceWorker;
+    if (!sw) return; // SW not supported (e.g. HTTP without localhost)
 
-      if (coi.shouldDeregister()) {
-        n.serviceWorker.controller.postMessage({ type: "deregister" });
+    if (sw.controller) {
+      // SW already active — nothing to do
+      if (cfg.shouldDeregister()) {
+        sw.controller.postMessage({ type: "deregister" });
       }
-    } else {
-      if (coi.shouldRegister()) {
-        const src = document.currentScript.src;
-
-        // Listen for the SW to actually claim this client before reloading.
-        // This prevents an infinite reload loop where register() succeeds
-        // but the SW hasn't called clients.claim() yet on the reloaded page.
-        if (coi.doReload()) {
-          n.serviceWorker.addEventListener("controllerchange", () => {
-            window.location.reload();
-          }, { once: true });
-        }
-
-        n.serviceWorker.register(src).then(
-          () => {
-            if (!coi.quiet) console.log("coi-serviceworker registered");
-          },
-          (err) => {
-            if (!coi.quiet) console.error("coi-serviceworker registration failed: ", err);
-          }
-        );
-      }
+      return;
     }
+
+    if (!cfg.shouldRegister()) return;
+
+    // Determine SW script URL (handles basePath for GH Pages, subpath deploys)
+    const scriptURL =
+      document.currentScript && document.currentScript.src
+        ? document.currentScript.src
+        : new URL("coi-serviceworker.js", document.baseURI).href;
+
+    // Guard against infinite reload: only reload once per session
+    const RELOAD_KEY = "__coi_reload";
+    const needsReload = cfg.doReload() && !sessionStorage.getItem(RELOAD_KEY);
+
+    if (needsReload) {
+      sessionStorage.setItem(RELOAD_KEY, "1");
+      sw.addEventListener(
+        "controllerchange",
+        () => window.location.reload(),
+        { once: true }
+      );
+    }
+
+    sw.register(scriptURL, { scope: new URL("./", scriptURL).pathname }).then(
+      (reg) => {
+        if (!cfg.quiet) console.log("[COI] Service worker registered", reg.scope);
+      },
+      (err) => {
+        if (!cfg.quiet) console.error("[COI] Registration failed:", err);
+      }
+    );
   })();
 }
