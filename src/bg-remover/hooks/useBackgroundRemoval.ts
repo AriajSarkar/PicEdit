@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { removeBackground, Config } from "@imgly/background-removal";
 import { DeviceType, ModelType, ProcessingProgress, MODEL_INFO } from "@/types";
-import { cachedFetch } from "@/bg-remover/lib/modelCache";
+import { installFetchInterceptor, uninstallFetchInterceptor } from "@/bg-remover/lib/modelCache";
 import { dataUrlToImageData, blobToImageData, imageDataToBlob } from "@/bg-remover/lib/dataConversion";
 import { preProcess } from "@/bg-remover/pre-refinement";
 import { postProcess } from "@/bg-remover/post-refinement";
@@ -135,9 +135,6 @@ export function useBackgroundRemoval() {
           device,
           model,
           output: { format: "image/png", quality: 1 },
-          fetchArgs: {
-            customFetch: cachedFetch,
-          },
           progress: (
             progressKey: string,
             current: number,
@@ -212,7 +209,16 @@ export function useBackgroundRemoval() {
           },
         };
 
-        const aiResult = await removeBackground(sourceForAI, config);
+        // Install global fetch interceptor to cache model downloads in IndexedDB.
+        // The @imgly/background-removal library calls native fetch() directly —
+        // there is no customFetch hook. This is the only way to intercept.
+        installFetchInterceptor();
+        let aiResult: Blob;
+        try {
+          aiResult = await removeBackground(sourceForAI, config);
+        } finally {
+          uninstallFetchInterceptor();
+        }
 
         if (cancelledRef.current) throw new Error('Cancelled');
 
