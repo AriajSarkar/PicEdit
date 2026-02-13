@@ -84,11 +84,11 @@ export const metadata: Metadata = {
     },
   },
 
-  // Icons
+  // Icons — single SVG works everywhere (favicon, PWA, Apple)
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: { url: "/icon.svg", type: "image/svg+xml" },
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
   },
 
   // Manifest for PWA

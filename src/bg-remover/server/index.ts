@@ -9,9 +9,11 @@ import {
  * Cached model fetch using Rust/WASM chunked download with IndexedDB persistence.
  *
  * This replaces the JS-based cachedFetch for model files, handling binary data
- * without GC pauses. For non-model URLs, falls back to regular fetch.
+ * without GC pauses.
  *
- * Can be used as a drop-in replacement for the customFetch option in @imgly config.
+ * This function is only used as customFetch for @imgly/background-removal,
+ * so every request through it is a model/runtime resource (content-hashed
+ * filenames from CDN — no .onnx/.wasm extensions). Cache everything.
  */
 export async function cachedModelFetch(
   input: RequestInfo | URL,
@@ -20,14 +22,6 @@ export async function cachedModelFetch(
   config?: Partial<ServerConfig>
 ): Promise<Response> {
   const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-
-  // Only use WASM cache for model/wasm files
-  const isModelFile =
-    url.includes(".onnx") || url.includes(".wasm") || url.includes("ort-wasm");
-
-  if (!isModelFile) {
-    return fetch(input, init);
-  }
 
   const fullConfig = { ...DEFAULT_SERVER_CONFIG, ...config };
 

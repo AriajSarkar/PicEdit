@@ -1,21 +1,44 @@
 {
   "name": "PicEdit - Free Online Image Tools",
   "short_name": "PicEdit",
-  "description": "Free online image editing tools. Remove backgrounds with AI, compress, resize, and convert images.",
-  "start_url": "/",
+  "description": "Free online image editing tools. Remove backgrounds with AI, compress, resize, and convert images. 100% private — all processing in your browser.",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#09090b",
-  "theme_color": "#6366f1",
+  "theme_color": "#e07a5f",
+  "categories": ["design", "photo", "productivity", "utilities"],
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Remove Background",
+      "short_name": "BG Remover",
+      "url": "bg-remover",
+      "description": "AI-powered background removal"
+    },
+    {
+      "name": "Compress Images",
+      "short_name": "Compressor",
+      "url": "img-compressor",
+      "description": "WASM-powered image compression"
     }
   ]
 }

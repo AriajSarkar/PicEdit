@@ -293,6 +293,24 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Free Alternatives */}
+      <section className="py-12 border-t border-[var(--border)]">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
+            Want another free option?{" "}
+            <a
+              href="https://bgbye.io/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--accent)] hover:underline font-medium"
+            >
+              bgbye.io
+            </a>{" "}
+            is also a great free background remover — because everyone deserves free tools.
+          </p>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-[var(--border)] py-8">
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
