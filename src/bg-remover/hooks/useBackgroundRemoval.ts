@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { removeBackground, Config } from "@imgly/background-removal";
 import { DeviceType, ModelType, ProcessingProgress, MODEL_INFO } from "@/types";
-import { installFetchInterceptor, uninstallFetchInterceptor } from "@/bg-remover/lib/modelCache";
+import { installFetchInterceptor, uninstallFetchInterceptor, clearModelCache } from "@/bg-remover/lib/modelCache";
 import { dataUrlToImageData, blobToImageData, imageDataToBlob } from "@/bg-remover/lib/dataConversion";
 import { preProcess } from "@/bg-remover/pre-refinement";
 import { postProcess } from "@/bg-remover/post-refinement";
@@ -215,7 +215,24 @@ export function useBackgroundRemoval() {
         installFetchInterceptor();
         let aiResult: Blob;
         try {
-          aiResult = await removeBackground(sourceForAI, config);
+          try {
+            aiResult = await removeBackground(sourceForAI, config);
+          } catch (firstErr) {
+            // If the library reports a size mismatch, the cache likely has a
+            // truncated/corrupt entry from a previous interrupted download.
+            // Clear it and retry once.
+            const msg = firstErr instanceof Error ? firstErr.message : "";
+            if (msg.includes("but got") && msg.includes("with size")) {
+              console.warn(
+                "[pipeline] Size mismatch detected — clearing corrupt cache and retrying...",
+                msg
+              );
+              await clearModelCache();
+              aiResult = await removeBackground(sourceForAI, config);
+            } else {
+              throw firstErr;
+            }
+          }
         } finally {
           uninstallFetchInterceptor();
         }

@@ -15,8 +15,8 @@
 //   3. All other fetch() calls pass through to the real native fetch
 //   4. Call uninstallFetchInterceptor() after (in finally block)
 //
-// Downloads use retry + exponential backoff + stall timeout
-// to survive flaky CDN connections on GH Pages / Vercel.
+// Downloads use retry + exponential backoff.
+// NO stall timeout — the user's network speed is respected.
 // ═══════════════════════════════════════════════════════════════════
 
 const DB_NAME = "bg-remover-cache";
@@ -27,8 +27,6 @@ const MODEL_STORE = "models";
 const MAX_RETRIES = 3;
 /** Base delay for exponential backoff (ms) */
 const BASE_DELAY_MS = 1_000;
-/** If no bytes arrive for this long, abort and retry (ms) */
-const STALL_TIMEOUT_MS = 15_000;
 
 /** URL patterns that should be intercepted and cached */
 const INTERCEPT_PATTERNS = [
@@ -258,68 +256,17 @@ function delay(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function streamToBuffer(
-  response: Response,
-  stallMs: number,
-  onAbort?: () => void
-): Promise<ArrayBuffer> {
-  if (!response.body) {
-    return response.arrayBuffer();
-  }
-
-  const reader = response.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let totalLength = 0;
-
-  let stallTimer: ReturnType<typeof setTimeout> | null = null;
-  let timedOut = false;
-
-  const clearStall = () => {
-    if (stallTimer) clearTimeout(stallTimer);
-    stallTimer = null;
-  };
-
-  const resetStall = () => {
-    clearStall();
-    stallTimer = setTimeout(() => {
-      timedOut = true;
-      reader.cancel("Download stalled — no data for 15s");
-      onAbort?.();
-    }, stallMs);
-  };
-
-  resetStall();
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-
-      if (done) break;
-
-      if (timedOut) {
-        throw new Error("Download stalled — no data received for 15s");
-      }
-
-      resetStall();
-      chunks.push(value);
-      totalLength += value.byteLength;
-    }
-  } finally {
-    clearStall();
-  }
-
-  const merged = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const chunk of chunks) {
-    merged.set(chunk, offset);
-    offset += chunk.byteLength;
-  }
-
-  return merged.buffer;
-}
-
+/**
+ * Robust fetch with retry + exponential backoff.
+ * Returns the response body as a ready-to-use ArrayBuffer.
+ *
+ * NO stall timeout — downloads run at the user's network speed.
+ * The browser handles its own TCP/connection timeouts naturally.
+ * If Content-Length is present, we verify the downloaded size matches
+ * to prevent caching partial/corrupt data.
+ */
 async function robustDownload(
-  nativeFetch: typeof fetch,
+  nativeFn: typeof fetch,
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<ArrayBuffer> {
@@ -346,16 +293,29 @@ async function robustDownload(
     try {
       if (init?.signal?.aborted) throw new Error("Aborted");
 
-      const response = await nativeFetch(input, init);
+      const response = await nativeFn(input, init);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status} ${response.statusText}`);
       }
 
-      const data = await streamToBuffer(response, STALL_TIMEOUT_MS);
+      // Plain arrayBuffer() — no stall timeout, no size limits.
+      // The browser handles network timeouts natively.
+      const data = await response.arrayBuffer();
 
       if (data.byteLength === 0) {
         throw new Error("Received empty response body");
+      }
+
+      // Verify against Content-Length if present to catch truncated responses
+      const contentLength = response.headers.get("Content-Length");
+      if (contentLength) {
+        const expected = parseInt(contentLength, 10);
+        if (!isNaN(expected) && data.byteLength !== expected) {
+          throw new Error(
+            `Incomplete download: expected ${expected} bytes but got ${data.byteLength}`
+          );
+        }
       }
 
       console.log(
@@ -458,22 +418,20 @@ async function interceptedFetch(
     console.warn("[ModelCache] Cache read failed, falling through:", err);
   }
 
-  // ── Download with retry + stall guard ─────────────────────────
+  // ── Download with retry (no stall timeout — user's speed is respected) ──
   console.log(`[ModelCache] ↓ Downloading: ${fileName}`);
   const data = await robustDownload(nativeFetch, input, init);
 
-  // ── Cache to IndexedDB (fire-and-forget for speed, but log result) ───
-  // We DON'T await this — let the response return immediately
-  // while caching happens in the background
-  modelCache.set(url, data).then((ok) => {
-    if (ok) {
-      console.log(
-        `[ModelCache] ✓ Cached: ${fileName} (${formatBytes(data.byteLength)})`
-      );
-    } else {
-      console.warn(`[ModelCache] ✗ Failed to cache: ${fileName}`);
-    }
-  });
+  // ── Cache to IndexedDB ────────────────────────────────────────
+  // Await the write so we know it succeeded before returning.
+  const cached = await modelCache.set(url, data);
+  if (cached) {
+    console.log(
+      `[ModelCache] ✓ Cached: ${fileName} (${formatBytes(data.byteLength)})`
+    );
+  } else {
+    console.warn(`[ModelCache] ✗ Failed to cache: ${fileName}`);
+  }
 
   // ── Return Response from buffered data ────────────────────────
   return new Response(data, {
@@ -519,6 +477,17 @@ export function uninstallFetchInterceptor(): void {
 // ── Exported utilities ──────────────────────────────────────────
 
 export { modelCache };
+
+/**
+ * Clear the entire model cache.
+ * Call this when the library reports a size mismatch — the cache
+ * likely has a truncated/corrupt entry from a previous failed download.
+ */
+export async function clearModelCache(): Promise<void> {
+  console.log("[ModelCache] Clearing entire cache (corrupt entry recovery)...");
+  await modelCache.clear();
+  console.log("[ModelCache] Cache cleared.");
+}
 
 export function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 B";
