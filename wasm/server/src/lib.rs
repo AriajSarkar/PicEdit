@@ -4,11 +4,7 @@ use wasm_bindgen::prelude::*;
 
 /// Check if a model is fully cached in IndexedDB.
 #[wasm_bindgen]
-pub async fn is_cached(
-    url: &str,
-    db_name: &str,
-    store_name: &str,
-) -> Result<bool, JsValue> {
+pub async fn is_cached(url: &str, db_name: &str, store_name: &str) -> Result<bool, JsValue> {
     chunked_download::is_cached(url, db_name, store_name).await
 }
 
@@ -46,9 +42,6 @@ pub async fn chunked_download(
 
 /// Clear all cached model data from IndexedDB.
 #[wasm_bindgen]
-pub async fn clear_cache(
-    db_name: &str,
-    store_name: &str,
-) -> Result<(), JsValue> {
+pub async fn clear_cache(db_name: &str, store_name: &str) -> Result<(), JsValue> {
     chunked_download::clear_cache(db_name, store_name).await
 }

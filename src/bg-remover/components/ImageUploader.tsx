@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useCallback, memo } from "react";
-import { motion } from "motion/react";
-import { ProcessingProgress } from "@/types";
-import { FileUploader } from "@/components/FileUploader";
+import { useCallback, memo } from 'react';
+import { motion } from 'motion/react';
+import { ProcessingProgress } from '@/types';
+import { FileUploader } from '@/components/FileUploader';
 
 interface ImageUploaderProps {
   onImageSelect: (file: File) => void;
@@ -13,17 +13,17 @@ interface ImageUploaderProps {
 }
 
 const STAGE_LABELS: Record<string, string> = {
-  preprocessing: "Pre-processing",
-  downloading: "Downloading model",
-  processing: "AI inference",
-  postprocessing: "Post-processing",
+  preprocessing: 'Pre-processing',
+  downloading: 'Downloading model',
+  processing: 'AI inference',
+  postprocessing: 'Post-processing',
 };
 
 const STAGE_COLORS: Record<string, string> = {
-  preprocessing: "from-amber-500 to-orange-500",
-  downloading: "from-blue-500 to-cyan-500",
-  processing: "from-indigo-500 to-purple-500",
-  postprocessing: "from-emerald-500 to-teal-500",
+  preprocessing: 'from-amber-500 to-orange-500',
+  downloading: 'from-blue-500 to-cyan-500',
+  processing: 'from-indigo-500 to-purple-500',
+  postprocessing: 'from-emerald-500 to-teal-500',
 };
 
 export const ImageUploader = memo(function ImageUploader({
@@ -36,7 +36,7 @@ export const ImageUploader = memo(function ImageUploader({
     (files: File[]) => {
       if (files[0]) onImageSelect(files[0]);
     },
-    [onImageSelect]
+    [onImageSelect],
   );
 
   return (
@@ -45,7 +45,7 @@ export const ImageUploader = memo(function ImageUploader({
       disabled={disabled || isProcessing}
       title="Drop your image here"
       subtitle="or click to browse"
-      formats={["PNG", "JPG", "WebP"]}
+      formats={['PNG', 'JPG', 'WebP']}
       minHeight="320px"
     >
       {isProcessing && progress ? (
@@ -73,7 +73,7 @@ export const ImageUploader = memo(function ImageUploader({
             </div>
             <div className="h-2 bg-white/10 rounded-full overflow-hidden">
               <motion.div
-                className={`h-full bg-gradient-to-r ${STAGE_COLORS[progress.stage] ?? "from-[var(--accent)] to-purple-500"}`}
+                className={`h-full bg-gradient-to-r ${STAGE_COLORS[progress.stage] ?? 'from-[var(--accent)] to-purple-500'}`}
                 initial={{ width: 0 }}
                 animate={{ width: `${progress.progress}%` }}
                 transition={{ duration: 0.2 }}
@@ -82,7 +82,7 @@ export const ImageUploader = memo(function ImageUploader({
           </div>
 
           <p className="text-sm text-[var(--foreground)]/70 mb-1">{progress.message}</p>
-          {progress.stage === "downloading" && (
+          {progress.stage === 'downloading' && (
             <p className="text-xs text-[var(--muted)]">First time only — model will be cached</p>
           )}
         </div>

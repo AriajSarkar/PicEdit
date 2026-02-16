@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect } from "react";
-import { getFromStore, putInStore, deleteFromStore } from "@/bg-remover/lib/indexedDB";
-import { DeviceType, ModelType, ImageInfo, DEFAULT_IMAGE_INFO, EditorState } from "@/types";
+import { useState, useCallback, useEffect } from 'react';
+import { getFromStore, putInStore, deleteFromStore } from '@/bg-remover/lib/indexedDB';
+import { DeviceType, ModelType, ImageInfo, DEFAULT_IMAGE_INFO, EditorState } from '@/types';
 
-const STORE_NAME = "settings";
-const CURRENT_SESSION_KEY = "currentSession";
+const STORE_NAME = 'settings';
+const CURRENT_SESSION_KEY = 'currentSession';
 
 export interface SessionData {
   key: string;
@@ -24,8 +24,8 @@ const DEFAULT_SESSION: SessionData = {
   originalImage: null,
   processedImage: null,
   finalImage: null,
-  device: "gpu",
-  model: "isnet_quint8",
+  device: 'gpu',
+  model: 'isnet_quint8',
   imageInfo: DEFAULT_IMAGE_INFO,
   editorState: {},
   timestamp: 0,
@@ -44,7 +44,7 @@ export function useSession() {
           setSession(saved);
         }
       } catch (error) {
-        console.error("Failed to load session:", error);
+        console.error('Failed to load session:', error);
       } finally {
         setIsLoaded(true);
       }
@@ -54,21 +54,24 @@ export function useSession() {
   }, []);
 
   // Save session to IndexedDB
-  const saveSession = useCallback(async (data: Partial<SessionData>) => {
-    const newSession = {
-      ...session,
-      ...data,
-      key: CURRENT_SESSION_KEY,
-      timestamp: Date.now(),
-    };
-    setSession(newSession);
+  const saveSession = useCallback(
+    async (data: Partial<SessionData>) => {
+      const newSession = {
+        ...session,
+        ...data,
+        key: CURRENT_SESSION_KEY,
+        timestamp: Date.now(),
+      };
+      setSession(newSession);
 
-    try {
-      await putInStore(STORE_NAME, newSession);
-    } catch (error) {
-      console.error("Failed to save session:", error);
-    }
-  }, [session]);
+      try {
+        await putInStore(STORE_NAME, newSession);
+      } catch (error) {
+        console.error('Failed to save session:', error);
+      }
+    },
+    [session],
+  );
 
   // Clear session
   const clearSession = useCallback(async () => {
@@ -76,7 +79,7 @@ export function useSession() {
     try {
       await deleteFromStore(STORE_NAME, CURRENT_SESSION_KEY);
     } catch (error) {
-      console.error("Failed to clear session:", error);
+      console.error('Failed to clear session:', error);
     }
   }, []);
 

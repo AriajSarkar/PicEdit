@@ -1,7 +1,7 @@
-mod quantize;
-mod ssim;
 mod denoise;
 mod png_filter;
+mod quantize;
+mod ssim;
 
 use wasm_bindgen::prelude::*;
 
@@ -24,7 +24,7 @@ pub fn optimize_for_compression(
     rgba: &[u8],
     width: u32,
     height: u32,
-    strength: f32,  // 0.0-1.0: compression aggressiveness
+    strength: f32, // 0.0-1.0: compression aggressiveness
 ) -> Vec<u8> {
     let w = width as usize;
     let h = height as usize;
@@ -53,12 +53,7 @@ pub fn optimize_for_compression(
 /// Reduces unique color count for better compression.
 /// `max_colors`: target palette size (2-256)
 #[wasm_bindgen]
-pub fn quantize_colors(
-    rgba: &[u8],
-    width: u32,
-    height: u32,
-    max_colors: u32,
-) -> Vec<u8> {
+pub fn quantize_colors(rgba: &[u8], width: u32, height: u32, max_colors: u32) -> Vec<u8> {
     let w = width as usize;
     let h = height as usize;
     if rgba.len() != w * h * 4 || max_colors < 2 {
@@ -72,12 +67,7 @@ pub fn quantize_colors(
 /// Returns value in [0, 1] where 1 = identical.
 /// Uses luminance channel for fast computation.
 #[wasm_bindgen]
-pub fn calculate_ssim(
-    img_a: &[u8],
-    img_b: &[u8],
-    width: u32,
-    height: u32,
-) -> f32 {
+pub fn calculate_ssim(img_a: &[u8], img_b: &[u8], width: u32, height: u32) -> f32 {
     let w = width as usize;
     let h = height as usize;
     let npx = w * h;
@@ -92,11 +82,7 @@ pub fn calculate_ssim(
 /// Returns a byte array where byte[i] = optimal filter type for row i.
 /// Filter types: 0=None, 1=Sub, 2=Up, 3=Average, 4=Paeth
 #[wasm_bindgen]
-pub fn select_png_filters(
-    rgba: &[u8],
-    width: u32,
-    height: u32,
-) -> Vec<u8> {
+pub fn select_png_filters(rgba: &[u8], width: u32, height: u32) -> Vec<u8> {
     let w = width as usize;
     let h = height as usize;
     if rgba.len() != w * h * 4 {

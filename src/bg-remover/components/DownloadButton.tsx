@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { OutputFormat } from "@/types";
-import { DownloadButton as SharedDownloadButton } from "@/components/DownloadButton";
+import { OutputFormat } from '@/types';
+import { DownloadButton as SharedDownloadButton } from '@/components/DownloadButton';
 
 const FORMAT_LABELS: Record<OutputFormat, string> = {
-  "image/png": "PNG",
-  "image/jpeg": "JPG",
-  "image/webp": "WebP",
+  'image/png': 'PNG',
+  'image/jpeg': 'JPG',
+  'image/webp': 'WebP',
 };
 
 interface BGDownloadButtonProps {

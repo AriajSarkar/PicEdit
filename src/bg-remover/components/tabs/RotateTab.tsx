@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { motion } from "motion/react";
-import { EditorState } from "@/types";
+import { motion } from 'motion/react';
+import { EditorState } from '@/types';
 
 interface RotateTabProps {
   state: EditorState;
@@ -23,8 +23,8 @@ export function RotateTab({ state, updateState }: RotateTabProps) {
               onClick={() => updateState({ rotation: deg })}
               className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                 state.rotation === deg
-                  ? "bg-accent text-white"
-                  : "bg-surface text-muted hover:text-foreground"
+                  ? 'bg-accent text-white'
+                  : 'bg-surface text-muted hover:text-foreground'
               }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -56,15 +56,18 @@ export function RotateTab({ state, updateState }: RotateTabProps) {
         <motion.button
           onClick={() => updateState({ flipH: !state.flipH })}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors ${
-            state.flipH
-              ? "bg-accent text-white"
-              : "bg-surface text-muted hover:text-foreground"
+            state.flipH ? 'bg-accent text-white' : 'bg-surface text-muted hover:text-foreground'
           }`}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+            />
           </svg>
           Flip H
         </motion.button>
@@ -72,15 +75,18 @@ export function RotateTab({ state, updateState }: RotateTabProps) {
         <motion.button
           onClick={() => updateState({ flipV: !state.flipV })}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors ${
-            state.flipV
-              ? "bg-accent text-white"
-              : "bg-surface text-muted hover:text-foreground"
+            state.flipV ? 'bg-accent text-white' : 'bg-surface text-muted hover:text-foreground'
           }`}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
           <svg className="w-4 h-4 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+            />
           </svg>
           Flip V
         </motion.button>

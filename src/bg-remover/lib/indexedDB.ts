@@ -1,6 +1,6 @@
 // IndexedDB wrapper for persistent storage
 
-const DB_NAME = "bg-remover";
+const DB_NAME = 'bg-remover';
 const DB_VERSION = 2;
 
 interface StoreConfig {
@@ -9,9 +9,9 @@ interface StoreConfig {
 }
 
 const STORES: StoreConfig[] = [
-  { name: "history", keyPath: "id" },
-  { name: "settings", keyPath: "key" },
-  { name: "modelCache", keyPath: "url" },
+  { name: 'history', keyPath: 'id' },
+  { name: 'settings', keyPath: 'key' },
+  { name: 'modelCache', keyPath: 'url' },
 ];
 
 let dbInstance: IDBDatabase | null = null;
@@ -44,7 +44,7 @@ export async function openDB(): Promise<IDBDatabase> {
 export async function getAllFromStore<T>(storeName: string): Promise<T[]> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(storeName, "readonly");
+    const transaction = db.transaction(storeName, 'readonly');
     const store = transaction.objectStore(storeName);
     const request = store.getAll();
 
@@ -56,7 +56,7 @@ export async function getAllFromStore<T>(storeName: string): Promise<T[]> {
 export async function getFromStore<T>(storeName: string, key: string): Promise<T | undefined> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(storeName, "readonly");
+    const transaction = db.transaction(storeName, 'readonly');
     const store = transaction.objectStore(storeName);
     const request = store.get(key);
 
@@ -68,7 +68,7 @@ export async function getFromStore<T>(storeName: string, key: string): Promise<T
 export async function putInStore<T>(storeName: string, item: T): Promise<void> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(storeName, "readwrite");
+    const transaction = db.transaction(storeName, 'readwrite');
     const store = transaction.objectStore(storeName);
     const request = store.put(item);
 
@@ -80,7 +80,7 @@ export async function putInStore<T>(storeName: string, item: T): Promise<void> {
 export async function deleteFromStore(storeName: string, key: string): Promise<void> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(storeName, "readwrite");
+    const transaction = db.transaction(storeName, 'readwrite');
     const store = transaction.objectStore(storeName);
     const request = store.delete(key);
 
@@ -92,7 +92,7 @@ export async function deleteFromStore(storeName: string, key: string): Promise<v
 export async function clearStore(storeName: string): Promise<void> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(storeName, "readwrite");
+    const transaction = db.transaction(storeName, 'readwrite');
     const store = transaction.objectStore(storeName);
     const request = store.clear();
 

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* ═══════════════════════════════════════════════════════════════════
    PicEdit — "Obsidian Studio" Design System
@@ -29,7 +29,14 @@
   --glass: rgba(19, 19, 22, 0.75);
   --glass-border: rgba(255, 255, 255, 0.06);
   --gradient-warm: linear-gradient(135deg, #e07a5f 0%, #c9613f 50%, #a14d33 100%);
-  --gradient-hero: linear-gradient(135deg, #e07a5f 0%, #d4704f 25%, #b85a40 50%, #9c4a36 75%, #7a3a2c 100%);
+  --gradient-hero: linear-gradient(
+    135deg,
+    #e07a5f 0%,
+    #d4704f 25%,
+    #b85a40 50%,
+    #9c4a36 75%,
+    #7a3a2c 100%
+  );
   --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(224, 122, 95, 0.15) 0%, transparent 60%);
   --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   --radius-sm: 8px;
@@ -61,7 +68,11 @@
 body {
   background: var(--bg-primary);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 /* ── Glass morphism utilities ─────────────────────────────────── */
@@ -83,7 +94,7 @@ body {
 /* ── Noise texture overlay ────────────────────────────────────── */
 
 .noise::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   background-image: var(--noise);
@@ -117,13 +128,15 @@ body {
   font-weight: 600;
   border-radius: var(--radius-md);
   transition: all 0.2s ease;
-  box-shadow: 0 2px 12px rgba(224, 122, 95, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 2px 12px rgba(224, 122, 95, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   position: relative;
   overflow: hidden;
 }
 
 .btn-primary::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent 50%);
@@ -132,7 +145,9 @@ body {
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(224, 122, 95, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 4px 20px rgba(224, 122, 95, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btn-primary:active {
@@ -169,7 +184,9 @@ body {
 
 .card-hover:hover {
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent), 0 8px 32px rgba(224, 122, 95, 0.08);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 8px 32px rgba(224, 122, 95, 0.08);
   transform: translateY(-2px);
 }
 
@@ -182,7 +199,11 @@ body {
     linear-gradient(45deg, transparent 75%, #222 75%),
     linear-gradient(-45deg, transparent 75%, #222 75%);
   background-size: 16px 16px;
-  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0px;
   background-color: #1a1a1a;
 }
 
@@ -226,7 +247,7 @@ select option:checked {
   color: white;
 }
 
-input[type="range"] {
+input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
   height: 6px;
@@ -235,7 +256,7 @@ input[type="range"] {
   cursor: pointer;
 }
 
-input[type="range"]::-webkit-slider-thumb {
+input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 18px;
@@ -243,16 +264,18 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--accent);
   border-radius: 50%;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
   box-shadow: 0 2px 8px rgba(224, 122, 95, 0.35);
 }
 
-input[type="range"]::-webkit-slider-thumb:hover {
+input[type='range']::-webkit-slider-thumb:hover {
   transform: scale(1.15);
   box-shadow: 0 2px 12px rgba(224, 122, 95, 0.5);
 }
 
-input[type="range"]::-moz-range-thumb {
+input[type='range']::-moz-range-thumb {
   width: 18px;
   height: 18px;
   background: var(--accent);
@@ -285,22 +308,40 @@ input[type="range"]::-moz-range-thumb {
 /* ── Glow ring animation ──────────────────────────────────────── */
 
 @keyframes glow-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
-.animate-glow { animation: glow-pulse 3s ease-in-out infinite; }
-.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-glow {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
 .animate-shimmer {
   background-size: 200% auto;
   animation: shimmer 3s linear infinite;
@@ -312,4 +353,3 @@ input[type="range"]::-moz-range-thumb {
   background: rgba(224, 122, 95, 0.3);
   color: white;
 }
-

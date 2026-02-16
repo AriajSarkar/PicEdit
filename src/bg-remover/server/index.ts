@@ -1,9 +1,5 @@
-import { loadServer } from "@/bg-remover/lib/wasmLoader";
-import {
-  DownloadProgress,
-  ServerConfig,
-  DEFAULT_SERVER_CONFIG,
-} from "./types";
+import { loadServer } from '@/bg-remover/lib/wasmLoader';
+import { DownloadProgress, ServerConfig, DEFAULT_SERVER_CONFIG } from './types';
 
 /**
  * Cached model fetch using Rust/WASM chunked download with IndexedDB persistence.
@@ -19,9 +15,9 @@ export async function cachedModelFetch(
   input: RequestInfo | URL,
   init?: RequestInit,
   onProgress?: (progress: DownloadProgress) => void,
-  config?: Partial<ServerConfig>
+  config?: Partial<ServerConfig>,
 ): Promise<Response> {
-  const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
 
   const fullConfig = { ...DEFAULT_SERVER_CONFIG, ...config };
 
@@ -43,7 +39,7 @@ export async function cachedModelFetch(
       const buffer = await mod.get_cached(url, fullConfig.dbName, fullConfig.storeName);
       return new Response(buffer, {
         status: 200,
-        headers: { "content-type": "application/octet-stream" },
+        headers: { 'content-type': 'application/octet-stream' },
       });
     }
 
@@ -61,15 +57,15 @@ export async function cachedModelFetch(
       fullConfig.chunkSize,
       fullConfig.dbName,
       fullConfig.storeName,
-      progressCallback
+      progressCallback,
     );
 
     return new Response(buffer, {
       status: 200,
-      headers: { "content-type": "application/octet-stream" },
+      headers: { 'content-type': 'application/octet-stream' },
     });
   } catch (err) {
-    console.warn("[server] WASM cache failed, falling back to fetch:", err);
+    console.warn('[server] WASM cache failed, falling back to fetch:', err);
     return fetch(input, init);
   }
 }

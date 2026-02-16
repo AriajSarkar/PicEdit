@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { EditorState, OutputFormat } from "@/types";
-import { formatBytes } from "@/lib/imageUtils";
+import { EditorState, OutputFormat } from '@/types';
+import { formatBytes } from '@/lib/imageUtils';
 
 interface ExportTabProps {
   state: EditorState;
@@ -11,31 +11,30 @@ interface ExportTabProps {
 }
 
 const FORMAT_OPTIONS: { format: OutputFormat; label: string; ext: string }[] = [
-  { format: "image/png", label: "PNG", ext: "Lossless, transparency" },
-  { format: "image/jpeg", label: "JPG", ext: "Smaller, no transparency" },
-  { format: "image/webp", label: "WebP", ext: "Best compression" },
+  { format: 'image/png', label: 'PNG', ext: 'Lossless, transparency' },
+  { format: 'image/jpeg', label: 'JPG', ext: 'Smaller, no transparency' },
+  { format: 'image/webp', label: 'WebP', ext: 'Best compression' },
 ];
 
 const SCALE_PRESETS = [
-  { value: 1.0, label: "100%" },
-  { value: 0.75, label: "75%" },
-  { value: 0.5, label: "50%" },
-  { value: 0.25, label: "25%" },
+  { value: 1.0, label: '100%' },
+  { value: 0.75, label: '75%' },
+  { value: 0.5, label: '50%' },
+  { value: 0.25, label: '25%' },
 ];
 
 export function ExportTab({ state, updateState, estimatedSize, originalSize }: ExportTabProps) {
-  const showQuality = state.outputFormat !== "image/png";
-  const compressionPercent = originalSize > 0
-    ? Math.round((1 - estimatedSize / originalSize) * 100)
-    : 0;
+  const showQuality = state.outputFormat !== 'image/png';
+  const compressionPercent =
+    originalSize > 0 ? Math.round((1 - estimatedSize / originalSize) * 100) : 0;
 
   // Calculate output dimensions
   const outputWidth = state.compressionEnabled
     ? Math.round((state.width || state.originalWidth) * state.compressionScale)
-    : (state.width || state.originalWidth);
+    : state.width || state.originalWidth;
   const outputHeight = state.compressionEnabled
     ? Math.round((state.height || state.originalHeight) * state.compressionScale)
-    : (state.height || state.originalHeight);
+    : state.height || state.originalHeight;
 
   return (
     <div className="space-y-5">
@@ -49,8 +48,8 @@ export function ExportTab({ state, updateState, estimatedSize, originalSize }: E
               onClick={() => updateState({ outputFormat: option.format })}
               className={`flex flex-col px-4 py-2 rounded-lg text-sm transition-all duration-150 ${
                 state.outputFormat === option.format
-                  ? "bg-accent text-white"
-                  : "bg-surface text-muted hover:text-foreground hover:bg-surface-hover"
+                  ? 'bg-accent text-white'
+                  : 'bg-surface text-muted hover:text-foreground hover:bg-surface-hover'
               }`}
             >
               <span className="font-medium">{option.label}</span>
@@ -92,12 +91,12 @@ export function ExportTab({ state, updateState, estimatedSize, originalSize }: E
           <button
             onClick={() => updateState({ compressionEnabled: !state.compressionEnabled })}
             className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${
-              state.compressionEnabled ? "bg-accent" : "bg-border"
+              state.compressionEnabled ? 'bg-accent' : 'bg-border'
             }`}
           >
             <div
               className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ${
-                state.compressionEnabled ? "translate-x-7" : "translate-x-1"
+                state.compressionEnabled ? 'translate-x-7' : 'translate-x-1'
               }`}
             />
           </button>
@@ -113,8 +112,8 @@ export function ExportTab({ state, updateState, estimatedSize, originalSize }: E
                   onClick={() => updateState({ compressionScale: preset.value })}
                   className={`flex-1 py-1.5 rounded text-sm transition-all duration-150 ${
                     Math.abs(state.compressionScale - preset.value) < 0.01
-                      ? "bg-accent text-white"
-                      : "bg-background text-muted hover:text-foreground"
+                      ? 'bg-accent text-white'
+                      : 'bg-background text-muted hover:text-foreground'
                   }`}
                 >
                   {preset.label}
@@ -126,7 +125,9 @@ export function ExportTab({ state, updateState, estimatedSize, originalSize }: E
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted">Scale</span>
-                <span className="text-sm font-medium">{Math.round(state.compressionScale * 100)}%</span>
+                <span className="text-sm font-medium">
+                  {Math.round(state.compressionScale * 100)}%
+                </span>
               </div>
               <input
                 type="range"
@@ -145,7 +146,9 @@ export function ExportTab({ state, updateState, estimatedSize, originalSize }: E
       <div className="grid grid-cols-2 gap-3">
         <div className="p-3 bg-surface rounded-lg">
           <p className="text-xs text-muted mb-1">Output Size</p>
-          <p className="text-lg font-semibold">{outputWidth} × {outputHeight}</p>
+          <p className="text-lg font-semibold">
+            {outputWidth} × {outputHeight}
+          </p>
           <p className="text-xs text-muted">pixels</p>
         </div>
 
@@ -162,7 +165,12 @@ export function ExportTab({ state, updateState, estimatedSize, originalSize }: E
       {originalSize > 0 && (
         <div className="flex items-center gap-2 text-xs text-muted">
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           Original: {formatBytes(originalSize)} • {state.originalWidth} × {state.originalHeight}px
         </div>

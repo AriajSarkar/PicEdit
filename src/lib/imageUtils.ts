@@ -2,11 +2,11 @@
 // PicEdit — Shared Image Utilities
 // ═══════════════════════════════════════════════════════════════════
 
-import type { ImageInfo, OutputFormat } from "@/types";
+import type { ImageInfo, OutputFormat } from '@/types';
 
 /** Create an offscreen canvas of the given dimensions */
 export function createCanvas(width: number, height: number): HTMLCanvasElement {
-  const canvas = document.createElement("canvas");
+  const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   return canvas;
@@ -16,7 +16,7 @@ export function createCanvas(width: number, height: number): HTMLCanvasElement {
 export async function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
     img.onerror = reject;
     img.src = src;
@@ -35,7 +35,7 @@ export async function fileToDataUrl(file: File): Promise<string> {
 
 /** Extract metadata from a File object (width/height set to 0 until image loads) */
 export function getImageInfo(file: File): ImageInfo {
-  const lastDot = file.name.lastIndexOf(".");
+  const lastDot = file.name.lastIndexOf('.');
   const fileName = lastDot > 0 ? file.name.substring(0, lastDot) : file.name;
   return {
     fileName,
@@ -53,18 +53,18 @@ export function generateId(): string {
 
 /** Format bytes to human-readable string (e.g. 1.2 MB) */
 export function formatBytes(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  const sign = bytes < 0 ? "-" : "";
+  if (bytes === 0) return '0 B';
+  const sign = bytes < 0 ? '-' : '';
   const abs = Math.abs(bytes);
   const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
+  const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(abs) / Math.log(k));
   return `${sign}${parseFloat((abs / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
 /** Estimate the raw byte size of a base64 data URL */
 export function estimateDataUrlSize(dataUrl: string): number {
-  const base64Length = dataUrl.split(",")[1]?.length || 0;
+  const base64Length = dataUrl.split(',')[1]?.length || 0;
   return Math.round((base64Length * 3) / 4);
 }
 
@@ -83,16 +83,16 @@ export async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
 /** Get extension string from OutputFormat */
 export function formatToExtension(format: OutputFormat): string {
   const map: Record<OutputFormat, string> = {
-    "image/png": "png",
-    "image/jpeg": "jpg",
-    "image/webp": "webp",
+    'image/png': 'png',
+    'image/jpeg': 'jpg',
+    'image/webp': 'webp',
   };
   return map[format];
 }
 
 /** Download a data URL as a file */
 export function triggerDownload(dataUrl: string, filename: string): void {
-  const link = document.createElement("a");
+  const link = document.createElement('a');
   link.download = filename;
   link.href = dataUrl;
   link.click();

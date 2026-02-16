@@ -19,7 +19,7 @@ export interface CompressionItem extends BatchItem {
 // ── Estimate helper ──────────────────────────────────────────────────────────
 
 function estimateCompressedSize(originalSize: number, config: CompressorConfig): number {
-  const FORMAT_RATIO: Record<string, number> = { jpeg: 0.30, webp: 0.25, png: 0.85 };
+  const FORMAT_RATIO: Record<string, number> = { jpeg: 0.3, webp: 0.25, png: 0.85 };
   const baseRatio = FORMAT_RATIO[config.format] ?? 0.5;
 
   if (config.format === 'png') {
@@ -31,7 +31,7 @@ function estimateCompressedSize(originalSize: number, config: CompressorConfig):
   let estimated = originalSize * baseRatio * qualityFactor;
 
   if (config.enableWasmOptimize) {
-    estimated *= (1 - config.optimizeStrength * 0.15);
+    estimated *= 1 - config.optimizeStrength * 0.15;
   }
   if (config.maxDimension > 0) {
     const assumedDim = Math.sqrt(originalSize / 3);
@@ -91,24 +91,29 @@ export function useCompression(): UseCompressionReturn {
 
   // Always read latest config inside processFn without changing its reference
   const configRef = useRef(config);
-  useEffect(() => { configRef.current = config; }, [config]);
+  useEffect(() => {
+    configRef.current = config;
+  }, [config]);
 
   // ── Process function fed to the global batch processor ────────────────
-  const processFn = useCallback(async (
-    item: CompressionItem,
-    signal: AbortSignal,
-    onProgress: (stage: string, percent: number) => void,
-  ): Promise<Partial<CompressionItem>> => {
-    if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
+  const processFn = useCallback(
+    async (
+      item: CompressionItem,
+      signal: AbortSignal,
+      onProgress: (stage: string, percent: number) => void,
+    ): Promise<Partial<CompressionItem>> => {
+      if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
 
-    const result = await compressImage(item.file, configRef.current, (stage, percent) => {
-      if (signal.aborted) return;
-      onProgress(stage, percent);
-    });
+      const result = await compressImage(item.file, configRef.current, (stage, percent) => {
+        if (signal.aborted) return;
+        onProgress(stage, percent);
+      });
 
-    if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
-    return { result };
-  }, []);
+      if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
+      return { result };
+    },
+    [],
+  );
 
   // ── URL cleanup callbacks ────────────────────────────────────────────
   const handleRemove = useCallback((item: CompressionItem) => {
@@ -116,7 +121,7 @@ export function useCompression(): UseCompressionReturn {
   }, []);
 
   const handleClear = useCallback((allItems: CompressionItem[]) => {
-    allItems.forEach(i => URL.revokeObjectURL(i.preview));
+    allItems.forEach((i) => URL.revokeObjectURL(i.preview));
   }, []);
 
   // ── Delegate to global batch processor ───────────────────────────────
@@ -140,37 +145,44 @@ export function useCompression(): UseCompressionReturn {
 
   // Stable ref to items for download helpers
   const itemsRef = useRef(items);
-  useEffect(() => { itemsRef.current = items; }, [items]);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   // ── Add files (wraps addItems with File → CompressionItem mapping) ───
-  const addFiles = useCallback((files: File[]) => {
-    const newItems: CompressionItem[] = files
-      .filter(f => f.type.startsWith('image/'))
-      .map(file => ({
-        id: `img-${++idCounter.current}-${Date.now()}`,
-        file,
-        preview: URL.createObjectURL(file),
-        status: 'pending' as const,
-        stage: '',
-        progress: 0,
-      }));
-    addItems(newItems);
-  }, [addItems]);
+  const addFiles = useCallback(
+    (files: File[]) => {
+      const newItems: CompressionItem[] = files
+        .filter((f) => f.type.startsWith('image/'))
+        .map((file) => ({
+          id: `img-${++idCounter.current}-${Date.now()}`,
+          file,
+          preview: URL.createObjectURL(file),
+          status: 'pending' as const,
+          stage: '',
+          progress: 0,
+        }));
+      addItems(newItems);
+    },
+    [addItems],
+  );
 
   // ── Downloads ────────────────────────────────────────────────────────
   const downloadOne = useCallback((id: string) => {
-    const item = itemsRef.current.find(i => i.id === id);
+    const item = itemsRef.current.find((i) => i.id === id);
     if (!item?.result) return;
     const ext = item.result.format === 'jpeg' ? 'jpg' : item.result.format;
     const name = item.file.name.replace(/\.[^.]+$/, '') + `-compressed.${ext}`;
     const url = URL.createObjectURL(item.result.blob);
     const a = document.createElement('a');
-    a.href = url; a.download = name; a.click();
+    a.href = url;
+    a.download = name;
+    a.click();
     URL.revokeObjectURL(url);
   }, []);
 
   const downloadAll = useCallback(async () => {
-    const done = itemsRef.current.filter(i => i.status === 'done' && i.result);
+    const done = itemsRef.current.filter((i) => i.status === 'done' && i.result);
     if (done.length === 0) return;
 
     // Single file — download directly
@@ -181,7 +193,7 @@ export function useCompression(): UseCompressionReturn {
 
     // Multiple files — ZIP them
     const entries = await Promise.all(
-      done.map(async item => {
+      done.map(async (item) => {
         const ext = item.result!.format === 'jpeg' ? 'jpg' : item.result!.format;
         const name = item.file.name.replace(/\.[^.]+$/, '') + `-compressed.${ext}`;
         const buf = await item.result!.blob.arrayBuffer();
@@ -196,12 +208,14 @@ export function useCompression(): UseCompressionReturn {
 
   // ── Stats & estimates ────────────────────────────────────────────────
   const stats = useMemo(() => {
-    const done = items.filter(i => i.status === 'done' && i.result);
+    const done = items.filter((i) => i.status === 'done' && i.result);
     const totalOriginal = done.reduce((s, i) => s + i.result!.originalSize, 0);
     const totalCompressed = done.reduce((s, i) => s + i.result!.compressedSize, 0);
     const totalSaved = totalOriginal - totalCompressed;
     return {
-      totalOriginal, totalCompressed, totalSaved,
+      totalOriginal,
+      totalCompressed,
+      totalSaved,
       savedPercent: totalOriginal > 0 ? (totalSaved / totalOriginal) * 100 : 0,
       formattedOriginal: formatBytes(totalOriginal),
       formattedCompressed: formatBytes(totalCompressed),
@@ -210,10 +224,13 @@ export function useCompression(): UseCompressionReturn {
     };
   }, [items]);
 
-  const getEstimate = useCallback((item: CompressionItem) => {
-    if (item.status === 'done' && item.result) return item.result.compressedSize;
-    return estimateCompressedSize(item.file.size, config);
-  }, [config]);
+  const getEstimate = useCallback(
+    (item: CompressionItem) => {
+      if (item.status === 'done' && item.result) return item.result.compressedSize;
+      return estimateCompressedSize(item.file.size, config);
+    },
+    [config],
+  );
 
   const estimatedStats = useMemo(() => {
     const totalOriginal = items.reduce((s, i) => s + i.file.size, 0);
@@ -229,19 +246,30 @@ export function useCompression(): UseCompressionReturn {
     };
   }, [items, config]);
 
-  const processingIds = useMemo(() =>
-    items.filter(i => i.status === 'processing').map(i => i.id),
+  const processingIds = useMemo(
+    () => items.filter((i) => i.status === 'processing').map((i) => i.id),
     [items],
   );
 
   return {
-    items, config, setConfig, addFiles,
-    removeItem, clearAll,
-    compressAll, compressOne,
-    retryOne, retryAll,
-    cancelOne, cancelAll,
-    downloadOne, downloadAll,
-    isProcessing, processingIds,
-    stats, getEstimate, estimatedStats,
+    items,
+    config,
+    setConfig,
+    addFiles,
+    removeItem,
+    clearAll,
+    compressAll,
+    compressOne,
+    retryOne,
+    retryAll,
+    cancelOne,
+    cancelAll,
+    downloadOne,
+    downloadAll,
+    isProcessing,
+    processingIds,
+    stats,
+    getEstimate,
+    estimatedStats,
   };
 }

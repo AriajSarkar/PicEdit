@@ -40,7 +40,10 @@ interface UseBatchProcessorOptions<T extends BatchItem> {
 
 export function useBatchProcessor<T extends BatchItem>({
   processFn,
-  maxConcurrency = Math.min(typeof navigator !== 'undefined' ? navigator.hardwareConcurrency ?? 4 : 4, 4),
+  maxConcurrency = Math.min(
+    typeof navigator !== 'undefined' ? (navigator.hardwareConcurrency ?? 4) : 4,
+    4,
+  ),
   onRemove,
   onClear,
 }: UseBatchProcessorOptions<T>) {
@@ -49,7 +52,9 @@ export function useBatchProcessor<T extends BatchItem>({
 
   // Refs for stable access in callbacks
   const itemsRef = useRef(items);
-  useEffect(() => { itemsRef.current = items; }, [items]);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   const abortControllers = useRef<Map<string, AbortController>>(new Map());
   const batchAbortRef = useRef<AbortController | null>(null);
@@ -57,24 +62,27 @@ export function useBatchProcessor<T extends BatchItem>({
   // ── Add / Remove ────────────────────────────────────────────────────────
 
   const addItems = useCallback((newItems: T[]) => {
-    setItems(prev => [...prev, ...newItems]);
+    setItems((prev) => [...prev, ...newItems]);
   }, []);
 
-  const removeItem = useCallback((id: string) => {
-    const ctrl = abortControllers.current.get(id);
-    if (ctrl) {
-      ctrl.abort();
-      abortControllers.current.delete(id);
-    }
-    setItems(prev => {
-      const item = prev.find(i => i.id === id);
-      if (item && onRemove) onRemove(item);
-      return prev.filter(i => i.id !== id);
-    });
-  }, [onRemove]);
+  const removeItem = useCallback(
+    (id: string) => {
+      const ctrl = abortControllers.current.get(id);
+      if (ctrl) {
+        ctrl.abort();
+        abortControllers.current.delete(id);
+      }
+      setItems((prev) => {
+        const item = prev.find((i) => i.id === id);
+        if (item && onRemove) onRemove(item);
+        return prev.filter((i) => i.id !== id);
+      });
+    },
+    [onRemove],
+  );
 
   const clearAll = useCallback(() => {
-    abortControllers.current.forEach(ctrl => ctrl.abort());
+    abortControllers.current.forEach((ctrl) => ctrl.abort());
     abortControllers.current.clear();
     batchAbortRef.current?.abort();
     batchAbortRef.current = null;
@@ -85,91 +93,105 @@ export function useBatchProcessor<T extends BatchItem>({
 
   // ── Process ─────────────────────────────────────────────────────────────
 
-  const processOne = useCallback(async (id: string) => {
-    const item = itemsRef.current.find(i => i.id === id);
-    if (!item) return;
+  const processOne = useCallback(
+    async (id: string) => {
+      const item = itemsRef.current.find((i) => i.id === id);
+      if (!item) return;
 
-    const controller = new AbortController();
-    abortControllers.current.set(id, controller);
+      const controller = new AbortController();
+      abortControllers.current.set(id, controller);
 
-    // Link batch abort to this item
-    if (batchAbortRef.current) {
-      const batchSignal = batchAbortRef.current.signal;
-      if (batchSignal.aborted) {
-        controller.abort();
-      } else {
-        batchSignal.addEventListener('abort', () => controller.abort(), { once: true });
-      }
-    }
-
-    setItems(prev => prev.map(i =>
-      i.id === id
-        ? { ...i, status: 'processing' as const, stage: 'Starting', progress: 0, error: undefined }
-        : i
-    ));
-
-    try {
-      if (controller.signal.aborted) {
-        throw new DOMException('Cancelled', 'AbortError');
+      // Link batch abort to this item
+      if (batchAbortRef.current) {
+        const batchSignal = batchAbortRef.current.signal;
+        if (batchSignal.aborted) {
+          controller.abort();
+        } else {
+          batchSignal.addEventListener('abort', () => controller.abort(), { once: true });
+        }
       }
 
-      const updates = await processFn(
-        // Read fresh item state
-        { ...(itemsRef.current.find(i => i.id === id) || item) },
-        controller.signal,
-        (stage, percent) => {
-          if (controller.signal.aborted) return;
-          setItems(prev => prev.map(i =>
-            i.id === id ? { ...i, stage, progress: percent } : i
-          ));
-        },
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === id
+            ? {
+                ...i,
+                status: 'processing' as const,
+                stage: 'Starting',
+                progress: 0,
+                error: undefined,
+              }
+            : i,
+        ),
       );
 
-      if (controller.signal.aborted) {
-        throw new DOMException('Cancelled', 'AbortError');
+      try {
+        if (controller.signal.aborted) {
+          throw new DOMException('Cancelled', 'AbortError');
+        }
+
+        const updates = await processFn(
+          // Read fresh item state
+          { ...(itemsRef.current.find((i) => i.id === id) || item) },
+          controller.signal,
+          (stage, percent) => {
+            if (controller.signal.aborted) return;
+            setItems((prev) =>
+              prev.map((i) => (i.id === id ? { ...i, stage, progress: percent } : i)),
+            );
+          },
+        );
+
+        if (controller.signal.aborted) {
+          throw new DOMException('Cancelled', 'AbortError');
+        }
+
+        setItems((prev) =>
+          prev.map((i) =>
+            i.id === id
+              ? { ...i, ...updates, status: 'done' as const, stage: 'Done', progress: 100 }
+              : i,
+          ),
+        );
+      } catch (err) {
+        const isAbort =
+          controller.signal.aborted || (err instanceof DOMException && err.name === 'AbortError');
+
+        setItems((prev) =>
+          prev.map((i) =>
+            i.id === id
+              ? {
+                  ...i,
+                  status: isAbort ? ('pending' as const) : ('error' as const),
+                  stage: isAbort ? '' : 'Failed',
+                  progress: 0,
+                  error: isAbort ? undefined : String(err),
+                }
+              : i,
+          ),
+        );
+      } finally {
+        abortControllers.current.delete(id);
       }
-
-      setItems(prev => prev.map(i =>
-        i.id === id
-          ? { ...i, ...updates, status: 'done' as const, stage: 'Done', progress: 100 }
-          : i
-      ));
-    } catch (err) {
-      const isAbort =
-        controller.signal.aborted ||
-        (err instanceof DOMException && err.name === 'AbortError');
-
-      setItems(prev => prev.map(i =>
-        i.id === id
-          ? {
-              ...i,
-              status: isAbort ? ('pending' as const) : ('error' as const),
-              stage: isAbort ? '' : 'Failed',
-              progress: 0,
-              error: isAbort ? undefined : String(err),
-            }
-          : i
-      ));
-    } finally {
-      abortControllers.current.delete(id);
-    }
-  }, [processFn]);
+    },
+    [processFn],
+  );
 
   const processAll = useCallback(async () => {
     setIsProcessing(true);
     batchAbortRef.current = new AbortController();
 
-    const pending = itemsRef.current.filter(i =>
-      i.status === 'pending' || i.status === 'error'
-    );
+    const pending = itemsRef.current.filter((i) => i.status === 'pending' || i.status === 'error');
 
     for (let i = 0; i < pending.length; i += maxConcurrency) {
       if (batchAbortRef.current.signal.aborted) break;
       const batch = pending.slice(i, i + maxConcurrency);
-      await Promise.all(batch.map(item => {
-        if (batchAbortRef.current?.signal.aborted) return Promise.resolve();
-        return processOne(item.id);
-      }));
+      await Promise.all(
+        batch.map((item) => {
+          if (batchAbortRef.current?.signal.aborted) return Promise.resolve();
+          return processOne(item.id);
+        }),
+      );
     }
 
     batchAbortRef.current = null;
@@ -178,46 +200,53 @@ export function useBatchProcessor<T extends BatchItem>({
 
   // ── Retry ───────────────────────────────────────────────────────────────
 
-  const retryOne = useCallback(async (id: string) => {
-    // Reset to pending, then process
-    setItems(prev => prev.map(i =>
-      i.id === id
-        ? { ...i, status: 'pending' as const, progress: 0, stage: '', error: undefined }
-        : i
-    ));
-    // Small delay so React state flushes
-    await new Promise(r => setTimeout(r, 0));
-    await processOne(id);
-  }, [processOne]);
+  const retryOne = useCallback(
+    async (id: string) => {
+      // Reset to pending, then process
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === id
+            ? { ...i, status: 'pending' as const, progress: 0, stage: '', error: undefined }
+            : i,
+        ),
+      );
+      // Small delay so React state flushes
+      await new Promise((r) => setTimeout(r, 0));
+      await processOne(id);
+    },
+    [processOne],
+  );
 
   const retryAll = useCallback(async () => {
-    const retryable = itemsRef.current.filter(i =>
-      i.status === 'error' || i.status === 'done'
-    );
+    const retryable = itemsRef.current.filter((i) => i.status === 'error' || i.status === 'done');
     if (retryable.length === 0) return;
 
     // Reset all retryable to pending
-    const retryIds = new Set(retryable.map(i => i.id));
-    setItems(prev => prev.map(i =>
-      retryIds.has(i.id)
-        ? { ...i, status: 'pending' as const, progress: 0, stage: '', error: undefined }
-        : i
-    ));
+    const retryIds = new Set(retryable.map((i) => i.id));
+    setItems((prev) =>
+      prev.map((i) =>
+        retryIds.has(i.id)
+          ? { ...i, status: 'pending' as const, progress: 0, stage: '', error: undefined }
+          : i,
+      ),
+    );
 
     setIsProcessing(true);
     batchAbortRef.current = new AbortController();
 
     // Re-read items after state update
-    await new Promise(r => setTimeout(r, 0));
-    const toRetry = itemsRef.current.filter(i => retryIds.has(i.id));
+    await new Promise((r) => setTimeout(r, 0));
+    const toRetry = itemsRef.current.filter((i) => retryIds.has(i.id));
 
     for (let i = 0; i < toRetry.length; i += maxConcurrency) {
       if (batchAbortRef.current.signal.aborted) break;
       const batch = toRetry.slice(i, i + maxConcurrency);
-      await Promise.all(batch.map(item => {
-        if (batchAbortRef.current?.signal.aborted) return Promise.resolve();
-        return processOne(item.id);
-      }));
+      await Promise.all(
+        batch.map((item) => {
+          if (batchAbortRef.current?.signal.aborted) return Promise.resolve();
+          return processOne(item.id);
+        }),
+      );
     }
 
     batchAbortRef.current = null;
@@ -233,26 +262,27 @@ export function useBatchProcessor<T extends BatchItem>({
 
   const cancelAll = useCallback(() => {
     batchAbortRef.current?.abort();
-    abortControllers.current.forEach(ctrl => ctrl.abort());
+    abortControllers.current.forEach((ctrl) => ctrl.abort());
     setIsProcessing(false);
   }, []);
 
   // ── Derived counts ─────────────────────────────────────────────────────
 
-  const processingCount = useMemo(() =>
-    items.filter(i => i.status === 'processing').length, [items]);
+  const processingCount = useMemo(
+    () => items.filter((i) => i.status === 'processing').length,
+    [items],
+  );
 
-  const pendingCount = useMemo(() =>
-    items.filter(i => i.status === 'pending').length, [items]);
+  const pendingCount = useMemo(() => items.filter((i) => i.status === 'pending').length, [items]);
 
-  const doneCount = useMemo(() =>
-    items.filter(i => i.status === 'done').length, [items]);
+  const doneCount = useMemo(() => items.filter((i) => i.status === 'done').length, [items]);
 
-  const errorCount = useMemo(() =>
-    items.filter(i => i.status === 'error').length, [items]);
+  const errorCount = useMemo(() => items.filter((i) => i.status === 'error').length, [items]);
 
-  const retryableCount = useMemo(() =>
-    items.filter(i => i.status === 'done' || i.status === 'error').length, [items]);
+  const retryableCount = useMemo(
+    () => items.filter((i) => i.status === 'done' || i.status === 'error').length,
+    [items],
+  );
 
   return {
     items,

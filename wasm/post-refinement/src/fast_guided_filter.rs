@@ -87,7 +87,11 @@ fn box_mean(sat: &[f64], w: usize, h: usize, x: usize, y: usize, r: usize) -> f6
     let count = ((x1 - x0 + 1) * (y1 - y0 + 1)) as f64;
 
     let d = sat[y1 * w + x1];
-    let a = if x0 > 0 && y0 > 0 { sat[(y0 - 1) * w + (x0 - 1)] } else { 0.0 };
+    let a = if x0 > 0 && y0 > 0 {
+        sat[(y0 - 1) * w + (x0 - 1)]
+    } else {
+        0.0
+    };
     let b = if y0 > 0 { sat[(y0 - 1) * w + x1] } else { 0.0 };
     let c = if x0 > 0 { sat[y1 * w + (x0 - 1)] } else { 0.0 };
 

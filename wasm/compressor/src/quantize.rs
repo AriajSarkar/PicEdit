@@ -18,25 +18,35 @@ impl ColorBucket {
         let (mut max_r, mut max_g, mut max_b) = (0u8, 0u8, 0u8);
 
         for &(r, g, b, _) in &self.pixels {
-            min_r = min_r.min(r); max_r = max_r.max(r);
-            min_g = min_g.min(g); max_g = max_g.max(g);
-            min_b = min_b.min(b); max_b = max_b.max(b);
+            min_r = min_r.min(r);
+            max_r = max_r.max(r);
+            min_g = min_g.min(g);
+            max_g = max_g.max(g);
+            min_b = min_b.min(b);
+            max_b = max_b.max(b);
         }
 
         let range_r = max_r - min_r;
         let range_g = max_g - min_g;
         let range_b = max_b - min_b;
 
-        if range_r >= range_g && range_r >= range_b { 0 }
-        else if range_g >= range_b { 1 }
-        else { 2 }
+        if range_r >= range_g && range_r >= range_b {
+            0
+        } else if range_g >= range_b {
+            1
+        } else {
+            2
+        }
     }
 
     fn split(mut self) -> (Self, Self) {
         let axis = self.longest_axis();
-        self.pixels.sort_unstable_by_key(|&(r, g, b, _)| match axis {
-            0 => r, 1 => g, _ => b,
-        });
+        self.pixels
+            .sort_unstable_by_key(|&(r, g, b, _)| match axis {
+                0 => r,
+                1 => g,
+                _ => b,
+            });
         let mid = self.pixels.len() / 2;
         let right = self.pixels.split_off(mid);
         (self, ColorBucket { pixels: right })
@@ -70,7 +80,8 @@ pub fn median_cut_quantize(rgba: &[u8], w: usize, h: usize, max_colors: usize) -
     // Recursively split until we have max_colors buckets
     while buckets.len() < max_colors {
         // Find bucket with most pixels to split
-        let max_idx = buckets.iter()
+        let max_idx = buckets
+            .iter()
             .enumerate()
             .filter(|(_, b)| b.pixels.len() > 1)
             .max_by_key(|(_, b)| b.pixels.len())
@@ -80,9 +91,13 @@ pub fn median_cut_quantize(rgba: &[u8], w: usize, h: usize, max_colors: usize) -
             Some(idx) => {
                 let bucket = buckets.swap_remove(idx);
                 let (left, right) = bucket.split();
-                if !left.pixels.is_empty() { buckets.push(left); }
-                if !right.pixels.is_empty() { buckets.push(right); }
-            },
+                if !left.pixels.is_empty() {
+                    buckets.push(left);
+                }
+                if !right.pixels.is_empty() {
+                    buckets.push(right);
+                }
+            }
             None => break,
         }
     }

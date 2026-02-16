@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { ImageInfo, EditorState } from "@/types";
-import { formatBytes } from "@/lib/imageUtils";
+import { ImageInfo, EditorState } from '@/types';
+import { formatBytes } from '@/lib/imageUtils';
 // shared utility, now at @/lib/imageUtils
 
 interface ImageInfoBarProps {
@@ -11,12 +11,7 @@ interface ImageInfoBarProps {
   onNewImage: () => void;
 }
 
-export function ImageInfoBar({
-  imageInfo,
-  state,
-  estimatedSize,
-  onNewImage,
-}: ImageInfoBarProps) {
+export function ImageInfoBar({ imageInfo, state, estimatedSize, onNewImage }: ImageInfoBarProps) {
   const outputWidth = state.compressionEnabled
     ? Math.round((state.width || state.originalWidth) * state.compressionScale)
     : state.width || state.originalWidth;
@@ -37,20 +32,14 @@ export function ImageInfoBar({
           {outputWidth} × {outputHeight}
         </span>
         <span className="w-px h-3 bg-white/10" />
-        <span className="text-white/60 font-medium">
-          {formatBytes(estimatedSize)}
-        </span>
+        <span className="text-white/60 font-medium">{formatBytes(estimatedSize)}</span>
         {compressionPercent > 0 && (
-          <span className="text-emerald-400 font-medium">
-            -{compressionPercent}%
-          </span>
+          <span className="text-emerald-400 font-medium">-{compressionPercent}%</span>
         )}
         {imageInfo.fileName && (
           <>
             <span className="w-px h-3 bg-white/10" />
-            <span className="text-white/30 truncate max-w-[150px]">
-              {imageInfo.fileName}
-            </span>
+            <span className="text-white/30 truncate max-w-[150px]">{imageInfo.fileName}</span>
           </>
         )}
       </div>

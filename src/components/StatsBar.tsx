@@ -48,9 +48,7 @@ export const StatsBar = memo(function StatsBar({
       </div>
 
       <div className="flex items-center gap-3">
-        {badge && (
-          <span className="text-xs text-[var(--muted)]">{badge}</span>
-        )}
+        {badge && <span className="text-xs text-[var(--muted)]">{badge}</span>}
         {action}
       </div>
 

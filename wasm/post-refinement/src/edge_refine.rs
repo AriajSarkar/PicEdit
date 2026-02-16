@@ -32,12 +32,18 @@ pub fn refine_edges_scharr(
         for x in 1..w - 1 {
             // Scharr X: [-3,0,3; -10,0,10; -3,0,3]
             let gx = -3.0 * guide[yw_prev + x - 1] + 3.0 * guide[yw_prev + x + 1]
-                - 10.0 * guide[yw + x - 1] + 10.0 * guide[yw + x + 1]
-                - 3.0 * guide[yw_next + x - 1] + 3.0 * guide[yw_next + x + 1];
+                - 10.0 * guide[yw + x - 1]
+                + 10.0 * guide[yw + x + 1]
+                - 3.0 * guide[yw_next + x - 1]
+                + 3.0 * guide[yw_next + x + 1];
 
             // Scharr Y: [-3,-10,-3; 0,0,0; 3,10,3]
-            let gy = -3.0 * guide[yw_prev + x - 1] - 10.0 * guide[yw_prev + x] - 3.0 * guide[yw_prev + x + 1]
-                + 3.0 * guide[yw_next + x - 1] + 10.0 * guide[yw_next + x] + 3.0 * guide[yw_next + x + 1];
+            let gy = -3.0 * guide[yw_prev + x - 1]
+                - 10.0 * guide[yw_prev + x]
+                - 3.0 * guide[yw_prev + x + 1]
+                + 3.0 * guide[yw_next + x - 1]
+                + 10.0 * guide[yw_next + x]
+                + 3.0 * guide[yw_next + x + 1];
 
             // Fast magnitude: |gx| + |gy| (L1 norm, avoids sqrt)
             let mag = gx.abs() + gy.abs();
@@ -54,7 +60,11 @@ pub fn refine_edges_scharr(
 
     // Apply: push transition alpha toward 0 or 1 at edges
     let inv_max = 1.0 / max_edge;
-    let thresh_inv = if edge_threshold < 1.0 { 1.0 / (1.0 - edge_threshold) } else { 1.0 };
+    let thresh_inv = if edge_threshold < 1.0 {
+        1.0 / (1.0 - edge_threshold)
+    } else {
+        1.0
+    };
 
     for y in 1..h - 1 {
         for x in 1..w - 1 {

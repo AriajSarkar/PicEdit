@@ -9,7 +9,11 @@ interface CompressionControlsProps {
   disabled?: boolean;
 }
 
-export const CompressionControls = memo(function CompressionControls({ config, onChange, disabled }: CompressionControlsProps) {
+export const CompressionControls = memo(function CompressionControls({
+  config,
+  onChange,
+  disabled,
+}: CompressionControlsProps) {
   const update = (patch: Partial<CompressorConfig>) => onChange({ ...config, ...patch });
 
   return (
@@ -20,16 +24,17 @@ export const CompressionControls = memo(function CompressionControls({ config, o
           Output Format
         </label>
         <div className="flex gap-2">
-          {(['jpeg', 'png', 'webp'] as const).map(fmt => (
+          {(['jpeg', 'png', 'webp'] as const).map((fmt) => (
             <button
               key={fmt}
               onClick={() => update({ format: fmt })}
               disabled={disabled}
               className={`
                 flex-1 py-3 sm:py-2 px-3 rounded-lg text-sm font-medium transition-all
-                ${config.format === fmt
-                  ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/25'
-                  : 'bg-[var(--bg-elevated)] text-[var(--muted)] hover:text-[var(--foreground)] border border-[var(--border)]'
+                ${
+                  config.format === fmt
+                    ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/25'
+                    : 'bg-[var(--bg-elevated)] text-[var(--muted)] hover:text-[var(--foreground)] border border-[var(--border)]'
                 }
                 disabled:opacity-50
               `}
@@ -54,7 +59,7 @@ export const CompressionControls = memo(function CompressionControls({ config, o
             min={1}
             max={100}
             value={Math.round(config.quality * 100)}
-            onChange={e => update({ quality: Number(e.target.value) / 100 })}
+            onChange={(e) => update({ quality: Number(e.target.value) / 100 })}
             disabled={disabled}
             className="w-full accent-[var(--accent)]"
           />
@@ -75,7 +80,7 @@ export const CompressionControls = memo(function CompressionControls({ config, o
         </div>
         <select
           value={config.maxDimension}
-          onChange={e => update({ maxDimension: Number(e.target.value) })}
+          onChange={(e) => update({ maxDimension: Number(e.target.value) })}
           disabled={disabled}
           className="w-full p-3 sm:p-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--foreground)] text-sm"
         >
@@ -102,10 +107,12 @@ export const CompressionControls = memo(function CompressionControls({ config, o
             ${config.enableWasmOptimize ? 'bg-[var(--accent)]' : 'bg-white/10'}
           `}
         >
-          <span className={`
+          <span
+            className={`
             absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform
             ${config.enableWasmOptimize ? 'translate-x-5' : ''}
-          `} />
+          `}
+          />
         </button>
       </div>
 
@@ -113,7 +120,9 @@ export const CompressionControls = memo(function CompressionControls({ config, o
       {config.enableWasmOptimize && (
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-[var(--foreground)]">Optimization Strength</label>
+            <label className="text-sm font-medium text-[var(--foreground)]">
+              Optimization Strength
+            </label>
             <span className="text-sm text-[var(--accent)] font-mono">
               {Math.round(config.optimizeStrength * 100)}%
             </span>
@@ -123,7 +132,7 @@ export const CompressionControls = memo(function CompressionControls({ config, o
             min={0}
             max={100}
             value={Math.round(config.optimizeStrength * 100)}
-            onChange={e => update({ optimizeStrength: Number(e.target.value) / 100 })}
+            onChange={(e) => update({ optimizeStrength: Number(e.target.value) / 100 })}
             disabled={disabled}
             className="w-full accent-[var(--accent)]"
           />
@@ -134,14 +143,16 @@ export const CompressionControls = memo(function CompressionControls({ config, o
       {config.format === 'png' && (
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-[var(--foreground)]">Color Quantization</label>
+            <label className="text-sm font-medium text-[var(--foreground)]">
+              Color Quantization
+            </label>
             <span className="text-sm text-[var(--muted)] font-mono">
               {config.maxColors > 0 ? `${config.maxColors} colors` : 'Off'}
             </span>
           </div>
           <select
             value={config.maxColors}
-            onChange={e => update({ maxColors: Number(e.target.value) })}
+            onChange={(e) => update({ maxColors: Number(e.target.value) })}
             disabled={disabled}
             className="w-full p-3 sm:p-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--foreground)] text-sm"
           >
@@ -169,7 +180,7 @@ export const CompressionControls = memo(function CompressionControls({ config, o
           </div>
           <select
             value={config.targetSize}
-            onChange={e => update({ targetSize: Number(e.target.value) })}
+            onChange={(e) => update({ targetSize: Number(e.target.value) })}
             disabled={disabled}
             className="w-full p-3 sm:p-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--foreground)] text-sm"
           >
@@ -199,10 +210,12 @@ export const CompressionControls = memo(function CompressionControls({ config, o
               ${config.verifySsim ? 'bg-[var(--accent)]' : 'bg-white/10'}
             `}
           >
-            <span className={`
+            <span
+              className={`
               absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform
               ${config.verifySsim ? 'translate-x-5' : ''}
-            `} />
+            `}
+            />
           </button>
         </div>
       )}

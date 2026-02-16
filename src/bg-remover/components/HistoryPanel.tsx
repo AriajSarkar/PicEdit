@@ -1,8 +1,8 @@
-"use client";
+'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import { motion } from "motion/react";
-import { HistoryItem } from "@/types";
+import { motion } from 'motion/react';
+import { HistoryItem } from '@/types';
 
 interface HistoryPanelProps {
   history: HistoryItem[];

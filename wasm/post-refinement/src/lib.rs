@@ -1,9 +1,9 @@
-mod fast_guided_filter;
-mod trimap;
-mod shared_matting;
-mod edge_refine;
-mod poisson;
 mod blur;
+mod edge_refine;
+mod fast_guided_filter;
+mod poisson;
+mod shared_matting;
+mod trimap;
 
 use wasm_bindgen::prelude::*;
 
@@ -48,7 +48,8 @@ pub fn post_process(
         alpha[i] = mask_rgba[off + 3] as f32 * inv255;
         guide[i] = (original_rgba[off] as f32 * 0.2126
             + original_rgba[off + 1] as f32 * 0.7152
-            + original_rgba[off + 2] as f32 * 0.0722) * inv255;
+            + original_rgba[off + 2] as f32 * 0.0722)
+            * inv255;
     }
 
     // === Step 1: Trimap via BFS distance transform (O(n)) ===
@@ -67,13 +68,7 @@ pub fn post_process(
     );
 
     // === Step 3: Shared Matting (unknown zone only) ===
-    shared_matting::shared_matting(
-        &mut refined,
-        original_rgba,
-        &trimap,
-        w,
-        h,
-    );
+    shared_matting::shared_matting(&mut refined, original_rgba, &trimap, w, h);
 
     // === Step 4: Edge refinement with Scharr operator ===
     let edge_thresh = edge_threshold as f32 / 255.0;

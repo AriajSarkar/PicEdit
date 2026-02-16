@@ -1,0 +1,9 @@
+node_modules/
+.next/
+out/
+build/
+public/wasm/
+public/workers/
+pnpm-lock.yaml
+wasm/target/
+*.wasm

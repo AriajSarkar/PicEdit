@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect } from "react";
-import { HistoryItem } from "@/types";
+import { useState, useCallback, useEffect } from 'react';
+import { HistoryItem } from '@/types';
 import {
   getAllFromStore,
   putInStore,
   deleteFromStore,
   clearStore,
-} from "@/bg-remover/lib/indexedDB";
+} from '@/bg-remover/lib/indexedDB';
 
 const MAX_HISTORY = 10;
-const STORE_NAME = "history";
+const STORE_NAME = 'history';
 
 export function useHistory() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -25,7 +25,7 @@ export function useHistory() {
         items.sort((a, b) => b.timestamp - a.timestamp);
         setHistory(items.slice(0, MAX_HISTORY));
       } catch (error) {
-        console.error("Failed to load history from IndexedDB:", error);
+        console.error('Failed to load history from IndexedDB:', error);
       } finally {
         setIsLoaded(true);
       }
@@ -48,7 +48,7 @@ export function useHistory() {
     try {
       await putInStore(STORE_NAME, item);
     } catch (error) {
-      console.error("Failed to save to IndexedDB:", error);
+      console.error('Failed to save to IndexedDB:', error);
     }
   }, []);
 
@@ -59,7 +59,7 @@ export function useHistory() {
     try {
       await deleteFromStore(STORE_NAME, id);
     } catch (error) {
-      console.error("Failed to remove from IndexedDB:", error);
+      console.error('Failed to remove from IndexedDB:', error);
     }
   }, []);
 
@@ -70,7 +70,7 @@ export function useHistory() {
     try {
       await clearStore(STORE_NAME);
     } catch (error) {
-      console.error("Failed to clear IndexedDB:", error);
+      console.error('Failed to clear IndexedDB:', error);
     }
   }, []);
 
@@ -78,7 +78,7 @@ export function useHistory() {
     (id: string): HistoryItem | undefined => {
       return history.find((item) => item.id === id);
     },
-    [history]
+    [history],
   );
 
   return {

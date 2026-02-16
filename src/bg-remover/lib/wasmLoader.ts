@@ -7,15 +7,15 @@ type WasmModule = {
 };
 
 const modules: Record<string, WasmModule | null> = {
-  "pre-refinement": null,
-  "post-refinement": null,
+  'pre-refinement': null,
+  'post-refinement': null,
   server: null,
 };
 
 const loadPromises: Record<string, Promise<WasmModule | null> | undefined> = {};
 
 function getBasePath(): string {
-  return process.env.NEXT_PUBLIC_BASE_PATH || "";
+  return process.env.NEXT_PUBLIC_BASE_PATH || '';
 }
 
 async function loadModule(name: string): Promise<WasmModule | null> {
@@ -27,8 +27,8 @@ async function loadModule(name: string): Promise<WasmModule | null> {
     try {
       const basePath = getBasePath();
       // The .js files and .wasm files are served from public/wasm/<crate>/
-      const jsUrl = `${basePath}/wasm/${name}/${name.replace(/-/g, "_")}.js`;
-      const wasmUrl = `${basePath}/wasm/${name}/${name.replace(/-/g, "_")}_bg.wasm`;
+      const jsUrl = `${basePath}/wasm/${name}/${name.replace(/-/g, '_')}.js`;
+      const wasmUrl = `${basePath}/wasm/${name}/${name.replace(/-/g, '_')}_bg.wasm`;
 
       const mod = await import(/* webpackIgnore: true */ jsUrl);
 
@@ -47,13 +47,13 @@ async function loadModule(name: string): Promise<WasmModule | null> {
 }
 
 export async function loadPreRefinement() {
-  return loadModule("pre-refinement");
+  return loadModule('pre-refinement');
 }
 
 export async function loadPostRefinement() {
-  return loadModule("post-refinement");
+  return loadModule('post-refinement');
 }
 
 export async function loadServer() {
-  return loadModule("server");
+  return loadModule('server');
 }

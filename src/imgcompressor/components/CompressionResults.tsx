@@ -17,7 +17,15 @@ interface CompressionResultsProps {
   getEstimate?: (item: CompressionItem) => number;
 }
 
-export const CompressionResults = memo(function CompressionResults({ items, onRemove, onDownload, onCompress, onRetry, onCancel, getEstimate }: CompressionResultsProps) {
+export const CompressionResults = memo(function CompressionResults({
+  items,
+  onRemove,
+  onDownload,
+  onCompress,
+  onRetry,
+  onCancel,
+  getEstimate,
+}: CompressionResultsProps) {
   if (items.length === 0) return null;
 
   return (
@@ -71,14 +79,29 @@ export const CompressionResults = memo(function CompressionResults({ items, onRe
                   <span className="text-xs text-[var(--muted)]">
                     {formatBytes(item.result.originalSize)}
                   </span>
-                  <svg className="w-3 h-3 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  <svg
+                    className="w-3 h-3 text-[var(--accent)]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
                   </svg>
-                  <span className={`text-xs font-medium ${item.result.compressionRatio >= 0 ? 'text-green-400' : 'text-amber-400'}`}>
+                  <span
+                    className={`text-xs font-medium ${item.result.compressionRatio >= 0 ? 'text-green-400' : 'text-amber-400'}`}
+                  >
                     {formatBytes(item.result.compressedSize)}
                   </span>
-                  <span className={`text-xs ${item.result.compressionRatio >= 0 ? 'text-green-400/70' : 'text-amber-400/70'}`}>
-                    ({item.result.compressionRatio >= 0 ? '-' : '+'}{Math.abs(item.result.compressionRatio).toFixed(1)}%)
+                  <span
+                    className={`text-xs ${item.result.compressionRatio >= 0 ? 'text-green-400/70' : 'text-amber-400/70'}`}
+                  >
+                    ({item.result.compressionRatio >= 0 ? '-' : '+'}
+                    {Math.abs(item.result.compressionRatio).toFixed(1)}%)
                   </span>
                   {item.result.ssim !== undefined && item.result.ssim > 0 && (
                     <span className="text-xs text-[var(--muted)] ml-1">
@@ -99,8 +122,8 @@ export const CompressionResults = memo(function CompressionResults({ items, onRe
                     <span className="text-[var(--accent)]/70 ml-2">
                       → ~{formatBytes(getEstimate(item))} estimated
                     </span>
-                  )}
-                  {' '}— Ready to compress
+                  )}{' '}
+                  — Ready to compress
                 </p>
               )}
             </div>
@@ -113,8 +136,18 @@ export const CompressionResults = memo(function CompressionResults({ items, onRe
                   className="p-1.5 rounded-lg hover:bg-[var(--accent)]/10 text-[var(--accent)] transition-colors"
                   title="Compress"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"
+                    />
                   </svg>
                 </button>
               )}
@@ -125,7 +158,13 @@ export const CompressionResults = memo(function CompressionResults({ items, onRe
                   className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors"
                   title="Cancel"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
                     <circle cx="12" cy="12" r="9" />
                     <rect x="9" y="9" width="6" height="6" rx="0.5" fill="currentColor" />
                   </svg>
@@ -139,8 +178,18 @@ export const CompressionResults = memo(function CompressionResults({ items, onRe
                     className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-400 transition-colors"
                     title="Retry with current settings"
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
                     </svg>
                   </button>
                   <button
@@ -148,8 +197,18 @@ export const CompressionResults = memo(function CompressionResults({ items, onRe
                     className="p-1.5 rounded-lg hover:bg-green-500/10 text-green-400 transition-colors"
                     title="Download"
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                      />
                     </svg>
                   </button>
                 </>
@@ -161,8 +220,18 @@ export const CompressionResults = memo(function CompressionResults({ items, onRe
                   className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-400 transition-colors"
                   title="Retry"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
                   </svg>
                 </button>
               )}
@@ -172,7 +241,13 @@ export const CompressionResults = memo(function CompressionResults({ items, onRe
                 className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--muted)] hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
                 title="Remove"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>

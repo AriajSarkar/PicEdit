@@ -15,7 +15,11 @@
     "check:rust": "cargo check --manifest-path wasm/Cargo.toml --target wasm32-unknown-unknown",
     "preview": "node scripts/preview.mjs",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format": "node scripts/format.mjs",
+    "format:check": "node scripts/format.mjs --check",
+    "format:prettier": "prettier --write \"src/**/*.{ts,tsx,css,json}\" \"*.{json,mjs}\" \"scripts/**/*.mjs\"",
+    "format:rust": "cargo fmt --manifest-path wasm/Cargo.toml --all"
   },
   "dependencies": {
     "@imgly/background-removal": "^1.7.0",
@@ -31,8 +35,10 @@
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.1.6",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.1",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"
   },
-  "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264"
+  "packageManager": "pnpm@10.29.3+sha512.498e1fb4cca5aa06c1dcf2611e6fafc50972ffe7189998c409e90de74566444298ffe43e6cd2acdc775ba1aa7cc5e092a8b7054c811ba8c5770f84693d33d2dc"
 }
