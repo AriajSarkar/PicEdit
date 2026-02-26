@@ -28,12 +28,20 @@ export type ProcessFn<T extends BatchItem> = (
 interface UseBatchProcessorOptions<T extends BatchItem> {
   /** The async function that processes a single item */
   processFn: ProcessFn<T>;
-  /** Max concurrent items (defaults to min(hardwareConcurrency, 4)) */
+  /** Max concurrent items (defaults to min(hardwareConcurrency, 6)) */
   maxConcurrency?: number;
   /** Called when an item is removed (for cleanup like revoking URLs) */
   onRemove?: (item: T) => void;
   /** Called when all items are cleared */
   onClear?: (items: T[]) => void;
+}
+
+// ── Adaptive progress throttle ──────────────────────────────────────────────
+// Fewer items → snappy updates; many items → reduce cascading re-renders
+function getProgressThrottleMs(itemCount: number): number {
+  if (itemCount <= 10) return 50;
+  if (itemCount <= 30) return 150;
+  return 300;
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────────────
@@ -42,7 +50,7 @@ export function useBatchProcessor<T extends BatchItem>({
   processFn,
   maxConcurrency = Math.min(
     typeof navigator !== 'undefined' ? (navigator.hardwareConcurrency ?? 4) : 4,
-    4,
+    6,
   ),
   onRemove,
   onClear,
@@ -55,6 +63,34 @@ export function useBatchProcessor<T extends BatchItem>({
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
+
+  // Throttled progress tracking — batches setItems calls to avoid thrashing
+  const progressQueue = useRef<Map<string, { stage: string; progress: number }>>(new Map());
+  const progressFlushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flushProgress = useCallback(() => {
+    const updates = new Map(progressQueue.current);
+    progressQueue.current.clear();
+    progressFlushTimer.current = null;
+    if (updates.size === 0) return;
+    setItems((prev) =>
+      prev.map((i) => {
+        const u = updates.get(i.id);
+        return u ? { ...i, stage: u.stage, progress: u.progress } : i;
+      }),
+    );
+  }, []);
+
+  const throttledProgress = useCallback(
+    (id: string, stage: string, percent: number) => {
+      progressQueue.current.set(id, { stage, progress: percent });
+      if (!progressFlushTimer.current) {
+        const throttle = getProgressThrottleMs(itemsRef.current.length);
+        progressFlushTimer.current = setTimeout(flushProgress, throttle);
+      }
+    },
+    [flushProgress],
+  );
 
   const abortControllers = useRef<Map<string, AbortController>>(new Map());
   const batchAbortRef = useRef<AbortController | null>(null);
@@ -136,15 +172,17 @@ export function useBatchProcessor<T extends BatchItem>({
           controller.signal,
           (stage, percent) => {
             if (controller.signal.aborted) return;
-            setItems((prev) =>
-              prev.map((i) => (i.id === id ? { ...i, stage, progress: percent } : i)),
-            );
+            // Use throttled progress to avoid excessive re-renders during batch
+            throttledProgress(id, stage, percent);
           },
         );
 
         if (controller.signal.aborted) {
           throw new DOMException('Cancelled', 'AbortError');
         }
+
+        // Flush any remaining progress for this item before marking done
+        progressQueue.current.delete(id);
 
         setItems((prev) =>
           prev.map((i) =>
@@ -156,6 +194,8 @@ export function useBatchProcessor<T extends BatchItem>({
       } catch (err) {
         const isAbort =
           controller.signal.aborted || (err instanceof DOMException && err.name === 'AbortError');
+
+        progressQueue.current.delete(id);
 
         setItems((prev) =>
           prev.map((i) =>
@@ -174,29 +214,50 @@ export function useBatchProcessor<T extends BatchItem>({
         abortControllers.current.delete(id);
       }
     },
-    [processFn],
+    [processFn, throttledProgress],
   );
 
+  /**
+   * Pool-based concurrency: as soon as one slot frees up, the next pending
+   * item starts immediately. This eliminates idle slots from chunk-based
+   * batching where all items in a chunk must finish before the next starts.
+   */
   const processAll = useCallback(async () => {
     setIsProcessing(true);
     batchAbortRef.current = new AbortController();
 
-    const pending = itemsRef.current.filter((i) => i.status === 'pending' || i.status === 'error');
+    const pending = itemsRef.current
+      .filter((i) => i.status === 'pending' || i.status === 'error')
+      .map((i) => i.id);
 
-    for (let i = 0; i < pending.length; i += maxConcurrency) {
-      if (batchAbortRef.current.signal.aborted) break;
-      const batch = pending.slice(i, i + maxConcurrency);
-      await Promise.all(
-        batch.map((item) => {
-          if (batchAbortRef.current?.signal.aborted) return Promise.resolve();
-          return processOne(item.id);
-        }),
-      );
+    let cursor = 0;
+
+    const runNext = async (): Promise<void> => {
+      while (cursor < pending.length) {
+        if (batchAbortRef.current?.signal.aborted) return;
+        const id = pending[cursor++];
+        // Skip if item was removed while waiting
+        if (!itemsRef.current.find((i) => i.id === id)) continue;
+        await processOne(id);
+      }
+    };
+
+    // Launch `maxConcurrency` workers that each pull from the shared queue
+    const workers = Array.from({ length: Math.min(maxConcurrency, pending.length) }, () =>
+      runNext(),
+    );
+    await Promise.all(workers);
+
+    // Flush any remaining throttled progress
+    if (progressFlushTimer.current) {
+      clearTimeout(progressFlushTimer.current);
+      progressFlushTimer.current = null;
     }
+    flushProgress();
 
     batchAbortRef.current = null;
     setIsProcessing(false);
-  }, [processOne, maxConcurrency]);
+  }, [processOne, maxConcurrency, flushProgress]);
 
   // ── Retry ───────────────────────────────────────────────────────────────
 
@@ -236,22 +297,33 @@ export function useBatchProcessor<T extends BatchItem>({
 
     // Re-read items after state update
     await new Promise((r) => setTimeout(r, 0));
-    const toRetry = itemsRef.current.filter((i) => retryIds.has(i.id));
+    const toRetry = itemsRef.current.filter((i) => retryIds.has(i.id)).map((i) => i.id);
 
-    for (let i = 0; i < toRetry.length; i += maxConcurrency) {
-      if (batchAbortRef.current.signal.aborted) break;
-      const batch = toRetry.slice(i, i + maxConcurrency);
-      await Promise.all(
-        batch.map((item) => {
-          if (batchAbortRef.current?.signal.aborted) return Promise.resolve();
-          return processOne(item.id);
-        }),
-      );
+    // Pool-based concurrency for retries too
+    let cursor = 0;
+    const runNext = async (): Promise<void> => {
+      while (cursor < toRetry.length) {
+        if (batchAbortRef.current?.signal.aborted) return;
+        const id = toRetry[cursor++];
+        if (!itemsRef.current.find((i) => i.id === id)) continue;
+        await processOne(id);
+      }
+    };
+
+    const workers = Array.from({ length: Math.min(maxConcurrency, toRetry.length) }, () =>
+      runNext(),
+    );
+    await Promise.all(workers);
+
+    if (progressFlushTimer.current) {
+      clearTimeout(progressFlushTimer.current);
+      progressFlushTimer.current = null;
     }
+    flushProgress();
 
     batchAbortRef.current = null;
     setIsProcessing(false);
-  }, [processOne, maxConcurrency]);
+  }, [processOne, maxConcurrency, flushProgress]);
 
   // ── Cancel ──────────────────────────────────────────────────────────────
 
