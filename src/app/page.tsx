@@ -40,8 +40,8 @@ const TOOLS = [
   {
     name: 'Image Resizer',
     description: 'Resize to any dimension. Social media presets, custom sizes, batch support.',
-    href: '#',
-    badge: 'Coming Soon',
+    href: '/img-resizer',
+    badge: 'Ready',
     gradient: 'from-cyan-500 via-blue-500 to-indigo-500',
     iconBg: 'bg-cyan-500/10',
     icon: (

@@ -67,7 +67,7 @@ function cleanWasmPackJunk(outDir) {
 
 // ── Main ────────────────────────────────────────────────────────────────────
 
-const crates = ['pre-refinement', 'post-refinement', 'server', 'compressor'];
+const crates = ['pre-refinement', 'post-refinement', 'server', 'compressor', 'resizer'];
 const isRelease = !process.argv.includes('--dev');
 
 // 1. Ensure wasm-pack is available — install if missing
@@ -126,7 +126,7 @@ for (const crate of crates) {
     cleanWasmPackJunk(outDir);
     console.log(`[wasm] ✓ ${crate}`);
   } catch (err) {
-    const isOptional = crate === 'compressor';
+    const isOptional = crate === 'compressor' || crate === 'resizer';
     if (isOptional) {
       console.warn(`[wasm] ⚠ ${crate} failed (optional — Canvas fallback used)`);
     } else {
