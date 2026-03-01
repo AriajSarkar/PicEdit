@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, useEffect } from 'react';
+import { memo, useCallback, useEffect, useId } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { VisualResizer } from './index';
 import type { VisualResizerProps } from './types';
@@ -19,6 +19,8 @@ export const VisualResizerModal = memo(function VisualResizerModal({
   onClose,
   ...resizerProps
 }: VisualResizerModalProps) {
+  const titleId = useId();
+
   // Close on Escape
   const handleKey = useCallback(
     (e: KeyboardEvent) => {
@@ -49,6 +51,9 @@ export const VisualResizerModal = memo(function VisualResizerModal({
           transition={{ duration: 0.25 }}
           className="fixed inset-0 z-50 flex items-center justify-center"
           style={{ backdropFilter: 'blur(12px)' }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
         >
           {/* Backdrop */}
           <motion.div
@@ -57,6 +62,7 @@ export const VisualResizerModal = memo(function VisualResizerModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            aria-label="Close modal backdrop"
           />
 
           {/* Modal container */}
@@ -67,6 +73,9 @@ export const VisualResizerModal = memo(function VisualResizerModal({
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="relative z-10 w-[95vw] max-w-5xl max-h-[92vh] flex flex-col"
           >
+            <h2 id={titleId} className="sr-only">
+              Visual Resizer
+            </h2>
             {/* Close button */}
             <div className="flex justify-end mb-2">
               <button

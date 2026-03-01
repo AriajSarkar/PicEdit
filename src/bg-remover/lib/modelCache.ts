@@ -19,6 +19,8 @@
 // NO stall timeout — the user's network speed is respected.
 // ═══════════════════════════════════════════════════════════════════
 
+import { formatBytes } from '@/lib/imageUtils';
+
 const DB_NAME = 'bg-remover-cache';
 const DB_VERSION = 1;
 const MODEL_STORE = 'models';
@@ -461,12 +463,4 @@ export async function clearModelCache(): Promise<void> {
   console.log('[ModelCache] Clearing entire cache (corrupt entry recovery)...');
   await modelCache.clear();
   console.log('[ModelCache] Cache cleared.');
-}
-
-export function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }

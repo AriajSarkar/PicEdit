@@ -100,6 +100,10 @@ export const CompressionControls = memo(function CompressionControls({
           <p className="text-xs text-[var(--muted)]">Perceptual pre-processing via Rust</p>
         </div>
         <button
+          type="button"
+          role="switch"
+          aria-checked={config.enableWasmOptimize}
+          aria-label="WASM optimization"
           onClick={() => update({ enableWasmOptimize: !config.enableWasmOptimize })}
           disabled={disabled}
           className={`
@@ -203,6 +207,10 @@ export const CompressionControls = memo(function CompressionControls({
             <p className="text-xs text-[var(--muted)]">Calculate SSIM after compression</p>
           </div>
           <button
+            type="button"
+            role="switch"
+            aria-checked={config.verifySsim}
+            aria-label="Quality verification (SSIM)"
             onClick={() => update({ verifySsim: !config.verifySsim })}
             disabled={disabled}
             className={`

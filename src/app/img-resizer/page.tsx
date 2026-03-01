@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, useState, useMemo, useEffect } from 'react';
+import { memo, useCallback, useState, useMemo, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { ResizerHeader } from '@/img-resizer/components/ResizerHeader';
 import { ResizeControls } from '@/img-resizer/components/ResizeControls';
@@ -87,11 +87,24 @@ export default function ImgResizerPage() {
   // Per-image visual editor view state (zoom, pan, frame offset) persists across modal/image switches
   const [viewStateCache] = useState<ViewStateCache>(() => new Map());
 
+  const itemsRef = useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
+  const configRef = useRef(config);
+  useEffect(() => {
+    configRef.current = config;
+  }, [config]);
+
   // Derive clamped index directly — never sync back to state (avoids cascading renders)
   const clampedIdx = hasItems ? Math.min(selectedVisualIdx, items.length - 1) : 0;
+  const currentItem = items[clampedIdx];
+  const currentItemId = currentItem?.id;
+  const currentItemOriginalWidth = currentItem?.originalWidth || 0;
 
-  const sourceWidth = items[clampedIdx]?.originalWidth || 0;
-  const sourceHeight = items[clampedIdx]?.originalHeight || 0;
+  const sourceWidth = currentItem?.originalWidth || 0;
+  const sourceHeight = currentItem?.originalHeight || 0;
 
   // ── Auto-persist per-image dims when viewing in visual resizer ──────
   // Ensures "what you see in the visual resizer = what Resize All uses"
@@ -100,14 +113,22 @@ export default function ImgResizerPage() {
   // the displayed dimensions must still be saved so Resize All respects them.
   useEffect(() => {
     if (!modalOpen) return;
-    const item = items[clampedIdx];
+    const item = itemsRef.current[clampedIdx];
     if (!item || item.originalWidth === 0) return;
     if (perImageDims.has(item.id)) return; // already set by user drag
     const { width, height } = getOutputDimensions(item);
     if (width > 0 && height > 0) {
       setPerImageDims(item.id, width, height);
     }
-  }, [modalOpen, clampedIdx, items, perImageDims, getOutputDimensions, setPerImageDims]);
+  }, [
+    modalOpen,
+    clampedIdx,
+    currentItemId,
+    currentItemOriginalWidth,
+    perImageDims,
+    getOutputDimensions,
+    setPerImageDims,
+  ]);
 
   // When switching images, restore per-image dimensions into the global config sidebar
   const handleSelectImage = useCallback(
@@ -117,20 +138,25 @@ export default function ImgResizerPage() {
       if (!item) return;
       const dims = perImageDims.get(item.id);
       if (dims) {
-        setConfig({ ...config, method: 'dimensions' as const, width: dims.width, height: dims.height });
+        setConfig({
+          ...configRef.current,
+          method: 'dimensions' as const,
+          width: dims.width,
+          height: dims.height,
+        });
       }
     },
-    [items, setConfig, config, perImageDims],
+    [items, setConfig, perImageDims],
   );
 
   const handleVisualResize = useCallback(
     (width: number, height: number, cropX: number, cropY: number) => {
-      setConfig({ ...config, method: 'dimensions' as const, width, height });
+      setConfig({ ...configRef.current, method: 'dimensions' as const, width, height });
       // Persist per-image dimensions + crop so switching images preserves adjustments
-      const item = items[clampedIdx];
+      const item = itemsRef.current[clampedIdx];
       if (item) setPerImageDims(item.id, width, height, cropX, cropY);
     },
-    [setConfig, config, items, clampedIdx, setPerImageDims],
+    [setConfig, clampedIdx, setPerImageDims],
   );
 
   // When user changes config from the sidebar (presets, method, etc.),

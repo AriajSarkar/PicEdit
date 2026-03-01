@@ -48,6 +48,15 @@ function rejectAllPending(reason: string) {
   }
 }
 
+function rejectPendingForSlot(slot: WorkerSlot, reason: string) {
+  for (const [id, op] of pending) {
+    if (op.slot === slot) {
+      op.reject(new Error(reason));
+      pending.delete(id);
+    }
+  }
+}
+
 // ── Message handler factory ─────────────────────────────────────────────────
 
 function createHandler(slot: WorkerSlot) {
@@ -113,25 +122,44 @@ function initWorker(): Promise<WorkerSlot> {
       const wasmJsUrl = `${origin}${basePath}/wasm/resizer/resizer.js`;
       const wasmBgUrl = `${origin}${basePath}/wasm/resizer/resizer_bg.wasm`;
 
-      const onInit = (e: MessageEvent) => {
-        if (e.data.type === 'ready') {
-          w.removeEventListener('message', onInit);
-          w.onmessage = createHandler(slot);
-          w.onerror = () => {
-            w.terminate();
-            const idx = pool.indexOf(slot);
-            if (idx >= 0) pool.splice(idx, 1);
-            // Reject ops that were on this worker
-            for (const [id, op] of pending) {
-              if (op.slot === slot) {
-                op.reject(new Error('Worker crashed'));
-                pending.delete(id);
-              }
-            }
-          };
-          resolve(slot);
-        }
+      let settled = false;
+      const cleanupInitListeners = () => {
+        w.removeEventListener('message', onInit);
+        clearTimeout(initTimeout);
       };
+
+      const onInit = (e: MessageEvent) => {
+        if (e.data.type !== 'ready' || settled) return;
+        settled = true;
+        cleanupInitListeners();
+        w.onmessage = createHandler(slot);
+        w.onerror = () => {
+          w.terminate();
+          const idx = pool.indexOf(slot);
+          if (idx >= 0) pool.splice(idx, 1);
+          rejectPendingForSlot(slot, 'Worker crashed');
+        };
+        resolve(slot);
+      };
+
+      const initTimeout = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        cleanupInitListeners();
+        w.terminate();
+        rejectPendingForSlot(slot, 'Worker init timed out');
+        reject(new Error('Worker init timed out'));
+      }, 10000);
+
+      w.onerror = () => {
+        if (settled) return;
+        settled = true;
+        cleanupInitListeners();
+        w.terminate();
+        rejectPendingForSlot(slot, 'Worker init failed');
+        reject(new Error('Worker init failed'));
+      };
+
       w.addEventListener('message', onInit);
 
       w.postMessage({ type: 'init', wasmJsUrl, wasmBgUrl });

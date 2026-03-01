@@ -36,15 +36,23 @@ try {
   console.log('  Preview ready — open http://localhost:3000/PicEdit');
   console.log('');
 
-  execSync(`npx serve@latest "${tmpDir}" -l 3000`, { stdio: 'inherit' });
+  execSync(`pnpm exec serve "${tmpDir}" -l 3000`, { stdio: 'inherit' });
 } finally {
   // Cleanup
   try {
     if (process.platform === 'win32') {
-      execSync(`rmdir "${linkTarget}"`, { shell: 'cmd.exe', stdio: 'ignore' });
+      if (fs.existsSync(linkTarget)) {
+        execSync(`rmdir "${linkTarget}"`, { shell: 'cmd.exe', stdio: 'ignore' });
+      }
     } else {
-      fs.unlinkSync(linkTarget);
+      if (fs.existsSync(linkTarget)) {
+        fs.unlinkSync(linkTarget);
+      }
     }
-    fs.rmdirSync(tmpDir);
+  } catch {}
+  try {
+    if (fs.existsSync(tmpDir)) {
+      fs.rmdirSync(tmpDir);
+    }
   } catch {}
 }

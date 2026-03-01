@@ -34,6 +34,8 @@ const DEFAULT_SESSION: SessionData = {
 export function useSession() {
   const [session, setSession] = useState<SessionData>(DEFAULT_SESSION);
   const sessionRef = useRef<SessionData>(DEFAULT_SESSION);
+  const isMountedRef = useRef(true);
+  const hasLocalWriteRef = useRef(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -42,25 +44,38 @@ export function useSession() {
 
   // Load session from IndexedDB on mount
   useEffect(() => {
+    isMountedRef.current = true;
     const loadSession = async () => {
+      const writeVersionAtStart = hasLocalWriteRef.current;
       try {
         const saved = await getFromStore<SessionData>(STORE_NAME, CURRENT_SESSION_KEY);
-        if (saved) {
+        if (
+          isMountedRef.current &&
+          saved &&
+          !writeVersionAtStart &&
+          !hasLocalWriteRef.current
+        ) {
           sessionRef.current = saved;
           setSession(saved);
         }
       } catch (error) {
         console.error('Failed to load session:', error);
       } finally {
-        setIsLoaded(true);
+        if (isMountedRef.current) {
+          setIsLoaded(true);
+        }
       }
     };
 
     loadSession();
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   // Save session to IndexedDB
   const saveSession = useCallback(async (data: Partial<SessionData>) => {
+    hasLocalWriteRef.current = true;
     const newSession = {
       ...sessionRef.current,
       ...data,

@@ -29,10 +29,15 @@ pub fn resize_rgba(
     let sh = src_h as usize;
     let dw = dst_w as usize;
     let dh = dst_h as usize;
+    let output_len = dw
+        .checked_mul(dh)
+        .and_then(|v| v.checked_mul(4))
+        .unwrap_or(0);
+    let expected_input_len = sw.checked_mul(sh).and_then(|v| v.checked_mul(4));
 
     // Validate input
-    if rgba.len() != sw * sh * 4 || dw == 0 || dh == 0 {
-        return vec![0u8; dw * dh * 4];
+    if dw == 0 || dh == 0 || expected_input_len != Some(rgba.len()) {
+        return vec![0u8; output_len];
     }
 
     // No-op if dimensions match
@@ -41,7 +46,7 @@ pub fn resize_rgba(
     }
 
     // Premultiply alpha for correct filtering
-    let mut premul = premultiply_alpha(rgba);
+    let premul = premultiply_alpha(rgba);
 
     // Separable resize: horizontal, then vertical
     let intermediate = match filter {
@@ -53,11 +58,10 @@ pub fn resize_rgba(
         _ => lanczos::resize_vertical_lanczos3(&intermediate, dw, sh, dh),
     };
 
-    // Reuse premul buffer for output (avoids extra allocation if same size)
-    premul = resized;
-    unpremultiply_alpha(&mut premul);
-
-    premul
+    // Unpremultiply the resized buffer in-place.
+    let mut result = resized;
+    unpremultiply_alpha(&mut result);
+    result
 }
 
 // ── Alpha handling ──────────────────────────────────────────────────────────

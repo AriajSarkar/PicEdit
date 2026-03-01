@@ -27,8 +27,9 @@ async function loadModule(name: string): Promise<WasmModule | null> {
     try {
       const basePath = getBasePath();
       // The .js files and .wasm files are served from public/wasm/<crate>/
-      const jsUrl = `${basePath}/wasm/${name}/${name.replace(/-/g, '_')}.js`;
-      const wasmUrl = `${basePath}/wasm/${name}/${name.replace(/-/g, '_')}_bg.wasm`;
+      const normalizedName = name.replace(/-/g, '_');
+      const jsUrl = `${basePath}/wasm/${name}/${normalizedName}.js`;
+      const wasmUrl = `${basePath}/wasm/${name}/${normalizedName}_bg.wasm`;
 
       const mod = await import(/* webpackIgnore: true */ jsUrl);
 

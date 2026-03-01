@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { HistoryItem } from '@/types';
 import {
   getAllFromStore,
@@ -14,7 +14,12 @@ const STORE_NAME = 'history';
 
 export function useHistory() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const historyRef = useRef<HistoryItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    historyRef.current = history;
+  }, [history]);
 
   // Load history from IndexedDB on mount
   useEffect(() => {
@@ -35,6 +40,7 @@ export function useHistory() {
   }, []);
 
   const addToHistory = useCallback(async (item: HistoryItem) => {
+    const previousHistory = historyRef.current;
     setHistory((prev) => {
       // Don't add duplicates
       if (prev.some((h) => h.id === item.id)) {
@@ -49,6 +55,7 @@ export function useHistory() {
       await putInStore(STORE_NAME, item);
     } catch (error) {
       console.error('Failed to save to IndexedDB:', error);
+      setHistory(previousHistory);
     }
   }, []);
 

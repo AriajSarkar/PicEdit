@@ -36,11 +36,20 @@ export async function cachedModelFetch(
     // Check cache first
     const cached = await mod.is_cached(url, fullConfig.dbName, fullConfig.storeName);
     if (cached) {
-      const buffer = await mod.get_cached(url, fullConfig.dbName, fullConfig.storeName);
-      return new Response(buffer, {
-        status: 200,
-        headers: { 'content-type': 'application/octet-stream' },
-      });
+      try {
+        const buffer = await mod.get_cached(url, fullConfig.dbName, fullConfig.storeName);
+        return new Response(buffer, {
+          status: 200,
+          headers: { 'content-type': 'application/octet-stream' },
+        });
+      } catch (cacheReadErr) {
+        console.warn('[server] Cache read failed, falling back to download:', {
+          url,
+          dbName: fullConfig.dbName,
+          storeName: fullConfig.storeName,
+          error: cacheReadErr,
+        });
+      }
     }
 
     // Download with chunked caching

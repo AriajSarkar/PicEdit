@@ -12,10 +12,13 @@ export const ImageStrip = memo(function ImageStrip({
   disabled,
 }: ImageStripProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const hasItems = items.length > 0;
+  const maxIndex = items.length - 1;
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+    if (selectedIndex < 0 || selectedIndex >= el.children.length) return;
     const child = el.children[selectedIndex] as HTMLElement | undefined;
     child?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   }, [selectedIndex]);
@@ -25,7 +28,7 @@ export const ImageStrip = memo(function ImageStrip({
       <div className="flex items-center gap-2 px-3 py-2">
         <button
           onClick={() => onSelect(Math.max(0, selectedIndex - 1))}
-          disabled={selectedIndex === 0 || disabled}
+          disabled={!hasItems || selectedIndex === 0 || disabled}
           className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--foreground)] disabled:opacity-30 transition-colors shrink-0"
           aria-label="Previous image"
         >
@@ -105,8 +108,11 @@ export const ImageStrip = memo(function ImageStrip({
         </div>
 
         <button
-          onClick={() => onSelect(Math.min(items.length - 1, selectedIndex + 1))}
-          disabled={selectedIndex === items.length - 1 || disabled}
+          onClick={() => {
+            if (!hasItems) return;
+            onSelect(Math.min(maxIndex, selectedIndex + 1));
+          }}
+          disabled={!hasItems || selectedIndex === maxIndex || disabled}
           className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--foreground)] disabled:opacity-30 transition-colors shrink-0"
           aria-label="Next image"
         >

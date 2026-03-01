@@ -42,6 +42,8 @@ interface ResizePreset {
   height: number;
 }
 
+// Keep this list in sync with src/img-resizer/types/index.ts (canonical source).
+// Worker keeps a local copy to avoid runtime import issues in dedicated worker bundles.
 // Minimal preset list for dimension calculation in worker
 const RESIZE_PRESETS: ResizePreset[] = [
   { id: 'ig-post', label: 'Post', category: 'Instagram', width: 1080, height: 1080 },
@@ -135,6 +137,24 @@ function bitmapToRGBA(bitmap: ImageBitmap): { data: Uint8Array; w: number; h: nu
   ctx.drawImage(bitmap, 0, 0);
   const imgData = ctx.getImageData(0, 0, w, h);
   return { data: new Uint8Array(imgData.data.buffer), w, h };
+}
+
+function getCoverTargetDimensions(
+  config: ResizerConfig,
+  fallbackW: number,
+  fallbackH: number,
+): { targetW: number; targetH: number } {
+  if (config.method === 'preset') {
+    const preset = RESIZE_PRESETS.find((p) => p.id === config.presetId);
+    return {
+      targetW: preset?.width || fallbackW,
+      targetH: preset?.height || fallbackH,
+    };
+  }
+  return {
+    targetW: config.width || fallbackW,
+    targetH: config.height || fallbackH,
+  };
 }
 
 function rgbaToBlob(
@@ -265,22 +285,9 @@ async function processResize(
 
     // Cover mode needs separate handling
     if (config.fit === 'cover' && config.method !== 'percentage') {
-      const targetW = config.method === 'preset'
-        ? (RESIZE_PRESETS.find((p) => p.id === config.presetId)?.width || outW)
-        : (config.width || outW);
-      const targetH = config.method === 'preset'
-        ? (RESIZE_PRESETS.find((p) => p.id === config.presetId)?.height || outH)
-        : (config.height || outH);
-
-      if (wasmResize) {
-        try {
-          result = await resizeWithWasm(bitmap, targetW, targetH, mimeType, quality, postProgress);
-        } catch {
-          result = await resizeCoverWithCanvas(bitmap, targetW, targetH, mimeType, quality, postProgress);
-        }
-      } else {
-        result = await resizeCoverWithCanvas(bitmap, targetW, targetH, mimeType, quality, postProgress);
-      }
+      const { targetW, targetH } = getCoverTargetDimensions(config, outW, outH);
+      // Cover requires scale-and-crop semantics. Use the dedicated cover path.
+      result = await resizeCoverWithCanvas(bitmap, targetW, targetH, mimeType, quality, postProgress);
     } else {
       if (wasmResize) {
         try {

@@ -30,6 +30,7 @@ export async function initPostProcessing(): Promise<boolean> {
           console.warn('[post-refinement] Init failed:', e.data.message);
           worker?.terminate();
           worker = null;
+          initPromise = null;
           resolve(false);
         }
       };
@@ -37,11 +38,13 @@ export async function initPostProcessing(): Promise<boolean> {
       worker.onerror = () => {
         worker?.terminate();
         worker = null;
+        initPromise = null;
         resolve(false);
       };
 
       worker.postMessage({ type: 'init', wasmJsUrl, wasmBgUrl });
     } catch {
+      initPromise = null;
       resolve(false);
     }
   });
@@ -82,7 +85,23 @@ export async function postProcess(
   console.log('[post-refinement] Starting WASM processing...');
 
   return new Promise((resolve) => {
+    let settled = false;
+    const settleWithMask = () => {
+      if (settled) return;
+      settled = true;
+      resolve(maskData);
+    };
+
+    const timeoutId = setTimeout(() => {
+      worker?.removeEventListener('message', onMessage);
+      console.warn('[post-refinement] Processing timed out');
+      settleWithMask();
+    }, 30000);
+
     const onMessage = (e: MessageEvent<PostProcessResult>) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
       worker!.removeEventListener('message', onMessage);
 
       if (e.data.type === 'result') {

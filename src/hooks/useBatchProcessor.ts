@@ -68,6 +68,16 @@ export function useBatchProcessor<T extends BatchItem>({
   const progressQueue = useRef<Map<string, { stage: string; progress: number }>>(new Map());
   const progressFlushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Cleanup pending progress timer on unmount.
+  useEffect(() => {
+    return () => {
+      if (progressFlushTimer.current) {
+        clearTimeout(progressFlushTimer.current);
+        progressFlushTimer.current = null;
+      }
+    };
+  }, []);
+
   const flushProgress = useCallback(() => {
     const updates = new Map(progressQueue.current);
     progressQueue.current.clear();

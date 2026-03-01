@@ -118,6 +118,27 @@ export function getPresetDimensions(presetId: string): ResizePreset | undefined 
   return RESIZE_PRESETS.find((p) => p.id === presetId);
 }
 
+/**
+ * Resolve explicit target dimensions used for cover-mode rendering.
+ */
+export function getCoverTargetDimensions(
+  config: ResizerConfig,
+  fallbackW: number,
+  fallbackH: number,
+): { targetW: number; targetH: number } {
+  if (config.method === 'preset') {
+    const preset = RESIZE_PRESETS.find((p) => p.id === config.presetId);
+    return {
+      targetW: preset?.width || fallbackW,
+      targetH: preset?.height || fallbackH,
+    };
+  }
+  return {
+    targetW: config.width || fallbackW,
+    targetH: config.height || fallbackH,
+  };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Canvas Helpers (robust: OffscreenCanvas → HTMLCanvasElement fallback)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -348,25 +369,9 @@ export async function resizeImage(
 
   // Cover mode needs separate handling
   if (config.fit === 'cover' && config.method !== 'percentage') {
-    const targetW =
-      config.method === 'preset'
-        ? RESIZE_PRESETS.find((p) => p.id === config.presetId)?.width || outW
-        : config.width || outW;
-    const targetH =
-      config.method === 'preset'
-        ? RESIZE_PRESETS.find((p) => p.id === config.presetId)?.height || outH
-        : config.height || outH;
-
-    if (hasWasm) {
-      try {
-        result = await resizeWithWasm(bitmap, targetW, targetH, mimeType, quality, onProgress);
-      } catch {
-        // WASM failed at runtime — fall back to Canvas
-        result = await resizeCoverWithCanvas(bitmap, targetW, targetH, mimeType, quality, onProgress);
-      }
-    } else {
-      result = await resizeCoverWithCanvas(bitmap, targetW, targetH, mimeType, quality, onProgress);
-    }
+    const { targetW, targetH } = getCoverTargetDimensions(config, outW, outH);
+    // Cover requires scale-and-crop behavior, so always use the dedicated cover path.
+    result = await resizeCoverWithCanvas(bitmap, targetW, targetH, mimeType, quality, onProgress);
   } else {
     // Standard resize (contain / stretch / percentage / dimensions)
     if (hasWasm) {
