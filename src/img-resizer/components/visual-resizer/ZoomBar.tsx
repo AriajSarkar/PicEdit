@@ -30,7 +30,13 @@ export const ZoomBar = memo(function ZoomBar({ zoom, onZoom, onReset }: ZoomBarP
           className="w-5 h-5 rounded flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-white/5 transition-colors"
           title="Zoom out (Ctrl+−)"
         >
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg
+            className="w-3 h-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
           </svg>
         </button>
@@ -48,7 +54,13 @@ export const ZoomBar = memo(function ZoomBar({ zoom, onZoom, onReset }: ZoomBarP
           className="w-5 h-5 rounded flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-white/5 transition-colors"
           title="Zoom in (Ctrl+=)"
         >
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg
+            className="w-3 h-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
         </button>
@@ -60,7 +72,8 @@ export const ZoomBar = memo(function ZoomBar({ zoom, onZoom, onReset }: ZoomBarP
       {/* Quick zoom presets */}
       <div className="flex items-center gap-1">
         {QUICK_ZOOM.map((q) => {
-          const active = q.label === 'Fit' ? zoom === DEFAULT_ZOOM : Math.abs(zoom - q.value) < 0.01;
+          const active =
+            q.label === 'Fit' ? zoom === DEFAULT_ZOOM : Math.abs(zoom - q.value) < 0.01;
           return (
             <button
               key={q.label}

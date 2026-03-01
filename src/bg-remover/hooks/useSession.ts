@@ -49,12 +49,7 @@ export function useSession() {
       const writeVersionAtStart = hasLocalWriteRef.current;
       try {
         const saved = await getFromStore<SessionData>(STORE_NAME, CURRENT_SESSION_KEY);
-        if (
-          isMountedRef.current &&
-          saved &&
-          !writeVersionAtStart &&
-          !hasLocalWriteRef.current
-        ) {
+        if (isMountedRef.current && saved && !writeVersionAtStart && !hasLocalWriteRef.current) {
           sessionRef.current = saved;
           setSession(saved);
         }

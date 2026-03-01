@@ -71,13 +71,26 @@ const RESIZE_PRESETS: ResizePreset[] = [
 
 // ── WASM state ──────────────────────────────────────────────────────────────
 
-let wasmResize: ((rgba: Uint8Array, srcW: number, srcH: number, dstW: number, dstH: number, filter: number) => Uint8Array) | null = null;
+let wasmResize:
+  | ((
+      rgba: Uint8Array,
+      srcW: number,
+      srcH: number,
+      dstW: number,
+      dstH: number,
+      filter: number,
+    ) => Uint8Array)
+  | null = null;
 let initDone: Promise<boolean> | null = null;
 
 // ── Dimension calculation (same logic as resizeUtils.ts) ────────────────────
 
 function applyFit(
-  srcW: number, srcH: number, targetW: number, targetH: number, fit: string,
+  srcW: number,
+  srcH: number,
+  targetW: number,
+  targetH: number,
+  fit: string,
 ): { width: number; height: number } {
   const srcRatio = srcW / srcH;
   switch (fit) {
@@ -98,7 +111,9 @@ function applyFit(
 }
 
 function calculateOutputDimensions(
-  origWidth: number, origHeight: number, config: ResizerConfig,
+  origWidth: number,
+  origHeight: number,
+  config: ResizerConfig,
 ): { width: number; height: number } {
   switch (config.method) {
     case 'percentage': {
@@ -158,7 +173,11 @@ function getCoverTargetDimensions(
 }
 
 function rgbaToBlob(
-  rgba: Uint8Array, w: number, h: number, mimeType: string, quality?: number,
+  rgba: Uint8Array,
+  w: number,
+  h: number,
+  mimeType: string,
+  quality?: number,
 ): Promise<Blob> {
   const canvas = new OffscreenCanvas(w, h);
   const ctx = canvas.getContext('2d');
@@ -191,7 +210,11 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 // ── Resize implementations ──────────────────────────────────────────────────
 
 async function resizeWithWasm(
-  bitmap: ImageBitmap, outW: number, outH: number, mimeType: string, quality: number | undefined,
+  bitmap: ImageBitmap,
+  outW: number,
+  outH: number,
+  mimeType: string,
+  quality: number | undefined,
   postProgress: (stage: string, percent: number) => void,
 ): Promise<{ blob: Blob; width: number; height: number }> {
   postProgress('Extracting pixels', 30);
@@ -204,7 +227,11 @@ async function resizeWithWasm(
 }
 
 async function resizeWithCanvas(
-  bitmap: ImageBitmap, outW: number, outH: number, mimeType: string, quality: number | undefined,
+  bitmap: ImageBitmap,
+  outW: number,
+  outH: number,
+  mimeType: string,
+  quality: number | undefined,
   postProgress: (stage: string, percent: number) => void,
 ): Promise<{ blob: Blob; width: number; height: number }> {
   postProgress('Resizing (Canvas)', 40);
@@ -220,7 +247,11 @@ async function resizeWithCanvas(
 }
 
 async function resizeCoverWithCanvas(
-  bitmap: ImageBitmap, targetW: number, targetH: number, mimeType: string, quality: number | undefined,
+  bitmap: ImageBitmap,
+  targetW: number,
+  targetH: number,
+  mimeType: string,
+  quality: number | undefined,
   postProgress: (stage: string, percent: number) => void,
 ): Promise<{ blob: Blob; width: number; height: number }> {
   postProgress('Resizing (cover)', 40);
@@ -287,7 +318,14 @@ async function processResize(
     if (config.fit === 'cover' && config.method !== 'percentage') {
       const { targetW, targetH } = getCoverTargetDimensions(config, outW, outH);
       // Cover requires scale-and-crop semantics. Use the dedicated cover path.
-      result = await resizeCoverWithCanvas(bitmap, targetW, targetH, mimeType, quality, postProgress);
+      result = await resizeCoverWithCanvas(
+        bitmap,
+        targetW,
+        targetH,
+        mimeType,
+        quality,
+        postProgress,
+      );
     } else {
       if (wasmResize) {
         try {

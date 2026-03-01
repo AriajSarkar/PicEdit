@@ -35,7 +35,9 @@ type ResizeProps = {
 
 export type GlobalCompressionResultsProps = CompressProps | ResizeProps;
 
-export const ComparisonResults = memo(function ComparisonResults(props: GlobalCompressionResultsProps) {
+export const ComparisonResults = memo(function ComparisonResults(
+  props: GlobalCompressionResultsProps,
+) {
   const { items } = props;
   if (items.length === 0) return null;
 
@@ -268,7 +270,9 @@ const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps) {
             <span className="text-xs font-medium text-[var(--accent)]">
               {resizeDims.width}x{resizeDims.height}
             </span>
-            <span className="text-xs text-[var(--muted)]">{formatBytes(resizeItem.result.newSize)}</span>
+            <span className="text-xs text-[var(--muted)]">
+              {formatBytes(resizeItem.result.newSize)}
+            </span>
           </div>
         )}
 
@@ -459,4 +463,3 @@ const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps) {
     </motion.div>
   );
 });
-

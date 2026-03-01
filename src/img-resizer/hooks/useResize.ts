@@ -4,7 +4,11 @@ import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import type { ResizerConfig, ResizeItem } from '@/img-resizer/types';
 import { DEFAULT_RESIZER_CONFIG } from '@/img-resizer/types';
 import { calculateOutputDimensions } from '@/img-resizer/lib/resizeUtils';
-import { initResizeWorkers, resizeImageInWorker, terminateResizeWorkers } from '@/img-resizer/lib/resizeWorkerBridge';
+import {
+  initResizeWorkers,
+  resizeImageInWorker,
+  terminateResizeWorkers,
+} from '@/img-resizer/lib/resizeWorkerBridge';
 import { formatBytes } from '@/lib/imageUtils';
 import { useBatchProcessor } from '@/hooks/useBatchProcessor';
 import { createZip, downloadBlob } from '@/lib/zipUtil';
@@ -12,7 +16,10 @@ import { createZip, downloadBlob } from '@/lib/zipUtil';
 // ── Return type ──────────────────────────────────────────────────────────────
 
 /** Per-image dimension overrides (from visual resizer adjustments) */
-export type PerImageDims = Map<string, { width: number; height: number; cropX?: number; cropY?: number }>;
+export type PerImageDims = Map<
+  string,
+  { width: number; height: number; cropX?: number; cropY?: number }
+>;
 
 export interface UseResizeReturn {
   items: ResizeItem[];
@@ -41,7 +48,13 @@ export interface UseResizeReturn {
   getOutputDimensions: (item: ResizeItem) => { width: number; height: number };
   /** Per-image dimension overrides — set by visual resizer, used at resize/download time */
   perImageDims: PerImageDims;
-  setPerImageDims: (id: string, width: number, height: number, cropX?: number, cropY?: number) => void;
+  setPerImageDims: (
+    id: string,
+    width: number,
+    height: number,
+    cropX?: number,
+    cropY?: number,
+  ) => void;
   clearPerImageDims: (id: string) => void;
   clearAllPerImageDims: () => void;
 }
@@ -65,13 +78,16 @@ export function useResize(): UseResizeReturn {
     perImageDimsRef.current = perImageDims;
   }, [perImageDims]);
 
-  const setPerImageDims = useCallback((id: string, width: number, height: number, cropX?: number, cropY?: number) => {
-    setPerImageDimsState((prev) => {
-      const next = new Map(prev);
-      next.set(id, { width, height, cropX, cropY });
-      return next;
-    });
-  }, []);
+  const setPerImageDims = useCallback(
+    (id: string, width: number, height: number, cropX?: number, cropY?: number) => {
+      setPerImageDimsState((prev) => {
+        const next = new Map(prev);
+        next.set(id, { width, height, cropX, cropY });
+        return next;
+      });
+    },
+    [],
+  );
 
   const clearPerImageDims = useCallback((id: string) => {
     setPerImageDimsState((prev) => {
@@ -130,10 +146,15 @@ export function useResize(): UseResizeReturn {
         }
       }
 
-      const result = await resizeImageInWorker(item.file, effectiveConfig, (stage, percent) => {
-        if (signal.aborted) return;
-        onProgress(stage, percent);
-      }, crop);
+      const result = await resizeImageInWorker(
+        item.file,
+        effectiveConfig,
+        (stage, percent) => {
+          if (signal.aborted) return;
+          onProgress(stage, percent);
+        },
+        crop,
+      );
 
       if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
       return { result };
@@ -326,11 +347,13 @@ export function useResize(): UseResizeReturn {
       // Check per-image overrides first — visual resizer dims are exact, no re-fitting
       const dims = perImageDimsRef.current.get(item.id);
       if (dims) {
-        return calculateOutputDimensions(
-          item.originalWidth,
-          item.originalHeight,
-          { ...configRef.current, method: 'dimensions' as const, width: dims.width, height: dims.height, lockAspectRatio: false },
-        );
+        return calculateOutputDimensions(item.originalWidth, item.originalHeight, {
+          ...configRef.current,
+          method: 'dimensions' as const,
+          width: dims.width,
+          height: dims.height,
+          lockAspectRatio: false,
+        });
       }
       return calculateOutputDimensions(item.originalWidth, item.originalHeight, configRef.current);
     },

@@ -33,7 +33,14 @@ import {
   DEFAULT_ZOOM,
   CURSOR,
 } from './types';
-import { PADDING, type HandleId, type InteractionMode, type DragState, type InnerProps, type ViewState } from './types';
+import {
+  PADDING,
+  type HandleId,
+  type InteractionMode,
+  type DragState,
+  type InnerProps,
+  type ViewState,
+} from './types';
 
 export const VisualResizerInner = memo(function VisualResizerInner({
   imageSrc,
@@ -435,13 +442,16 @@ export const VisualResizerInner = memo(function VisualResizerInner({
     }
   }, []);
 
-  const pointerMove = useCallback((e: PointerEvent) => {
-    if (!dragRef.current) return;
-    pendingPointer.current = { x: e.clientX, y: e.clientY };
-    if (!rafId.current) {
-      rafId.current = requestAnimationFrame(applyPointerMove);
-    }
-  }, [applyPointerMove]);
+  const pointerMove = useCallback(
+    (e: PointerEvent) => {
+      if (!dragRef.current) return;
+      pendingPointer.current = { x: e.clientX, y: e.clientY };
+      if (!rafId.current) {
+        rafId.current = requestAnimationFrame(applyPointerMove);
+      }
+    },
+    [applyPointerMove],
+  );
 
   const pointerUp = useCallback(() => {
     const d = dragRef.current;

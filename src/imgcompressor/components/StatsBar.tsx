@@ -50,10 +50,12 @@ export const StatsBar = memo(function StatsBar({
         <div>
           <p className="text-xs text-[var(--muted)] mb-0.5">{increased ? 'Increased' : 'Saved'}</p>
           <p className={`text-sm font-mono ${increased ? 'text-amber-400' : 'text-green-400'}`}>
-            {increased ? '+' : ''}{totalSaved}
+            {increased ? '+' : ''}
+            {totalSaved}
             {savedPercent !== 0 && (
               <span className={`${increased ? 'text-amber-400/70' : 'text-green-400/70'} ml-1`}>
-                ({increased ? '+' : ''}{Math.abs(savedPercent).toFixed(1)}%)
+                ({increased ? '+' : ''}
+                {Math.abs(savedPercent).toFixed(1)}%)
               </span>
             )}
           </p>

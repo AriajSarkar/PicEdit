@@ -16,4 +16,3 @@ interface CompressionResultsProps {
 export function CompressionResults(props: CompressionResultsProps) {
   return <ComparisonResults mode="compress" {...props} />;
 }
-

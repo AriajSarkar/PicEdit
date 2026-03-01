@@ -13,7 +13,16 @@ import { RESIZE_PRESETS } from '@/img-resizer/types';
 
 // ── WASM bridge (lazy import to avoid bundling if not used) ─────────────────
 
-let wasmResize: ((rgba: Uint8Array, srcW: number, srcH: number, dstW: number, dstH: number, filter: number) => Uint8Array) | null = null;
+let wasmResize:
+  | ((
+      rgba: Uint8Array,
+      srcW: number,
+      srcH: number,
+      dstW: number,
+      dstH: number,
+      filter: number,
+    ) => Uint8Array)
+  | null = null;
 let wasmLoadAttempted = false;
 
 /** Try to load the WASM resizer module (called once). */
@@ -23,7 +32,9 @@ async function tryLoadWasm(): Promise<boolean> {
   try {
     const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const mod = await import(/* webpackIgnore: true */ `${origin}${basePath}/wasm/resizer/resizer.js`);
+    const mod = await import(
+      /* webpackIgnore: true */ `${origin}${basePath}/wasm/resizer/resizer.js`
+    );
     await mod.default({ module_or_path: `${origin}${basePath}/wasm/resizer/resizer_bg.wasm` });
     wasmResize = mod.resize_rgba;
     console.log('[resizer] WASM loaded — Lanczos3 resize active');
@@ -171,7 +182,9 @@ function makeCanvas(w: number, h: number): { canvas: AnyCanvas; ctx: AnyCtx } {
       const c = new OffscreenCanvas(w, h);
       const ctx = c.getContext('2d');
       if (ctx) return { canvas: c, ctx };
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
   // Fallback: HTMLCanvasElement (always available in browser main thread)
   const c = document.createElement('canvas');

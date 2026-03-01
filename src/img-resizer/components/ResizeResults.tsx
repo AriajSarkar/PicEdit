@@ -16,4 +16,3 @@ interface ResizeResultsProps {
 export function ResizeResults(props: ResizeResultsProps) {
   return <ComparisonResults mode="resize" {...props} />;
 }
-

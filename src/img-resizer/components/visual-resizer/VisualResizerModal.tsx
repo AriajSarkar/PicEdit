@@ -90,11 +90,7 @@ export const VisualResizerModal = memo(function VisualResizerModal({
                   stroke="currentColor"
                   strokeWidth={2}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
                 <span className="text-[10px] font-mono opacity-60 group-hover:opacity-100 transition-opacity">
                   ESC
