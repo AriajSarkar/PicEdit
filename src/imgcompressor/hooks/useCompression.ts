@@ -121,7 +121,9 @@ export function useCompression(): UseCompressionReturn {
   }, []);
 
   const handleClear = useCallback((allItems: CompressionItem[]) => {
-    allItems.forEach((i) => URL.revokeObjectURL(i.preview));
+    allItems.forEach((i) => {
+      URL.revokeObjectURL(i.preview);
+    });
   }, []);
 
   // ── Delegate to global batch processor ───────────────────────────────

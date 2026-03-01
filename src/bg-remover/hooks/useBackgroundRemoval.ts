@@ -379,7 +379,10 @@ async function resizeImageData(
   const canvas = document.createElement('canvas');
   canvas.width = targetW;
   canvas.height = targetH;
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Failed to get 2D canvas context');
+  }
   ctx.drawImage(img, 0, 0, targetW, targetH);
   const imgData = ctx.getImageData(0, 0, targetW, targetH);
   return {

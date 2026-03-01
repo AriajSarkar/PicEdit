@@ -130,7 +130,8 @@ function bitmapToRGBA(bitmap: ImageBitmap): { data: Uint8Array; w: number; h: nu
   const w = bitmap.width;
   const h = bitmap.height;
   const canvas = new OffscreenCanvas(w, h);
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Failed to get 2D context');
   ctx.drawImage(bitmap, 0, 0);
   const imgData = ctx.getImageData(0, 0, w, h);
   return { data: new Uint8Array(imgData.data.buffer), w, h };
@@ -140,7 +141,8 @@ function rgbaToBlob(
   rgba: Uint8Array, w: number, h: number, mimeType: string, quality?: number,
 ): Promise<Blob> {
   const canvas = new OffscreenCanvas(w, h);
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Failed to get 2D context');
   const copy = new Uint8ClampedArray(rgba.length);
   copy.set(rgba);
   ctx.putImageData(new ImageData(copy, w, h), 0, 0);
@@ -187,7 +189,8 @@ async function resizeWithCanvas(
 ): Promise<{ blob: Blob; width: number; height: number }> {
   postProgress('Resizing (Canvas)', 40);
   const canvas = new OffscreenCanvas(outW, outH);
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Failed to get 2D context');
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(bitmap, 0, 0, outW, outH);
@@ -202,7 +205,8 @@ async function resizeCoverWithCanvas(
 ): Promise<{ blob: Blob; width: number; height: number }> {
   postProgress('Resizing (cover)', 40);
   const canvas = new OffscreenCanvas(targetW, targetH);
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Failed to get 2D context');
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   const scale = Math.max(targetW / bitmap.width, targetH / bitmap.height);
@@ -236,16 +240,16 @@ async function processResize(
     if (crop && crop.w > 0 && crop.h > 0) {
       // First decode full image to get dimensions
       const fullBitmap = await createImageBitmap(file);
-      origWidth = fullBitmap.width;
-      origHeight = fullBitmap.height;
       // Clamp crop to image bounds
-      const cx = Math.max(0, Math.min(crop.x, origWidth));
-      const cy = Math.max(0, Math.min(crop.y, origHeight));
-      const cw = Math.min(crop.w, origWidth - cx);
-      const ch = Math.min(crop.h, origHeight - cy);
+      const cx = Math.max(0, Math.min(crop.x, fullBitmap.width));
+      const cy = Math.max(0, Math.min(crop.y, fullBitmap.height));
+      const cw = Math.min(crop.w, fullBitmap.width - cx);
+      const ch = Math.min(crop.h, fullBitmap.height - cy);
       // Extract cropped region
       bitmap = await createImageBitmap(fullBitmap, cx, cy, cw, ch);
       fullBitmap.close();
+      origWidth = bitmap.width;
+      origHeight = bitmap.height;
     } else {
       bitmap = await createImageBitmap(file);
       origWidth = bitmap.width;

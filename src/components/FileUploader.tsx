@@ -3,6 +3,25 @@
 import { useCallback, useRef, useState, memo } from 'react';
 import { motion } from 'motion/react';
 
+function matchesAcceptedFile(accept: string, file: File): boolean {
+  const rules = accept
+    .split(',')
+    .map((rule) => rule.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (rules.length === 0) return true;
+
+  const mime = file.type.toLowerCase();
+  const name = file.name.toLowerCase();
+
+  return rules.some((rule) => {
+    if (rule === '*/*') return true;
+    if (rule.endsWith('/*')) return mime.startsWith(rule.slice(0, -1));
+    if (rule.startsWith('.')) return name.endsWith(rule);
+    return mime === rule;
+  });
+}
+
 interface FileUploaderProps {
   /** Called when files are selected */
   onFilesSelect: (files: File[]) => void;
@@ -47,10 +66,7 @@ export const FileUploader = memo(function FileUploader({
   const handleFiles = useCallback(
     (fileList: FileList | null) => {
       if (!fileList) return;
-      const files = Array.from(fileList).filter((f) => {
-        if (accept === 'image/*') return f.type.startsWith('image/');
-        return true;
-      });
+      const files = Array.from(fileList).filter((f) => matchesAcceptedFile(accept, f));
       if (files.length) onFilesSelect(multiple ? files : [files[0]]);
     },
     [onFilesSelect, multiple, accept],
@@ -82,12 +98,12 @@ export const FileUploader = memo(function FileUploader({
       for (const item of items) {
         if (item.type.startsWith('image/')) {
           const file = item.getAsFile();
-          if (file) files.push(file);
+          if (file && matchesAcceptedFile(accept, file)) files.push(file);
         }
       }
       if (files.length) onFilesSelect(multiple ? files : [files[0]]);
     },
-    [disabled, onFilesSelect, multiple],
+    [disabled, onFilesSelect, multiple, accept],
   );
 
   return (

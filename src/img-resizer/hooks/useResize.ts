@@ -117,17 +117,16 @@ export function useResize(): UseResizeReturn {
         };
         // If crop coordinates are set, build crop region in original-image pixels
         if (dims.cropX != null && dims.cropY != null) {
+          const clampedW = Math.max(1, Math.min(Math.round(dims.width), item.originalWidth));
+          const clampedH = Math.max(1, Math.min(Math.round(dims.height), item.originalHeight));
+          const maxX = Math.max(0, item.originalWidth - clampedW);
+          const maxY = Math.max(0, item.originalHeight - clampedH);
           crop = {
-            x: Math.max(0, Math.round(dims.cropX)),
-            y: Math.max(0, Math.round(dims.cropY)),
-            w: dims.width,
-            h: dims.height,
+            x: Math.max(0, Math.min(Math.round(dims.cropX), maxX)),
+            y: Math.max(0, Math.min(Math.round(dims.cropY), maxY)),
+            w: clampedW,
+            h: clampedH,
           };
-          // Clamp crop to image bounds
-          if (crop.x + crop.w > item.originalWidth) crop.x = Math.max(0, item.originalWidth - crop.w);
-          if (crop.y + crop.h > item.originalHeight) crop.y = Math.max(0, item.originalHeight - crop.h);
-          crop.w = Math.min(crop.w, item.originalWidth - crop.x);
-          crop.h = Math.min(crop.h, item.originalHeight - crop.y);
         }
       }
 
@@ -209,7 +208,22 @@ export function useResize(): UseResizeReturn {
                 const canvas = document.createElement('canvas');
                 canvas.width = tw;
                 canvas.height = th;
-                canvas.getContext('2d')!.drawImage(img, 0, 0, tw, th);
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                  resolve({
+                    id,
+                    file,
+                    preview,
+                    thumbnail: preview,
+                    originalWidth: w,
+                    originalHeight: h,
+                    status: 'pending' as const,
+                    stage: '',
+                    progress: 0,
+                  });
+                  return;
+                }
+                ctx.drawImage(img, 0, 0, tw, th);
                 canvas.toBlob(
                   (blob) => {
                     const thumbnail = blob ? URL.createObjectURL(blob) : preview;

@@ -16,6 +16,7 @@ interface PendingOp {
   resolve: (result: ResizeResult) => void;
   reject: (err: Error) => void;
   onProgress?: (stage: string, percent: number) => void;
+  slot: WorkerSlot;
 }
 
 interface WorkerSlot {
@@ -122,8 +123,10 @@ function initWorker(): Promise<WorkerSlot> {
             if (idx >= 0) pool.splice(idx, 1);
             // Reject ops that were on this worker
             for (const [id, op] of pending) {
-              op.reject(new Error('Worker crashed'));
-              pending.delete(id);
+              if (op.slot === slot) {
+                op.reject(new Error('Worker crashed'));
+                pending.delete(id);
+              }
             }
           };
           resolve(slot);
@@ -210,7 +213,7 @@ export async function resizeImageInWorker(
   return new Promise<ResizeResult>((resolve, reject) => {
     const id = ++nextId;
     slot.busy++;
-    pending.set(id, { resolve, reject, onProgress });
+    pending.set(id, { resolve, reject, onProgress, slot });
     slot.worker.postMessage({ type: 'resize', id, file, config, crop });
   });
 }
@@ -219,7 +222,9 @@ export async function resizeImageInWorker(
  * Terminate all workers and reset state. Call on unmount / cleanup.
  */
 export function terminateResizeWorkers() {
-  pool.forEach((s) => s.worker.terminate());
+  pool.forEach((s) => {
+    s.worker.terminate();
+  });
   pool = [];
   initPromise = null;
   rejectAllPending('Workers terminated');

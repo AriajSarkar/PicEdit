@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { getFromStore, putInStore, deleteFromStore } from '@/bg-remover/lib/indexedDB';
 import { DeviceType, ModelType, ImageInfo, DEFAULT_IMAGE_INFO, EditorState } from '@/types';
 
@@ -33,7 +33,12 @@ const DEFAULT_SESSION: SessionData = {
 
 export function useSession() {
   const [session, setSession] = useState<SessionData>(DEFAULT_SESSION);
+  const sessionRef = useRef<SessionData>(DEFAULT_SESSION);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   // Load session from IndexedDB on mount
   useEffect(() => {
@@ -41,6 +46,7 @@ export function useSession() {
       try {
         const saved = await getFromStore<SessionData>(STORE_NAME, CURRENT_SESSION_KEY);
         if (saved) {
+          sessionRef.current = saved;
           setSession(saved);
         }
       } catch (error) {
@@ -54,27 +60,26 @@ export function useSession() {
   }, []);
 
   // Save session to IndexedDB
-  const saveSession = useCallback(
-    async (data: Partial<SessionData>) => {
-      const newSession = {
-        ...session,
-        ...data,
-        key: CURRENT_SESSION_KEY,
-        timestamp: Date.now(),
-      };
-      setSession(newSession);
+  const saveSession = useCallback(async (data: Partial<SessionData>) => {
+    const newSession = {
+      ...sessionRef.current,
+      ...data,
+      key: CURRENT_SESSION_KEY,
+      timestamp: Date.now(),
+    };
+    sessionRef.current = newSession;
+    setSession(newSession);
 
-      try {
-        await putInStore(STORE_NAME, newSession);
-      } catch (error) {
-        console.error('Failed to save session:', error);
-      }
-    },
-    [session],
-  );
+    try {
+      await putInStore(STORE_NAME, newSession);
+    } catch (error) {
+      console.error('Failed to save session:', error);
+    }
+  }, []);
 
   // Clear session
   const clearSession = useCallback(async () => {
+    sessionRef.current = DEFAULT_SESSION;
     setSession(DEFAULT_SESSION);
     try {
       await deleteFromStore(STORE_NAME, CURRENT_SESSION_KEY);

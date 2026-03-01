@@ -300,6 +300,8 @@ const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps) {
       <div className="flex items-center gap-1 flex-shrink-0">
         {item.status === 'pending' && !isResize && (
           <button
+            type="button"
+            aria-label={`Compress ${item.file.name}`}
             onClick={() => props.onCompress(item.id)}
             className="p-1.5 rounded-lg hover:bg-[var(--accent)]/10 text-[var(--accent)] transition-colors"
             title="Compress"
@@ -322,6 +324,8 @@ const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps) {
 
         {item.status === 'pending' && isResize && (
           <button
+            type="button"
+            aria-label={`Resize ${item.file.name}`}
             onClick={() => props.onResize(item.id)}
             className="p-1.5 rounded-lg hover:bg-[var(--accent)]/10 text-[var(--accent)] transition-colors"
             title="Resize"
@@ -344,6 +348,8 @@ const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps) {
 
         {item.status === 'processing' && (
           <button
+            type="button"
+            aria-label={`Cancel processing ${item.file.name}`}
             onClick={() => props.onCancel(item.id)}
             className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors"
             title="Cancel"
@@ -364,6 +370,8 @@ const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps) {
         {item.status === 'done' && (
           <>
             <button
+              type="button"
+              aria-label={`${isResize ? 'Re-resize' : 'Retry'} ${item.file.name}`}
               onClick={() => props.onRetry(item.id)}
               className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-400 transition-colors"
               title={isResize ? 'Re-resize' : 'Retry with current settings'}
@@ -383,6 +391,8 @@ const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps) {
               </svg>
             </button>
             <button
+              type="button"
+              aria-label={`Download ${item.file.name}`}
               onClick={() => props.onDownload(item.id)}
               className="p-1.5 rounded-lg hover:bg-green-500/10 text-green-400 transition-colors"
               title="Download"
@@ -406,6 +416,8 @@ const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps) {
 
         {item.status === 'error' && (
           <button
+            type="button"
+            aria-label={`Retry ${item.file.name}`}
             onClick={() => props.onRetry(item.id)}
             className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-400 transition-colors"
             title="Retry"
@@ -427,8 +439,10 @@ const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps) {
         )}
 
         <button
+          type="button"
+          aria-label={`Remove ${item.file.name}`}
           onClick={() => props.onRemove(item.id)}
-          className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+          className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100"
           title="Remove"
         >
           <svg
