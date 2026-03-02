@@ -2,12 +2,7 @@
 ///
 /// Two-pass running sum: O(1) per pixel regardless of radius.
 /// Horizontal pass → Vertical pass.
-pub fn box_blur_separable(
-    alpha: &[f32],
-    w: usize,
-    h: usize,
-    radius: usize,
-) -> Vec<f32> {
+pub fn box_blur_separable(alpha: &[f32], w: usize, h: usize, radius: usize) -> Vec<f32> {
     if radius == 0 {
         return alpha.to_vec();
     }

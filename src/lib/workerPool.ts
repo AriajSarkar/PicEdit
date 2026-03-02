@@ -9,8 +9,8 @@
 //   • Automatic queuing when pool is full
 // ═══════════════════════════════════════════════════════════════════
 
-import type { WorkerTask, WorkerResult, PoolTaskInfo } from "@/types";
-import type { TaskStatus } from "@/types";
+import type { WorkerTask, WorkerResult, PoolTaskInfo } from '@/types';
+import type { TaskStatus } from '@/types';
 export type { TaskStatus };
 
 type ProgressCallback = (taskId: string, progress: number) => void;
@@ -32,7 +32,7 @@ export class WorkerPool<T = unknown, R = unknown> {
 
   constructor(
     workerFactory: () => Worker,
-    options?: { maxWorkers?: number; onProgress?: ProgressCallback }
+    options?: { maxWorkers?: number; onProgress?: ProgressCallback },
   ) {
     this.maxWorkers = options?.maxWorkers ?? Math.min(navigator.hardwareConcurrency || 4, 8);
     this.workerFactory = workerFactory;
@@ -79,7 +79,7 @@ export class WorkerPool<T = unknown, R = unknown> {
 
     this.taskMap.set(task.id, {
       id: task.id,
-      status: "processing",
+      status: 'processing',
       progress: 0,
       startedAt: Date.now(),
     });
@@ -105,7 +105,7 @@ export class WorkerPool<T = unknown, R = unknown> {
       if (result.error) {
         this.taskMap.set(task.id, {
           id: task.id,
-          status: "error",
+          status: 'error',
           progress: 0,
           completedAt: Date.now(),
         });
@@ -114,7 +114,7 @@ export class WorkerPool<T = unknown, R = unknown> {
       } else {
         this.taskMap.set(task.id, {
           id: task.id,
-          status: "complete",
+          status: 'complete',
           progress: 100,
           completedAt: Date.now(),
         });
@@ -126,7 +126,7 @@ export class WorkerPool<T = unknown, R = unknown> {
     worker.onerror = (err) => {
       this.taskMap.set(task.id, {
         id: task.id,
-        status: "error",
+        status: 'error',
         progress: 0,
         completedAt: Date.now(),
       });
@@ -134,21 +134,18 @@ export class WorkerPool<T = unknown, R = unknown> {
       // Terminate crashed worker and remove from pool (process isolation)
       worker.terminate();
       this.pool = this.pool.filter((w) => w !== worker);
-      reject(new Error(err.message || "Worker crashed"));
+      reject(new Error(err.message || 'Worker crashed'));
     };
 
     // Send task with transferable buffers (zero-copy)
-    worker.postMessage(
-      { id: task.id, type: task.type, data: task.data },
-      task.transferable || []
-    );
+    worker.postMessage({ id: task.id, type: task.type, data: task.data }, task.transferable || []);
   }
 
   /** Execute a single task */
   async execute(task: WorkerTask<T>): Promise<R> {
     this.taskMap.set(task.id, {
       id: task.id,
-      status: "queued",
+      status: 'queued',
       progress: 0,
     });
 

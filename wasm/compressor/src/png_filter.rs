@@ -18,7 +18,11 @@ pub fn select_optimal_filters(rgba: &[u8], w: usize, h: usize) -> Vec<u8> {
     for y in 0..h {
         let row_start = y * stride;
         let row = &rgba[row_start..row_start + stride];
-        let prev_row = if y > 0 { Some(&rgba[(y - 1) * stride..(y - 1) * stride + stride]) } else { None };
+        let prev_row = if y > 0 {
+            Some(&rgba[(y - 1) * stride..(y - 1) * stride + stride])
+        } else {
+            None
+        };
 
         let mut best_filter = 0u8;
         let mut best_sum = u64::MAX;
@@ -43,8 +47,12 @@ fn compute_filter_cost(row: &[u8], prev_row: Option<&[u8]>, filter_type: u8) -> 
     for i in 0..row.len() {
         let x = row[i];
         let a = if i >= 4 { row[i - 4] } else { 0 }; // left pixel (same channel)
-        let b = prev_row.map(|p| p[i]).unwrap_or(0);   // above pixel
-        let c = if i >= 4 { prev_row.map(|p| p[i - 4]).unwrap_or(0) } else { 0 }; // above-left
+        let b = prev_row.map(|p| p[i]).unwrap_or(0); // above pixel
+        let c = if i >= 4 {
+            prev_row.map(|p| p[i - 4]).unwrap_or(0)
+        } else {
+            0
+        }; // above-left
 
         let filtered = match filter_type {
             0 => x,
@@ -68,7 +76,11 @@ fn paeth_predictor(a: u8, b: u8, c: u8) -> u8 {
     let pb = (p - b as i16).unsigned_abs();
     let pc = (p - c as i16).unsigned_abs();
 
-    if pa <= pb && pa <= pc { a }
-    else if pb <= pc { b }
-    else { c }
+    if pa <= pb && pa <= pc {
+        a
+    } else if pb <= pc {
+        b
+    } else {
+        c
+    }
 }

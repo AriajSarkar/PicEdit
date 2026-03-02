@@ -32,10 +32,18 @@ pub fn generate_trimap_bfs(alpha: &[f32], w: usize, h: usize, radius: usize) -> 
 
             // Check if this pixel is on the boundary (has neighbor on other side)
             let mut is_edge = false;
-            if x > 0 && (alpha[idx - 1] - a).abs() > 0.3 { is_edge = true; }
-            if x + 1 < w && (alpha[idx + 1] - a).abs() > 0.3 { is_edge = true; }
-            if y > 0 && (alpha[idx - w] - a).abs() > 0.3 { is_edge = true; }
-            if y + 1 < h && (alpha[idx + w] - a).abs() > 0.3 { is_edge = true; }
+            if x > 0 && (alpha[idx - 1] - a).abs() > 0.3 {
+                is_edge = true;
+            }
+            if x + 1 < w && (alpha[idx + 1] - a).abs() > 0.3 {
+                is_edge = true;
+            }
+            if y > 0 && (alpha[idx - w] - a).abs() > 0.3 {
+                is_edge = true;
+            }
+            if y + 1 < h && (alpha[idx + w] - a).abs() > 0.3 {
+                is_edge = true;
+            }
 
             // Also seed from any transition pixel
             if (a > BG_THRESH && a < FG_THRESH) || is_edge {

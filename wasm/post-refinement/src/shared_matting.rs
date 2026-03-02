@@ -20,20 +20,17 @@ struct ColorSample {
     dist_sq: i32,
 }
 
-pub fn shared_matting(
-    alpha: &mut [f32],
-    rgba: &[u8],
-    trimap: &[u8],
-    w: usize,
-    h: usize,
-) {
+pub fn shared_matting(alpha: &mut [f32], rgba: &[u8], trimap: &[u8], w: usize, h: usize) {
     let max_search = 25isize;
 
     // Precompute spiral search order (sorted by squared distance — no sqrt needed)
-    let mut spiral: Vec<(isize, isize, i32)> = Vec::with_capacity(((2 * max_search + 1) * (2 * max_search + 1)) as usize);
+    let mut spiral: Vec<(isize, isize, i32)> =
+        Vec::with_capacity(((2 * max_search + 1) * (2 * max_search + 1)) as usize);
     for dy in -max_search..=max_search {
         for dx in -max_search..=max_search {
-            if dx == 0 && dy == 0 { continue; }
+            if dx == 0 && dy == 0 {
+                continue;
+            }
             let d2 = dx * dx + dy * dy;
             spiral.push((dx, dy, d2 as i32));
         }

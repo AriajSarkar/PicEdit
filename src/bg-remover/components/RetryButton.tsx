@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { motion } from "motion/react";
-import { ModelType, MODEL_INFO, MODEL_HIERARCHY } from "@/types";
+import { motion } from 'motion/react';
+import { ModelType, MODEL_INFO, MODEL_HIERARCHY } from '@/types';
 
 interface RetryButtonProps {
   currentModel: ModelType;
@@ -35,7 +35,12 @@ export function RetryButton({ currentModel, onRetry, disabled }: RetryButtonProp
       whileTap={{ scale: disabled ? 1 : 0.98 }}
     >
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+        />
       </svg>
       <span>
         <strong>Retry with {MODEL_INFO[nextModel!].name}</strong>

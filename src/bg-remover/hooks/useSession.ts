@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect } from "react";
-import { getFromStore, putInStore, deleteFromStore } from "@/bg-remover/lib/indexedDB";
-import { DeviceType, ModelType, ImageInfo, DEFAULT_IMAGE_INFO, EditorState } from "@/types";
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { getFromStore, putInStore, deleteFromStore } from '@/bg-remover/lib/indexedDB';
+import { DeviceType, ModelType, ImageInfo, DEFAULT_IMAGE_INFO, EditorState } from '@/types';
 
-const STORE_NAME = "settings";
-const CURRENT_SESSION_KEY = "currentSession";
+const STORE_NAME = 'settings';
+const CURRENT_SESSION_KEY = 'currentSession';
 
 export interface SessionData {
   key: string;
@@ -24,8 +24,8 @@ const DEFAULT_SESSION: SessionData = {
   originalImage: null,
   processedImage: null,
   finalImage: null,
-  device: "gpu",
-  model: "isnet_quint8",
+  device: 'gpu',
+  model: 'isnet_quint8',
   imageInfo: DEFAULT_IMAGE_INFO,
   editorState: {},
   timestamp: 0,
@@ -33,50 +33,84 @@ const DEFAULT_SESSION: SessionData = {
 
 export function useSession() {
   const [session, setSession] = useState<SessionData>(DEFAULT_SESSION);
+  const sessionRef = useRef<SessionData>(DEFAULT_SESSION);
+  const isMountedRef = useRef(true);
+  const hasLocalWriteRef = useRef(false);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   // Load session from IndexedDB on mount
   useEffect(() => {
+    isMountedRef.current = true;
     const loadSession = async () => {
+      const writeVersionAtStart = hasLocalWriteRef.current;
       try {
         const saved = await getFromStore<SessionData>(STORE_NAME, CURRENT_SESSION_KEY);
-        if (saved) {
+        if (isMountedRef.current && saved && !writeVersionAtStart && !hasLocalWriteRef.current) {
+          sessionRef.current = saved;
           setSession(saved);
         }
       } catch (error) {
-        console.error("Failed to load session:", error);
+        console.error('Failed to load session:', error);
       } finally {
-        setIsLoaded(true);
+        if (isMountedRef.current) {
+          setIsLoaded(true);
+        }
       }
     };
 
     loadSession();
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
-  // Save session to IndexedDB
+  // Save session to IndexedDB — rolls back in-memory state if persistence fails
   const saveSession = useCallback(async (data: Partial<SessionData>) => {
+    const prev = sessionRef.current;
+    hasLocalWriteRef.current = true;
     const newSession = {
-      ...session,
+      ...prev,
       ...data,
       key: CURRENT_SESSION_KEY,
       timestamp: Date.now(),
     };
+    sessionRef.current = newSession;
     setSession(newSession);
 
     try {
       await putInStore(STORE_NAME, newSession);
     } catch (error) {
-      console.error("Failed to save session:", error);
+      console.error('Failed to save session, rolling back:', error);
+      // Only roll back if no newer write has occurred while we were awaiting
+      if (sessionRef.current === newSession) {
+        sessionRef.current = prev;
+        setSession(prev);
+        hasLocalWriteRef.current = false;
+      }
     }
-  }, [session]);
+  }, []);
 
-  // Clear session
+  // Clear session — rolls back if IndexedDB delete fails
   const clearSession = useCallback(async () => {
+    const prev = sessionRef.current;
+    const hadWrite = hasLocalWriteRef.current;
+    hasLocalWriteRef.current = true;
+    sessionRef.current = DEFAULT_SESSION;
     setSession(DEFAULT_SESSION);
     try {
       await deleteFromStore(STORE_NAME, CURRENT_SESSION_KEY);
     } catch (error) {
-      console.error("Failed to clear session:", error);
+      console.error('Failed to clear session, rolling back:', error);
+      // Only roll back if no newer write overwrote the cleared state
+      if (sessionRef.current === DEFAULT_SESSION) {
+        sessionRef.current = prev;
+        setSession(prev);
+        hasLocalWriteRef.current = hadWrite;
+      }
     }
   }, []);
 

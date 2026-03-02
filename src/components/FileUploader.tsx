@@ -3,6 +3,25 @@
 import { useCallback, useRef, useState, memo } from 'react';
 import { motion } from 'motion/react';
 
+function matchesAcceptedFile(accept: string, file: File): boolean {
+  const rules = accept
+    .split(',')
+    .map((rule) => rule.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (rules.length === 0) return true;
+
+  const mime = file.type.toLowerCase();
+  const name = file.name.toLowerCase();
+
+  return rules.some((rule) => {
+    if (rule === '*/*') return true;
+    if (rule.endsWith('/*')) return mime.startsWith(rule.slice(0, -1));
+    if (rule.startsWith('.')) return name.endsWith(rule);
+    return mime === rule;
+  });
+}
+
 interface FileUploaderProps {
   /** Called when files are selected */
   onFilesSelect: (files: File[]) => void;
@@ -47,13 +66,10 @@ export const FileUploader = memo(function FileUploader({
   const handleFiles = useCallback(
     (fileList: FileList | null) => {
       if (!fileList) return;
-      const files = Array.from(fileList).filter(f => {
-        if (accept === 'image/*') return f.type.startsWith('image/');
-        return true;
-      });
+      const files = Array.from(fileList).filter((f) => matchesAcceptedFile(accept, f));
       if (files.length) onFilesSelect(multiple ? files : [files[0]]);
     },
-    [onFilesSelect, multiple, accept]
+    [onFilesSelect, multiple, accept],
   );
 
   const handleDrop = useCallback(
@@ -63,7 +79,7 @@ export const FileUploader = memo(function FileUploader({
       if (disabled) return;
       handleFiles(e.dataTransfer.files);
     },
-    [disabled, handleFiles]
+    [disabled, handleFiles],
   );
 
   const handleDragOver = useCallback(
@@ -71,7 +87,7 @@ export const FileUploader = memo(function FileUploader({
       e.preventDefault();
       if (!disabled) setIsDragging(true);
     },
-    [disabled]
+    [disabled],
   );
 
   const handlePaste = useCallback(
@@ -82,12 +98,12 @@ export const FileUploader = memo(function FileUploader({
       for (const item of items) {
         if (item.type.startsWith('image/')) {
           const file = item.getAsFile();
-          if (file) files.push(file);
+          if (file && matchesAcceptedFile(accept, file)) files.push(file);
         }
       }
       if (files.length) onFilesSelect(multiple ? files : [files[0]]);
     },
-    [disabled, onFilesSelect, multiple]
+    [disabled, onFilesSelect, multiple, accept],
   );
 
   return (
@@ -104,9 +120,10 @@ export const FileUploader = memo(function FileUploader({
         w-full rounded-2xl border-2 border-dashed
         transition-all duration-200 cursor-pointer
         focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50
-        ${isDragging
-          ? `border-[var(--accent)] bg-[var(--accent)]/10`
-          : 'border-[var(--border)] hover:border-[var(--accent)]/40 bg-[var(--bg-elevated)]/50'
+        ${
+          isDragging
+            ? `border-[var(--accent)] bg-[var(--accent)]/10`
+            : 'border-[var(--border)] hover:border-[var(--accent)]/40 bg-[var(--bg-elevated)]/50'
         }
         ${disabled ? 'pointer-events-none opacity-50' : ''}
         ${accentClass ?? ''}
@@ -119,7 +136,10 @@ export const FileUploader = memo(function FileUploader({
         type="file"
         accept={accept}
         multiple={multiple}
-        onChange={e => { handleFiles(e.target.files); e.target.value = ''; }}
+        onChange={(e) => {
+          handleFiles(e.target.files);
+          e.target.value = '';
+        }}
         className="hidden"
         disabled={disabled}
       />
@@ -128,8 +148,18 @@ export const FileUploader = memo(function FileUploader({
         <div className="flex flex-col items-center gap-4 px-6 text-center">
           {/* Icon */}
           <div className="p-4 rounded-2xl bg-[var(--accent)]/10">
-            <svg className="w-10 h-10 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            <svg
+              className="w-10 h-10 text-[var(--accent)]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+              />
             </svg>
           </div>
 
@@ -140,8 +170,10 @@ export const FileUploader = memo(function FileUploader({
 
           {formats.length > 0 && (
             <div className="flex items-center gap-2.5 text-xs text-[var(--muted)]">
-              {formats.map(fmt => (
-                <span key={fmt} className="px-2.5 py-1 rounded-md bg-white/5">{fmt}</span>
+              {formats.map((fmt) => (
+                <span key={fmt} className="px-2.5 py-1 rounded-md bg-white/5">
+                  {fmt}
+                </span>
               ))}
             </div>
           )}
@@ -149,7 +181,9 @@ export const FileUploader = memo(function FileUploader({
           {showPasteHint && (
             <div className="hidden sm:flex items-center gap-3 text-xs text-[var(--muted)]">
               <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px]">Ctrl+V</kbd>
+                <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px]">
+                  Ctrl+V
+                </kbd>
                 Paste
               </span>
               {multiple && (

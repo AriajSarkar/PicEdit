@@ -8,13 +8,7 @@
 ///
 /// Only operates on "free" pixels (transition zone 0.02 < α < 0.98).
 /// Definite FG/BG pixels are locked as boundary conditions.
-pub fn poisson_sor(
-    alpha: &mut [f32],
-    guide: &[f32],
-    w: usize,
-    h: usize,
-    iterations: usize,
-) {
+pub fn poisson_sor(alpha: &mut [f32], guide: &[f32], w: usize, h: usize, iterations: usize) {
     if h < 3 || w < 3 || iterations == 0 {
         return;
     }
@@ -27,8 +21,7 @@ pub fn poisson_sor(
         let yw = y * w;
         for x in 1..w - 1 {
             let idx = yw + x;
-            target_lap[idx] = guide[idx - 1] + guide[idx + 1]
-                + guide[idx - w] + guide[idx + w]
+            target_lap[idx] = guide[idx - 1] + guide[idx + 1] + guide[idx - w] + guide[idx + w]
                 - 4.0 * guide[idx];
         }
     }
@@ -53,8 +46,8 @@ pub fn poisson_sor(
                 }
 
                 // 4-neighbor average
-                let avg = 0.25 * (alpha[idx - 1] + alpha[idx + 1]
-                    + alpha[idx - w] + alpha[idx + w]);
+                let avg =
+                    0.25 * (alpha[idx - 1] + alpha[idx + 1] + alpha[idx - w] + alpha[idx + w]);
 
                 // Target: blend between smoothing and gradient-following
                 let gs_update = avg + smooth_weight * target_lap[idx];

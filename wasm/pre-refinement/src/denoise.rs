@@ -60,7 +60,8 @@ pub fn bilateral_separable(rgba: &mut [u8], w: usize, h: usize, radius: usize) {
                 let ng = rgba[ni + 1] as i32;
                 let nb = rgba[ni + 2] as i32;
 
-                let diff = (cr - nr).unsigned_abs()
+                let diff = (cr - nr)
+                    .unsigned_abs()
                     .max((cg - ng).unsigned_abs())
                     .max((cb - nb).unsigned_abs()) as usize;
 
@@ -104,7 +105,8 @@ pub fn bilateral_separable(rgba: &mut [u8], w: usize, h: usize, radius: usize) {
                 let ng = tmp[ni + 1] as i32;
                 let nb = tmp[ni + 2] as i32;
 
-                let diff = (cr - nr).unsigned_abs()
+                let diff = (cr - nr)
+                    .unsigned_abs()
                     .max((cg - ng).unsigned_abs())
                     .max((cb - nb).unsigned_abs()) as usize;
 

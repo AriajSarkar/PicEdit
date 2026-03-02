@@ -19,7 +19,7 @@ export const DEFAULT_PRE_PROCESSING_CONFIG: PreProcessingConfig = {
 };
 
 export interface PreProcessMessage {
-  type: "init" | "process";
+  type: 'init' | 'process';
   wasmJsUrl?: string;
   wasmBgUrl?: string;
   rgba?: ArrayBuffer;
@@ -29,7 +29,7 @@ export interface PreProcessMessage {
 }
 
 export interface PreProcessResult {
-  type: "ready" | "result" | "error";
+  type: 'ready' | 'result' | 'error';
   rgba?: ArrayBuffer;
   width?: number;
   height?: number;

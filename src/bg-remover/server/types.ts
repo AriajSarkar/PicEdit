@@ -15,6 +15,6 @@ export interface ServerConfig {
 
 export const DEFAULT_SERVER_CONFIG: ServerConfig = {
   chunkSize: 1048576, // 1MB
-  dbName: "bg-remover-wasm-cache",
-  storeName: "model-chunks",
+  dbName: 'bg-remover-wasm-cache',
+  storeName: 'model-chunks',
 };

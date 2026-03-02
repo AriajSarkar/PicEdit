@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect } from 'react';
 
 interface CompareSliderProps {
   originalImage: string;
@@ -34,7 +34,7 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
   // ── Draw one frame ──────────────────────────────────────────────
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d", { alpha: false });
+    const ctx = canvas?.getContext('2d', { alpha: false });
     if (!canvas || !ctx) return;
 
     const origBmp = originalBmpRef.current;
@@ -74,9 +74,9 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
 
     // Divider line
     ctx.save();
-    ctx.strokeStyle = "rgba(255,255,255,0.9)";
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
     ctx.lineWidth = 1.5;
-    ctx.shadowColor = "rgba(0,0,0,0.6)";
+    ctx.shadowColor = 'rgba(0,0,0,0.6)';
     ctx.shadowBlur = 8;
     ctx.beginPath();
     ctx.moveTo(splitX, dy);
@@ -100,25 +100,23 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
       return createImageBitmap(blob);
     }
 
-    Promise.all([decode(originalImage), decode(processedImage)]).then(
-      ([origBmp, procBmp]) => {
-        if (cancelled) {
-          origBmp.close();
-          procBmp.close();
-          return;
-        }
-        // Close old bitmaps
-        originalBmpRef.current?.close();
-        processedBmpRef.current?.close();
-
-        originalBmpRef.current = origBmp;
-        processedBmpRef.current = procBmp;
-        naturalW.current = origBmp.width;
-        naturalH.current = origBmp.height;
-
-        draw();
+    Promise.all([decode(originalImage), decode(processedImage)]).then(([origBmp, procBmp]) => {
+      if (cancelled) {
+        origBmp.close();
+        procBmp.close();
+        return;
       }
-    );
+      // Close old bitmaps
+      originalBmpRef.current?.close();
+      processedBmpRef.current?.close();
+
+      originalBmpRef.current = origBmp;
+      processedBmpRef.current = procBmp;
+      naturalW.current = origBmp.width;
+      naturalH.current = origBmp.height;
+
+      draw();
+    });
 
     return () => {
       cancelled = true;
@@ -155,7 +153,7 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
       cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(draw);
     },
-    [draw]
+    [draw],
   );
 
   const onPointerDown = useCallback(
@@ -165,7 +163,7 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
       isDragging.current = true;
       updatePosition(e.clientX);
     },
-    [updatePosition]
+    [updatePosition],
   );
 
   const onPointerMove = useCallback(
@@ -173,7 +171,7 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
       if (!isDragging.current) return;
       updatePosition(e.clientX);
     },
-    [updatePosition]
+    [updatePosition],
   );
 
   const onPointerUp = useCallback(() => {
@@ -197,31 +195,46 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
-      style={{ touchAction: "none" }}
+      style={{ touchAction: 'none' }}
     >
       {/* Single canvas — both images composited here */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
-      />
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
       {/* Floating handle (only DOM element that moves) */}
       <div
         ref={handleRef}
         className="absolute top-0 bottom-0 pointer-events-none"
-        style={{ left: "50%", transform: "translateX(-50%)", width: 0 }}
+        style={{ left: '50%', transform: 'translateX(-50%)', width: 0 }}
       >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11 h-11 sm:w-9 sm:h-9 rounded-full pointer-events-auto cursor-ew-resize"
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11 h-11 sm:w-9 sm:h-9 rounded-full pointer-events-auto cursor-ew-resize"
           style={{
-            background: "rgba(255,255,255,0.95)",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,255,255,0.2)",
-            backdropFilter: "blur(4px)",
+            background: 'rgba(255,255,255,0.95)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,255,255,0.2)',
+            backdropFilter: 'blur(4px)',
           }}
         >
-          <svg className="w-full h-full p-1.5 text-zinc-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            className="w-full h-full p-1.5 text-zinc-700"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M15 18l-6-6 6-6" />
           </svg>
-          <svg className="absolute inset-0 w-full h-full p-1.5 text-zinc-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" style={{ transform: "scaleX(-1)" }}>
+          <svg
+            className="absolute inset-0 w-full h-full p-1.5 text-zinc-700"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ transform: 'scaleX(-1)' }}
+          >
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </div>

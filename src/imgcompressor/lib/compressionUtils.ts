@@ -57,7 +57,7 @@ export async function compressImage(
 
       const optimized = await wasmOptimize(
         { data: new Uint8Array(imageData.data.buffer), width, height },
-        config.optimizeStrength
+        config.optimizeStrength,
       );
 
       // Apply quantization for PNG if requested
@@ -68,11 +68,7 @@ export async function compressImage(
       }
 
       // Put back to canvas
-      const newImageData = new ImageData(
-        new Uint8ClampedArray(finalData.data),
-        width,
-        height
-      );
+      const newImageData = new ImageData(new Uint8ClampedArray(finalData.data), width, height);
       ctx.putImageData(newImageData, 0, 0);
       imageData = newImageData;
     } catch (err) {
@@ -117,7 +113,7 @@ export async function compressImage(
 
       ssim = await wasmSsim(
         { data: new Uint8Array(imageData.data.buffer), width, height },
-        { data: new Uint8Array(compData.data.buffer), width, height }
+        { data: new Uint8Array(compData.data.buffer), width, height },
       );
     } catch {
       // SSIM is optional, don't block on failure
@@ -175,10 +171,14 @@ async function binarySearchQuality(
 
 function getMimeType(format: string): string {
   switch (format) {
-    case 'jpeg': return 'image/jpeg';
-    case 'webp': return 'image/webp';
-    case 'png': return 'image/png';
-    default: return 'image/jpeg';
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'webp':
+      return 'image/webp';
+    case 'png':
+      return 'image/png';
+    default:
+      return 'image/jpeg';
   }
 }
 

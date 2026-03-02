@@ -17,8 +17,12 @@ interface RetryButtonProps {
 
 const retryIcon = (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+    />
   </svg>
 );
 
@@ -31,15 +35,12 @@ export const RetryButton = memo(function RetryButton({
   size = 'md',
   className = '',
 }: RetryButtonProps) {
-  const defaultLabel = variant === 'all'
-    ? `Retry All${count !== undefined ? ` (${count})` : ''}`
-    : 'Retry';
+  const defaultLabel =
+    variant === 'all' ? `Retry All${count !== undefined ? ` (${count})` : ''}` : 'Retry';
 
   const displayLabel = label || defaultLabel;
 
-  const sizeClasses = size === 'sm'
-    ? 'p-1.5 rounded-lg'
-    : 'px-4 py-2 rounded-lg text-sm';
+  const sizeClasses = size === 'sm' ? 'p-1.5 rounded-lg' : 'px-4 py-2 rounded-lg text-sm';
 
   return (
     <motion.button
@@ -48,9 +49,10 @@ export const RetryButton = memo(function RetryButton({
       className={`
         inline-flex items-center justify-center gap-2 font-medium transition-all
         disabled:opacity-50 disabled:cursor-not-allowed
-        ${variant === 'single'
-          ? `${sizeClasses} hover:bg-amber-500/10 text-amber-400 hover:text-amber-300`
-          : `${sizeClasses} bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20`
+        ${
+          variant === 'single'
+            ? `${sizeClasses} hover:bg-amber-500/10 text-amber-400 hover:text-amber-300`
+            : `${sizeClasses} bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20`
         }
         ${className}
       `}

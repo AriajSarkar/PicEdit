@@ -1,9 +1,9 @@
-"use client";
+'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import { useRef } from "react";
-import { motion } from "motion/react";
-import { EditorState, BackgroundType } from "@/types";
+import { useRef } from 'react';
+import { motion } from 'motion/react';
+import { EditorState, BackgroundType } from '@/types';
 
 interface BackgroundTabProps {
   state: EditorState;
@@ -12,10 +12,10 @@ interface BackgroundTabProps {
 }
 
 const BG_OPTIONS: { type: BackgroundType; label: string }[] = [
-  { type: "transparent", label: "Transparent" },
-  { type: "solid", label: "Solid Color" },
-  { type: "image", label: "Custom Image" },
-  { type: "blur", label: "Blur Original" },
+  { type: 'transparent', label: 'Transparent' },
+  { type: 'solid', label: 'Solid Color' },
+  { type: 'image', label: 'Custom Image' },
+  { type: 'blur', label: 'Blur Original' },
 ];
 
 export function BackgroundTab({ state, updateState, onImageSelect }: BackgroundTabProps) {
@@ -31,8 +31,8 @@ export function BackgroundTab({ state, updateState, onImageSelect }: BackgroundT
             onClick={() => updateState({ backgroundType: option.type })}
             className={`px-4 py-2 rounded-lg text-sm transition-colors ${
               state.backgroundType === option.type
-                ? "bg-accent text-white"
-                : "bg-surface text-muted hover:text-foreground"
+                ? 'bg-accent text-white'
+                : 'bg-surface text-muted hover:text-foreground'
             }`}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -43,7 +43,7 @@ export function BackgroundTab({ state, updateState, onImageSelect }: BackgroundT
       </div>
 
       {/* Solid color picker */}
-      {state.backgroundType === "solid" && (
+      {state.backgroundType === 'solid' && (
         <div className="flex items-center gap-4">
           <label className="text-sm text-muted">Color:</label>
           <input
@@ -62,7 +62,7 @@ export function BackgroundTab({ state, updateState, onImageSelect }: BackgroundT
       )}
 
       {/* Image upload */}
-      {state.backgroundType === "image" && (
+      {state.backgroundType === 'image' && (
         <div className="space-y-2">
           <input
             ref={fileInputRef}
@@ -80,7 +80,7 @@ export function BackgroundTab({ state, updateState, onImageSelect }: BackgroundT
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            {state.backgroundImage ? "Change Image" : "Select Image"}
+            {state.backgroundImage ? 'Change Image' : 'Select Image'}
           </motion.button>
           {state.backgroundImage && (
             <img
@@ -93,7 +93,7 @@ export function BackgroundTab({ state, updateState, onImageSelect }: BackgroundT
       )}
 
       {/* Blur slider */}
-      {state.backgroundType === "blur" && (
+      {state.backgroundType === 'blur' && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label className="text-sm text-muted">Blur amount:</label>

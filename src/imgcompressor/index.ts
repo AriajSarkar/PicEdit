@@ -40,10 +40,7 @@ export async function initCompressor(): Promise<boolean> {
 
   initPromise = new Promise<boolean>((resolve) => {
     try {
-      const w = new Worker(
-        new URL('./worker.ts', import.meta.url),
-        { type: 'module' },
-      );
+      const w = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
 
       const basePath = getBasePath();
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
@@ -102,7 +99,7 @@ export async function initCompressor(): Promise<boolean> {
 function sendMsg(
   msg: Record<string, unknown>,
   transfer?: Transferable[],
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> {
   return new Promise((resolve, reject) => {
     if (!worker) {
@@ -128,7 +125,13 @@ export async function wasmOptimize(
   try {
     const buffer = imageData.data.buffer.slice(0);
     const res = await sendMsg(
-      { type: 'optimize', rgba: buffer, width: imageData.width, height: imageData.height, strength },
+      {
+        type: 'optimize',
+        rgba: buffer,
+        width: imageData.width,
+        height: imageData.height,
+        strength,
+      },
       [buffer],
     );
     return {
@@ -155,7 +158,13 @@ export async function wasmQuantize(
   try {
     const buffer = imageData.data.buffer.slice(0);
     const res = await sendMsg(
-      { type: 'quantize', rgba: buffer, width: imageData.width, height: imageData.height, maxColors },
+      {
+        type: 'quantize',
+        rgba: buffer,
+        width: imageData.width,
+        height: imageData.height,
+        maxColors,
+      },
       [buffer],
     );
     return {

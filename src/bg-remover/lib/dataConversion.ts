@@ -6,7 +6,7 @@
  * Convert a data URL to raw RGBA pixel data via Canvas.
  */
 export async function dataUrlToImageData(
-  dataUrl: string
+  dataUrl: string,
 ): Promise<{ data: Uint8Array; width: number; height: number }> {
   const img = await loadImageElement(dataUrl);
   return imageElementToRgba(img);
@@ -16,7 +16,7 @@ export async function dataUrlToImageData(
  * Convert a Blob to raw RGBA pixel data via Canvas.
  */
 export async function blobToImageData(
-  blob: Blob
+  blob: Blob,
 ): Promise<{ data: Uint8Array; width: number; height: number }> {
   const url = URL.createObjectURL(blob);
   try {
@@ -33,16 +33,19 @@ export async function blobToImageData(
 export async function imageDataToBlob(
   rgba: Uint8Array,
   width: number,
-  height: number
+  height: number,
 ): Promise<Blob> {
-  const canvas = document.createElement("canvas");
+  const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-  const ctx = canvas.getContext("2d")!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Canvas 2D context unavailable');
+  }
   const imgData = new ImageData(
     new Uint8ClampedArray(rgba.buffer as ArrayBuffer, rgba.byteOffset, rgba.byteLength),
     width,
-    height
+    height,
   );
   ctx.putImageData(imgData, 0, 0);
 
@@ -50,10 +53,10 @@ export async function imageDataToBlob(
     canvas.toBlob(
       (blob) => {
         if (blob) resolve(blob);
-        else reject(new Error("Failed to convert canvas to blob"));
+        else reject(new Error('Failed to convert canvas to blob'));
       },
-      "image/png",
-      1.0
+      'image/png',
+      1.0,
     );
   });
 }
@@ -64,9 +67,9 @@ export async function imageDataToBlob(
 function loadImageElement(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Failed to load image"));
+    img.onerror = () => reject(new Error('Failed to load image'));
     img.src = src;
   });
 }
@@ -74,14 +77,19 @@ function loadImageElement(src: string): Promise<HTMLImageElement> {
 /**
  * Extract RGBA pixel data from an HTMLImageElement via Canvas.
  */
-function imageElementToRgba(
-  img: HTMLImageElement
-): { data: Uint8Array; width: number; height: number } {
+function imageElementToRgba(img: HTMLImageElement): {
+  data: Uint8Array;
+  width: number;
+  height: number;
+} {
   const { naturalWidth: w, naturalHeight: h } = img;
-  const canvas = document.createElement("canvas");
+  const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
-  const ctx = canvas.getContext("2d")!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Canvas 2D context unavailable');
+  }
   ctx.drawImage(img, 0, 0);
   const imgData = ctx.getImageData(0, 0, w, h);
   return {

@@ -16,10 +16,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ImgCompressorLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function ImgCompressorLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

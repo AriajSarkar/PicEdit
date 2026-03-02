@@ -1,7 +1,7 @@
-export type DeviceType = "cpu" | "gpu";
-export type ModelType = "isnet" | "isnet_fp16" | "isnet_quint8";
-export type OutputFormat = "image/png" | "image/jpeg" | "image/webp";
-export type BackgroundType = "transparent" | "solid" | "image" | "blur";
+export type DeviceType = 'cpu' | 'gpu';
+export type ModelType = 'isnet' | 'isnet_fp16' | 'isnet_quint8';
+export type OutputFormat = 'image/png' | 'image/jpeg' | 'image/webp';
+export type BackgroundType = 'transparent' | 'solid' | 'image' | 'blur';
 
 export interface EditorState {
   backgroundType: BackgroundType;
@@ -47,12 +47,12 @@ export interface HistoryItem {
 }
 
 export type ProcessingStage =
-  | "preprocessing"
-  | "downloading"
-  | "processing"
-  | "postprocessing"
-  | "complete"
-  | "error";
+  | 'preprocessing'
+  | 'downloading'
+  | 'processing'
+  | 'postprocessing'
+  | 'complete'
+  | 'error';
 
 export interface ProcessingProgress {
   stage: ProcessingStage;
@@ -77,17 +77,20 @@ export interface ModelCacheStatus {
   sizeBytes: number | null;
 }
 
-export const MODEL_INFO: Record<ModelType, { name: string; size: string; sizeBytes: number; precision: string }> = {
-  isnet_quint8: { name: "Fast", size: "~20MB", sizeBytes: 20 * 1024 * 1024, precision: "Good" },
-  isnet_fp16: { name: "Balanced", size: "~40MB", sizeBytes: 40 * 1024 * 1024, precision: "Better" },
-  isnet: { name: "Precise", size: "~80MB", sizeBytes: 80 * 1024 * 1024, precision: "Best" },
+export const MODEL_INFO: Record<
+  ModelType,
+  { name: string; size: string; sizeBytes: number; precision: string }
+> = {
+  isnet_quint8: { name: 'Fast', size: '~20MB', sizeBytes: 20 * 1024 * 1024, precision: 'Good' },
+  isnet_fp16: { name: 'Balanced', size: '~40MB', sizeBytes: 40 * 1024 * 1024, precision: 'Better' },
+  isnet: { name: 'Precise', size: '~80MB', sizeBytes: 80 * 1024 * 1024, precision: 'Best' },
 };
 
-export const MODEL_HIERARCHY: ModelType[] = ["isnet_quint8", "isnet_fp16", "isnet"];
+export const MODEL_HIERARCHY: ModelType[] = ['isnet_quint8', 'isnet_fp16', 'isnet'];
 
 export const DEFAULT_EDITOR_STATE: EditorState = {
-  backgroundType: "transparent",
-  backgroundColor: "#000000",
+  backgroundType: 'transparent',
+  backgroundColor: '#000000',
   backgroundImage: null,
   backgroundBlur: 0,
   width: 0,
@@ -102,16 +105,16 @@ export const DEFAULT_EDITOR_STATE: EditorState = {
   cropY: 0,
   cropWidth: 0,
   cropHeight: 0,
-  outputFormat: "image/png",
+  outputFormat: 'image/png',
   outputQuality: 0.9,
   compressionEnabled: false,
   compressionScale: 1.0,
 };
 
 export const DEFAULT_IMAGE_INFO: ImageInfo = {
-  fileName: "",
+  fileName: '',
   fileSize: 0,
   width: 0,
   height: 0,
-  type: "",
+  type: '',
 };

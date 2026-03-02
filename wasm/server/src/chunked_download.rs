@@ -5,9 +5,7 @@ use web_sys::{IdbTransactionMode, Request, Response};
 /// Open (or create) the IndexedDB database with the given store.
 async fn open_db(db_name: &str, store_name: &str) -> Result<web_sys::IdbDatabase, JsValue> {
     let window = web_sys::window().ok_or("no window")?;
-    let idb_factory = window
-        .indexed_db()?
-        .ok_or("IndexedDB not available")?;
+    let idb_factory = window.indexed_db()?.ok_or("IndexedDB not available")?;
 
     let open_request = idb_factory.open_with_u32(db_name, 1)?;
 
@@ -39,11 +37,9 @@ async fn open_db(db_name: &str, store_name: &str) -> Result<web_sys::IdbDatabase
     open_request.set_onupgradeneeded(Some(onupgrade.as_ref().unchecked_ref()));
     onupgrade.forget();
 
-    let db: web_sys::IdbDatabase = JsFuture::from(
-        idb_request_to_promise(&open_request.into())?
-    )
-    .await?
-    .unchecked_into();
+    let db: web_sys::IdbDatabase = JsFuture::from(idb_request_to_promise(&open_request.into())?)
+        .await?
+        .unchecked_into();
 
     Ok(db)
 }
@@ -55,10 +51,14 @@ fn idb_request_to_promise(request: &web_sys::IdbRequest) -> Result<js_sys::Promi
         let onsuccess = Closure::once(move |event: web_sys::Event| {
             let target = event.target().unwrap();
             let request: web_sys::IdbRequest = target.unchecked_into();
-            resolve2.call1(&JsValue::NULL, &request.result().unwrap()).unwrap();
+            resolve2
+                .call1(&JsValue::NULL, &request.result().unwrap())
+                .unwrap();
         });
         let onerror = Closure::once(move |_event: web_sys::Event| {
-            reject.call1(&JsValue::NULL, &JsValue::from_str("IDB request failed")).unwrap();
+            reject
+                .call1(&JsValue::NULL, &JsValue::from_str("IDB request failed"))
+                .unwrap();
         });
         request.set_onsuccess(Some(onsuccess.as_ref().unchecked_ref()));
         request.set_onerror(Some(onerror.as_ref().unchecked_ref()));
@@ -108,11 +108,7 @@ async fn idb_get(
 }
 
 /// Check if a key exists in IndexedDB.
-async fn idb_has(
-    db: &web_sys::IdbDatabase,
-    store_name: &str,
-    key: &str,
-) -> Result<bool, JsValue> {
+async fn idb_has(db: &web_sys::IdbDatabase, store_name: &str, key: &str) -> Result<bool, JsValue> {
     let val = idb_get(db, store_name, key).await?;
     Ok(!val.is_null() && !val.is_undefined())
 }
@@ -128,11 +124,7 @@ fn chunk_key(url: &str, index: u32) -> String {
 }
 
 /// Check if a model is fully cached.
-pub async fn is_cached(
-    url: &str,
-    db_name: &str,
-    store_name: &str,
-) -> Result<bool, JsValue> {
+pub async fn is_cached(url: &str, db_name: &str, store_name: &str) -> Result<bool, JsValue> {
     let db = open_db(db_name, store_name).await?;
     let has_meta = idb_has(&db, store_name, &meta_key(url)).await?;
 
@@ -251,13 +243,21 @@ pub async fn download(
         let _ = progress_callback.call2(
             &JsValue::NULL,
             &JsValue::from(offset),
-            &JsValue::from(if total_size > 0 { total_size } else { actual_size }),
+            &JsValue::from(if total_size > 0 {
+                total_size
+            } else {
+                actual_size
+            }),
         );
     }
 
     // Store metadata
     let meta = js_sys::Object::new();
-    js_sys::Reflect::set(&meta, &JsValue::from_str("totalChunks"), &JsValue::from(chunk_index))?;
+    js_sys::Reflect::set(
+        &meta,
+        &JsValue::from_str("totalChunks"),
+        &JsValue::from(chunk_index),
+    )?;
     js_sys::Reflect::set(
         &meta,
         &JsValue::from_str("totalSize"),

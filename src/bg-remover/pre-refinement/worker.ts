@@ -8,26 +8,26 @@ let wasmModule: any = null;
 self.onmessage = async (e: MessageEvent) => {
   const msg = e.data;
 
-  if (msg.type === "init") {
+  if (msg.type === 'init') {
     try {
       // Dynamic import of the wasm-pack generated JS
       const mod = await import(/* webpackIgnore: true */ msg.wasmJsUrl);
-      
+
       await mod.default({ module_or_path: msg.wasmBgUrl });
       wasmModule = mod;
-      self.postMessage({ type: "ready" });
+      self.postMessage({ type: 'ready' });
     } catch (err) {
       self.postMessage({
-        type: "error",
+        type: 'error',
         message: `Failed to init WASM: ${err}`,
       });
     }
     return;
   }
 
-  if (msg.type === "process") {
+  if (msg.type === 'process') {
     if (!wasmModule) {
-      self.postMessage({ type: "error", message: "WASM not initialized" });
+      self.postMessage({ type: 'error', message: 'WASM not initialized' });
       return;
     }
 
@@ -42,19 +42,19 @@ self.onmessage = async (e: MessageEvent) => {
         config.claheClipLimit,
         config.claheGridSize,
         config.noiseKernelSize,
-        config.sharpenStrength
+        config.sharpenStrength,
       );
 
       // Transfer the buffer back (zero-copy)
       const buffer = result.buffer;
       self.postMessage(
-        { type: "result", rgba: buffer, width, height },
+        { type: 'result', rgba: buffer, width, height },
         // @ts-expect-error transferable
-        [buffer]
+        [buffer],
       );
     } catch (err) {
       self.postMessage({
-        type: "error",
+        type: 'error',
         message: `Pre-processing failed: ${err}`,
       });
     }

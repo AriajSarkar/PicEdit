@@ -1,46 +1,40 @@
-"use client";
+'use client';
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
-import { AnimatePresence } from "motion/react";
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { AnimatePresence } from 'motion/react';
 
 // Components
-import { Header } from "@/bg-remover/components/Header";
-import { ImageUploader } from "@/bg-remover/components/ImageUploader";
-import { CompareSlider } from "@/bg-remover/components/CompareSlider";
-import { ProcessingOverlay } from "@/bg-remover/components/ProcessingOverlay";
-import { ImageInfoBar } from "@/bg-remover/components/ImageInfoBar";
-import { EditorToolbar } from "@/bg-remover/components/EditorToolbar";
-import { HistoryPanel } from "@/bg-remover/components/HistoryPanel";
-import { RetryButton } from "@/components/RetryButton";
-import { CancelButton } from "@/components/CancelButton";
+import { Header } from '@/bg-remover/components/Header';
+import { ImageUploader } from '@/bg-remover/components/ImageUploader';
+import { CompareSlider } from '@/bg-remover/components/CompareSlider';
+import { ProcessingOverlay } from '@/bg-remover/components/ProcessingOverlay';
+import { ImageInfoBar } from '@/bg-remover/components/ImageInfoBar';
+import { EditorToolbar } from '@/bg-remover/components/EditorToolbar';
+import { HistoryPanel } from '@/bg-remover/components/HistoryPanel';
+import { RetryButton } from '@/components/RetryButton';
+import { CancelButton } from '@/components/CancelButton';
 
 // Hooks
-import { useBackgroundRemoval } from "@/bg-remover/hooks/useBackgroundRemoval";
-import { useImageEditor } from "@/bg-remover/hooks/useImageEditor";
-import { useHistory } from "@/bg-remover/hooks/useHistory";
-import { useSession } from "@/bg-remover/hooks/useSession";
+import { useBackgroundRemoval } from '@/bg-remover/hooks/useBackgroundRemoval';
+import { useImageEditor } from '@/bg-remover/hooks/useImageEditor';
+import { useHistory } from '@/bg-remover/hooks/useHistory';
+import { useSession } from '@/bg-remover/hooks/useSession';
 
 // Types & Utils
-import {
-  DeviceType,
-  ModelType,
-  HistoryItem,
-  DEFAULT_IMAGE_INFO,
-  ImageInfo,
-} from "@/types";
+import { DeviceType, ModelType, HistoryItem, DEFAULT_IMAGE_INFO, ImageInfo } from '@/types';
 import {
   fileToDataUrl,
   loadImage,
   getImageInfo,
   generateId,
   estimateDataUrlSize,
-} from "@/lib/imageUtils";
-import { applyEdits, downloadImage } from "@/bg-remover/lib/imageUtils";
+} from '@/lib/imageUtils';
+import { applyEdits, downloadImage } from '@/bg-remover/lib/imageUtils';
 
 export default function BGRemoverPage() {
   // State
-  const [device, setDevice] = useState<DeviceType>("gpu");
-  const [model, setModel] = useState<ModelType>("isnet_quint8");
+  const [device, setDevice] = useState<DeviceType>('gpu');
+  const [model, setModel] = useState<ModelType>('isnet_quint8');
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [finalImage, setFinalImage] = useState<string | null>(null);
@@ -49,7 +43,13 @@ export default function BGRemoverPage() {
   // Hooks
   const { processImage, progress, isProcessing, cancel } = useBackgroundRemoval();
   const { state, updateState, initializeFromImage, setScale, currentScale } = useImageEditor();
-  const { history, addToHistory, removeFromHistory, clearHistory, isLoaded: historyLoaded } = useHistory();
+  const {
+    history,
+    addToHistory,
+    removeFromHistory,
+    clearHistory,
+    isLoaded: historyLoaded,
+  } = useHistory();
   const { session, saveSession, isLoaded: sessionLoaded } = useSession();
 
   // Derived
@@ -145,7 +145,7 @@ export default function BGRemoverPage() {
         });
       }
     },
-    [device, model, processImage, initializeFromImage, state, saveSession, addToHistory]
+    [device, model, processImage, initializeFromImage, state, saveSession, addToHistory],
   );
 
   const handleDownload = useCallback(() => {
@@ -176,7 +176,7 @@ export default function BGRemoverPage() {
         editorState: item.editorState,
       });
     },
-    [updateState, saveSession]
+    [updateState, saveSession],
   );
 
   const handleNewImage = useCallback(() => {
@@ -195,20 +195,20 @@ export default function BGRemoverPage() {
       const applied = await applyEdits(result, originalImage, state);
       setFinalImage(applied);
       saveSession({
-        originalImage, processedImage: result, finalImage: applied,
-        device, model, imageInfo, editorState: state,
+        originalImage,
+        processedImage: result,
+        finalImage: applied,
+        device,
+        model,
+        imageInfo,
+        editorState: state,
       });
     }
   }, [originalImage, device, model, processImage, state, saveSession, imageInfo, isProcessing]);
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--foreground)]">
-      <Header
-        device={device}
-        setDevice={setDevice}
-        model={model}
-        setModel={setModel}
-      />
+      <Header device={device} setDevice={setDevice} model={model} setModel={setModel} />
 
       <main className="max-w-7xl mx-auto px-4 py-6">
         {!hasImage ? (
@@ -267,11 +267,7 @@ export default function BGRemoverPage() {
               )}
               {isProcessing && (
                 <div className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-elevated)] border-t border-[var(--border)]">
-                  <CancelButton
-                    onClick={cancel}
-                    label="Cancel"
-                    size="md"
-                  />
+                  <CancelButton onClick={cancel} label="Cancel" size="md" />
                   <span className="text-xs text-[var(--muted)] ml-auto">
                     Stop current processing
                   </span>

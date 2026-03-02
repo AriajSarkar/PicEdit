@@ -32,9 +32,7 @@ export const StatsBar = memo(function StatsBar({
       className="glass rounded-xl p-4"
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-[var(--foreground)]">
-          Compression Summary
-        </span>
+        <span className="text-sm font-medium text-[var(--foreground)]">Compression Summary</span>
         <span className="text-xs text-[var(--muted)]">
           {doneCount}/{totalCount} processed
         </span>
@@ -52,10 +50,12 @@ export const StatsBar = memo(function StatsBar({
         <div>
           <p className="text-xs text-[var(--muted)] mb-0.5">{increased ? 'Increased' : 'Saved'}</p>
           <p className={`text-sm font-mono ${increased ? 'text-amber-400' : 'text-green-400'}`}>
-            {increased ? '+' : ''}{totalSaved}
+            {increased ? '+' : ''}
+            {totalSaved}
             {savedPercent !== 0 && (
               <span className={`${increased ? 'text-amber-400/70' : 'text-green-400/70'} ml-1`}>
-                ({increased ? '+' : ''}{Math.abs(savedPercent).toFixed(1)}%)
+                ({increased ? '+' : ''}
+                {Math.abs(savedPercent).toFixed(1)}%)
               </span>
             )}
           </p>

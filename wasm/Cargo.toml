@@ -1,5 +1,5 @@
 [workspace]
-members = ["pre-refinement", "post-refinement", "server", "compressor"]
+members = ["pre-refinement", "post-refinement", "server", "compressor", "resizer"]
 resolver = "2"
 
 [profile.release]

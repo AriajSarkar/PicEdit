@@ -50,7 +50,10 @@ self.onmessage = async (e: MessageEvent) => {
         const { id, rgba, width, height, strength } = msg;
         const input = new Uint8Array(rgba);
         const result: Uint8Array = wasmModule.optimize_for_compression(
-          input, width, height, strength ?? 0.5,
+          input,
+          width,
+          height,
+          strength ?? 0.5,
         );
         const buffer = result.buffer;
         self.postMessage(
@@ -65,7 +68,10 @@ self.onmessage = async (e: MessageEvent) => {
         const { id, rgba, width, height, maxColors } = msg;
         const input = new Uint8Array(rgba);
         const result: Uint8Array = wasmModule.quantize_colors(
-          input, width, height, maxColors ?? 256,
+          input,
+          width,
+          height,
+          maxColors ?? 256,
         );
         const buffer = result.buffer;
         self.postMessage(

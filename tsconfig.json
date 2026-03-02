@@ -22,6 +22,7 @@
       "@/*": ["./src/*"],
       "@/bg-remover/*": ["./src/bg-remover/*"],
       "@/imgcompressor/*": ["./src/imgcompressor/*"],
+      "@/img-resizer/*": ["./src/img-resizer/*"],
       "@/types": ["./src/types"],
       "@/lib/*": ["./src/lib/*"]
     }

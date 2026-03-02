@@ -8,30 +8,30 @@ let wasmModule: any = null;
 self.onmessage = async (e: MessageEvent) => {
   const msg = e.data;
 
-  if (msg.type === "init") {
+  if (msg.type === 'init') {
     try {
       const mod = await import(/* webpackIgnore: true */ msg.wasmJsUrl);
 
       await mod.default({ module_or_path: msg.wasmBgUrl });
       wasmModule = mod;
-      self.postMessage({ type: "ready" });
+      self.postMessage({ type: 'ready' });
     } catch (err) {
       self.postMessage({
-        type: "error",
+        type: 'error',
         message: `Failed to init WASM: ${err}`,
       });
     }
     return;
   }
 
-  if (msg.type === "process") {
+  if (msg.type === 'process') {
     if (!wasmModule) {
-      self.postMessage({ type: "error", message: "WASM not initialized" });
+      self.postMessage({ type: 'error', requestId: msg.requestId, message: 'WASM not initialized' });
       return;
     }
 
     try {
-      const { maskRgba, originalRgba, width, height, config } = msg;
+      const { maskRgba, originalRgba, width, height, config, requestId } = msg;
       const maskInput = new Uint8Array(maskRgba);
       const originalInput = new Uint8Array(originalRgba);
 
@@ -43,18 +43,19 @@ self.onmessage = async (e: MessageEvent) => {
         config.guideRadius,
         config.guideEps,
         config.edgeThreshold,
-        config.featherRadius
+        config.featherRadius,
       );
 
       const buffer = result.buffer;
       self.postMessage(
-        { type: "result", rgba: buffer, width, height },
+        { type: 'result', requestId, rgba: buffer, width, height },
         // @ts-expect-error transferable
-        [buffer]
+        [buffer],
       );
     } catch (err) {
       self.postMessage({
-        type: "error",
+        type: 'error',
+        requestId: msg.requestId,
         message: `Post-processing failed: ${err}`,
       });
     }
