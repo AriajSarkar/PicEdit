@@ -85,9 +85,12 @@ export function useSession() {
       await putInStore(STORE_NAME, newSession);
     } catch (error) {
       console.error('Failed to save session, rolling back:', error);
-      sessionRef.current = prev;
-      setSession(prev);
-      hasLocalWriteRef.current = false;
+      // Only roll back if no newer write has occurred while we were awaiting
+      if (sessionRef.current === newSession) {
+        sessionRef.current = prev;
+        setSession(prev);
+        hasLocalWriteRef.current = false;
+      }
     }
   }, []);
 
@@ -102,9 +105,12 @@ export function useSession() {
       await deleteFromStore(STORE_NAME, CURRENT_SESSION_KEY);
     } catch (error) {
       console.error('Failed to clear session, rolling back:', error);
-      sessionRef.current = prev;
-      setSession(prev);
-      hasLocalWriteRef.current = hadWrite;
+      // Only roll back if no newer write overwrote the cleared state
+      if (sessionRef.current === DEFAULT_SESSION) {
+        sessionRef.current = prev;
+        setSession(prev);
+        hasLocalWriteRef.current = hadWrite;
+      }
     }
   }, []);
 

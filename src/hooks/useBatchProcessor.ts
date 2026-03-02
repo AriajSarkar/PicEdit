@@ -298,7 +298,8 @@ export function useBatchProcessor<T extends BatchItem>({
             : i,
         ),
       );
-      // Small delay so React state flushes
+      // Yield to the event loop so React flushes the pending state update
+      // before we read itemsRef — without this the ref may still hold stale data.
       await new Promise((r) => setTimeout(r, 0));
       await processOne(id);
     },
@@ -322,7 +323,8 @@ export function useBatchProcessor<T extends BatchItem>({
     setIsProcessing(true);
     batchAbortRef.current = new AbortController();
 
-    // Re-read items after state update
+    // Yield to the event loop so React flushes the pending state update
+    // before we read itemsRef — without this the ref may still hold stale data.
     await new Promise((r) => setTimeout(r, 0));
     const toRetry = itemsRef.current.filter((i) => retryIds.has(i.id)).map((i) => i.id);
 

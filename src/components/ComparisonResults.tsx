@@ -207,9 +207,10 @@ const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps) {
   const resizeItem = isResize ? (item as ResizeItem) : null;
   const compressionItem = !isResize ? (item as CompressionItem) : null;
 
-  const thumbnailSrc = isResize
+  const thumbnailSrc = (isResize
     ? resizeItem!.result?.dataUrl || resizeItem!.thumbnail || resizeItem!.preview
-    : compressionItem!.result?.dataUrl || compressionItem!.thumbnail || compressionItem!.preview;
+    : compressionItem!.result?.dataUrl || compressionItem!.thumbnail || compressionItem!.preview
+  ) || 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
 
   const resizeDims = isResize ? props.getOutputDimensions(resizeItem!) : null;
 

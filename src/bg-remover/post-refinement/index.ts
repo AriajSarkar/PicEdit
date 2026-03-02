@@ -2,6 +2,7 @@ import { PostProcessingConfig, DEFAULT_POST_PROCESSING_CONFIG, PostProcessResult
 
 let worker: Worker | null = null;
 let initPromise: Promise<boolean> | null = null;
+let nextRequestId = 0;
 
 function getBasePath(): string {
   return process.env.NEXT_PUBLIC_BASE_PATH || '';
@@ -25,6 +26,8 @@ export async function initPostProcessing(): Promise<boolean> {
 
       worker.onmessage = (e: MessageEvent<PostProcessResult>) => {
         if (e.data.type === 'ready') {
+          // Remove init handler so it cannot intercept later process messages
+          worker!.onmessage = null;
           resolve(true);
         } else if (e.data.type === 'error') {
           console.warn('[post-refinement] Init failed:', e.data.message);
@@ -90,6 +93,8 @@ export async function postProcess(
   const t0 = performance.now();
   console.log('[post-refinement] Starting WASM processing...');
 
+  const requestId = ++nextRequestId;
+
   return new Promise((resolve) => {
     let settled = false;
     const settleWithMask = () => {
@@ -105,6 +110,8 @@ export async function postProcess(
     }, 30000);
 
     const onMessage = (e: MessageEvent<PostProcessResult>) => {
+      // Ignore messages from other concurrent postProcess calls
+      if (e.data.requestId !== undefined && e.data.requestId !== requestId) return;
       if (settled) return;
       settled = true;
       clearTimeout(timeoutId);
@@ -135,6 +142,7 @@ export async function postProcess(
     worker!.postMessage(
       {
         type: 'process',
+        requestId,
         maskRgba: maskBuffer,
         originalRgba: origBuffer,
         width: maskData.width,

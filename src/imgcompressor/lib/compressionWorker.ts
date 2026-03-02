@@ -95,9 +95,13 @@ async function binarySearchQuality(
       hi = mid;
     }
 
-    // Close enough
+    // Close enough — only replace bestBlob if this blob is actually closer
     if (Math.abs(blob.size - targetSize) / targetSize < 0.05) {
-      bestBlob = blob;
+      const currentDelta = Math.abs(blob.size - targetSize);
+      const bestDelta = Math.abs(bestBlob.size - targetSize);
+      if (currentDelta < bestDelta) {
+        bestBlob = blob;
+      }
       break;
     }
   }

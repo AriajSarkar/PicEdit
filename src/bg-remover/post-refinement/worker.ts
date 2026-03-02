@@ -26,12 +26,12 @@ self.onmessage = async (e: MessageEvent) => {
 
   if (msg.type === 'process') {
     if (!wasmModule) {
-      self.postMessage({ type: 'error', message: 'WASM not initialized' });
+      self.postMessage({ type: 'error', requestId: msg.requestId, message: 'WASM not initialized' });
       return;
     }
 
     try {
-      const { maskRgba, originalRgba, width, height, config } = msg;
+      const { maskRgba, originalRgba, width, height, config, requestId } = msg;
       const maskInput = new Uint8Array(maskRgba);
       const originalInput = new Uint8Array(originalRgba);
 
@@ -48,13 +48,14 @@ self.onmessage = async (e: MessageEvent) => {
 
       const buffer = result.buffer;
       self.postMessage(
-        { type: 'result', rgba: buffer, width, height },
+        { type: 'result', requestId, rgba: buffer, width, height },
         // @ts-expect-error transferable
         [buffer],
       );
     } catch (err) {
       self.postMessage({
         type: 'error',
+        requestId: msg.requestId,
         message: `Post-processing failed: ${err}`,
       });
     }

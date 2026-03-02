@@ -20,6 +20,7 @@ export const DEFAULT_POST_PROCESSING_CONFIG: PostProcessingConfig = {
 
 export interface PostProcessMessage {
   type: 'init' | 'process';
+  requestId?: number;
   wasmJsUrl?: string;
   wasmBgUrl?: string;
   maskRgba?: ArrayBuffer;
@@ -31,6 +32,7 @@ export interface PostProcessMessage {
 
 export interface PostProcessResult {
   type: 'ready' | 'result' | 'error';
+  requestId?: number;
   rgba?: ArrayBuffer;
   width?: number;
   height?: number;

@@ -415,7 +415,8 @@ export async function resizeImage(
       if (hasWasm) {
         try {
           result = await resizeWithWasm(bitmap, outW, outH, mimeType, quality, onProgress);
-        } catch {
+        } catch (wasmErr) {
+          console.warn('[resizer] WASM resize failed, falling back to Canvas:', wasmErr);
           result = await resizeWithCanvas(bitmap, outW, outH, mimeType, quality, onProgress);
         }
       } else {
