@@ -297,10 +297,16 @@ async function processResize(
       const cy = Math.max(0, Math.min(crop.y, fullBitmap.height));
       const cw = Math.min(crop.w, fullBitmap.width - cx);
       const ch = Math.min(crop.h, fullBitmap.height - cy);
-      // Extract cropped region
-      bitmap = await createImageBitmap(fullBitmap, cx, cy, cw, ch);
-      fullBitmap.close();
-      fullBitmap = null;
+      if (cw > 0 && ch > 0) {
+        // Extract cropped region
+        bitmap = await createImageBitmap(fullBitmap, cx, cy, cw, ch);
+        fullBitmap.close();
+        fullBitmap = null;
+      } else {
+        // Clamped crop region is empty — fall back to uncropped image
+        bitmap = fullBitmap;
+        fullBitmap = null;
+      }
       origWidth = bitmap.width;
       origHeight = bitmap.height;
     } else {

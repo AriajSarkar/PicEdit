@@ -62,7 +62,7 @@ export const VisualResizerModal = memo(function VisualResizerModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            aria-label="Close modal backdrop"
+            aria-hidden="true"
           />
 
           {/* Modal container */}

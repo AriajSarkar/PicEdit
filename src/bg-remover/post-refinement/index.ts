@@ -32,6 +32,12 @@ export async function initPostProcessing(): Promise<boolean> {
           worker = null;
           initPromise = null;
           resolve(false);
+        } else {
+          console.warn('[post-refinement] Unexpected init message:', e.data.type);
+          worker?.terminate();
+          worker = null;
+          initPromise = null;
+          resolve(false);
         }
       };
 

@@ -48,13 +48,17 @@ function getProgressThrottleMs(itemCount: number): number {
 
 export function useBatchProcessor<T extends BatchItem>({
   processFn,
-  maxConcurrency = Math.min(
-    typeof navigator !== 'undefined' ? (navigator.hardwareConcurrency ?? 4) : 4,
-    6,
-  ),
+  maxConcurrency: rawMaxConcurrency = typeof navigator !== 'undefined'
+    ? (navigator.hardwareConcurrency ?? 4)
+    : 4,
   onRemove,
   onClear,
 }: UseBatchProcessorOptions<T>) {
+  // Normalize: finite integer clamped to [1, 6]
+  const maxConcurrency = Math.max(
+    1,
+    Math.min(Number.isFinite(rawMaxConcurrency) ? Math.floor(rawMaxConcurrency) : 4, 6),
+  );
   const [items, setItems] = useState<T[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -86,7 +90,12 @@ export function useBatchProcessor<T extends BatchItem>({
     setItems((prev) =>
       prev.map((i) => {
         const u = updates.get(i.id);
-        return u ? { ...i, stage: u.stage, progress: u.progress } : i;
+        if (!u) return i;
+        // Don't overwrite terminal state (done/error) with stale progress
+        if (i.status === 'done' || i.status === 'error') return i;
+        // Don't regress progress
+        if (u.progress <= i.progress && i.stage === u.stage) return i;
+        return { ...i, stage: u.stage, progress: u.progress };
       }),
     );
   }, []);
@@ -134,6 +143,12 @@ export function useBatchProcessor<T extends BatchItem>({
     abortControllers.current.clear();
     batchAbortRef.current?.abort();
     batchAbortRef.current = null;
+    // Purge any queued progress so stale updates don't apply to future items
+    progressQueue.current.clear();
+    if (progressFlushTimer.current) {
+      clearTimeout(progressFlushTimer.current);
+      progressFlushTimer.current = null;
+    }
     if (onClear) onClear(itemsRef.current);
     setItems([]);
     setIsProcessing(false);
@@ -349,6 +364,12 @@ export function useBatchProcessor<T extends BatchItem>({
     abortControllers.current.forEach((ctrl) => {
       ctrl.abort();
     });
+    // Purge queued progress to prevent stale updates
+    progressQueue.current.clear();
+    if (progressFlushTimer.current) {
+      clearTimeout(progressFlushTimer.current);
+      progressFlushTimer.current = null;
+    }
     setIsProcessing(false);
   }, []);
 

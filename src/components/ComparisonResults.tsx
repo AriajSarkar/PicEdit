@@ -143,8 +143,18 @@ function ScrollContainer({ needsScroll, maxHeight, children }: ScrollContainerPr
     if (!el || !needsScroll) return;
     updateFades();
     el.addEventListener('scroll', onScroll, { passive: true });
+
+    // Observe size/content changes so fades re-evaluate when items are added/removed
+    const ro = new ResizeObserver(() => updateFades());
+    ro.observe(el);
+    // Watch children mutations (item add/remove) that may not trigger ResizeObserver
+    const mo = new MutationObserver(() => updateFades());
+    mo.observe(el, { childList: true, subtree: true });
+
     return () => {
       el.removeEventListener('scroll', onScroll);
+      ro.disconnect();
+      mo.disconnect();
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
         rafRef.current = 0;

@@ -20,6 +20,7 @@ interface PendingOp {
   reject: (err: Error) => void;
   onProgress?: (stage: string, percent: number) => void;
   slot: WorkerSlot;
+  timer: ReturnType<typeof setTimeout>;
 }
 
 interface WorkerSlot {
@@ -46,6 +47,7 @@ function getBasePath(): string {
 /** Reject all pending ops (used on catastrophic failure). */
 function rejectAllPending(reason: string) {
   for (const [id, op] of pending) {
+    clearTimeout(op.timer);
     op.reject(new Error(reason));
     pending.delete(id);
   }
@@ -54,6 +56,7 @@ function rejectAllPending(reason: string) {
 function rejectPendingForSlot(slot: WorkerSlot, reason: string) {
   for (const [id, op] of pending) {
     if (op.slot === slot) {
+      clearTimeout(op.timer);
       op.reject(new Error(reason));
       pending.delete(id);
     }
@@ -81,6 +84,7 @@ function createHandler(slot: WorkerSlot) {
     if (data.type === 'result' && data.id !== undefined) {
       const op = pending.get(data.id);
       if (op) {
+        clearTimeout(op.timer);
         pending.delete(data.id);
         slot.busy--;
         const r = data.result;
@@ -105,6 +109,7 @@ function createHandler(slot: WorkerSlot) {
     if (data.type === 'error' && data.id !== undefined) {
       const op = pending.get(data.id);
       if (op) {
+        clearTimeout(op.timer);
         pending.delete(data.id);
         slot.busy--;
         op.reject(new Error(data.message || 'Worker compression failed'));
@@ -183,12 +188,25 @@ export async function initCompressionWorkers(): Promise<boolean> {
   initPromise = (async () => {
     try {
       const size = getPoolSize();
-      const slots = await Promise.all(Array.from({ length: size }, () => initWorker()));
-      pool = slots;
-      console.log(`[compressor] Worker pool ready — ${pool.length} workers`);
+      const results = await Promise.allSettled(Array.from({ length: size }, () => initWorker()));
+      const fulfilled = results
+        .filter((r): r is PromiseFulfilledResult<WorkerSlot> => r.status === 'fulfilled')
+        .map((r) => r.value);
+      const rejected = results.filter((r) => r.status === 'rejected');
+      if (rejected.length > 0) {
+        console.warn(`[compressor] ${rejected.length}/${size} worker(s) failed to init`);
+      }
+      if (fulfilled.length === 0) {
+        console.warn('[compressor] All workers failed to init');
+        initPromise = null; // Allow future retry
+        return false;
+      }
+      pool = fulfilled;
+      console.log(`[compressor] Worker pool ready — ${pool.length}/${size} workers`);
       return true;
     } catch (err) {
       console.warn('[compressor] Worker pool init failed:', err);
+      initPromise = null; // Allow future retry
       return false;
     }
   })();
@@ -236,7 +254,16 @@ export async function compressImageInWorker(
   return new Promise<CompressedResult>((resolve, reject) => {
     const id = ++nextId;
     slot.busy++;
-    pending.set(id, { resolve, reject, onProgress, slot });
+    // 30s per-request timeout to detect hung workers
+    const timer = setTimeout(() => {
+      const entry = pending.get(id);
+      if (entry) {
+        pending.delete(id);
+        entry.slot.busy--;
+        reject(new Error('Compression request timed out after 30s'));
+      }
+    }, 30_000);
+    pending.set(id, { resolve, reject, onProgress, slot, timer });
     slot.worker.postMessage({ type: 'compress', id, file, config });
   });
 }

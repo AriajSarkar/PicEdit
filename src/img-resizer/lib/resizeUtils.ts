@@ -24,25 +24,34 @@ let wasmResize:
     ) => Uint8Array)
   | null = null;
 let wasmLoadAttempted = false;
+let wasmLoadPromise: Promise<boolean> | null = null;
 
-/** Try to load the WASM resizer module (called once). */
+/** Try to load the WASM resizer module (called once, serialized). */
 async function tryLoadWasm(): Promise<boolean> {
   if (wasmLoadAttempted) return wasmResize !== null;
-  wasmLoadAttempted = true;
-  try {
-    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const mod = await import(
-      /* webpackIgnore: true */ `${origin}${basePath}/wasm/resizer/resizer.js`
-    );
-    await mod.default({ module_or_path: `${origin}${basePath}/wasm/resizer/resizer_bg.wasm` });
-    wasmResize = mod.resize_rgba;
-    console.log('[resizer] WASM loaded — Lanczos3 resize active');
-    return true;
-  } catch {
-    console.log('[resizer] WASM not available — using Canvas fallback');
-    return false;
-  }
+  if (wasmLoadPromise) return wasmLoadPromise;
+
+  wasmLoadPromise = (async () => {
+    try {
+      const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const mod = await import(
+        /* webpackIgnore: true */ `${origin}${basePath}/wasm/resizer/resizer.js`
+      );
+      await mod.default({ module_or_path: `${origin}${basePath}/wasm/resizer/resizer_bg.wasm` });
+      wasmResize = mod.resize_rgba;
+      wasmLoadAttempted = true;
+      console.log('[resizer] WASM loaded — Lanczos3 resize active');
+      return true;
+    } catch {
+      wasmLoadAttempted = true;
+      wasmLoadPromise = null;
+      console.log('[resizer] WASM not available — using Canvas fallback');
+      return false;
+    }
+  })();
+
+  return wasmLoadPromise;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -362,9 +371,17 @@ export async function resizeImage(
       const cy = Math.max(0, Math.min(crop.y, fullBitmap.height));
       const cw = Math.min(crop.w, fullBitmap.width - cx);
       const ch = Math.min(crop.h, fullBitmap.height - cy);
-      bitmap = await createImageBitmap(fullBitmap, cx, cy, cw, ch);
-      fullBitmap.close();
-      fullBitmap = null;
+      if (cw > 0 && ch > 0) {
+        bitmap = await createImageBitmap(fullBitmap, cx, cy, cw, ch);
+      } else {
+        // Clamped crop region is empty — fall back to uncropped image
+        bitmap = fullBitmap;
+        fullBitmap = null;
+      }
+      if (fullBitmap) {
+        fullBitmap.close();
+        fullBitmap = null;
+      }
     } else {
       bitmap = await createImageBitmap(file);
     }

@@ -68,11 +68,12 @@ export function useSession() {
     };
   }, []);
 
-  // Save session to IndexedDB
+  // Save session to IndexedDB — rolls back in-memory state if persistence fails
   const saveSession = useCallback(async (data: Partial<SessionData>) => {
+    const prev = sessionRef.current;
     hasLocalWriteRef.current = true;
     const newSession = {
-      ...sessionRef.current,
+      ...prev,
       ...data,
       key: CURRENT_SESSION_KEY,
       timestamp: Date.now(),
@@ -83,19 +84,27 @@ export function useSession() {
     try {
       await putInStore(STORE_NAME, newSession);
     } catch (error) {
-      console.error('Failed to save session:', error);
+      console.error('Failed to save session, rolling back:', error);
+      sessionRef.current = prev;
+      setSession(prev);
+      hasLocalWriteRef.current = false;
     }
   }, []);
 
-  // Clear session
+  // Clear session — rolls back if IndexedDB delete fails
   const clearSession = useCallback(async () => {
+    const prev = sessionRef.current;
+    const hadWrite = hasLocalWriteRef.current;
     hasLocalWriteRef.current = true;
     sessionRef.current = DEFAULT_SESSION;
     setSession(DEFAULT_SESSION);
     try {
       await deleteFromStore(STORE_NAME, CURRENT_SESSION_KEY);
     } catch (error) {
-      console.error('Failed to clear session:', error);
+      console.error('Failed to clear session, rolling back:', error);
+      sessionRef.current = prev;
+      setSession(prev);
+      hasLocalWriteRef.current = hadWrite;
     }
   }, []);
 

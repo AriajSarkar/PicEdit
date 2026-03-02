@@ -67,6 +67,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 
 /**
  * Binary search for the quality that produces a file closest to targetSize.
+ * If the target is unattainable, returns the smallest blob found.
  */
 async function binarySearchQuality(
   canvas: OffscreenCanvas,
@@ -76,7 +77,8 @@ async function binarySearchQuality(
 ): Promise<Blob> {
   let lo = 0.01;
   let hi = 1.0;
-  let bestBlob = await canvas.convertToBlob({ type: mimeType, quality: hi });
+  // Seed with low-quality blob so fallback is the smallest, not largest
+  let bestBlob = await canvas.convertToBlob({ type: mimeType, quality: lo });
 
   for (let i = 0; i < maxIterations; i++) {
     const mid = (lo + hi) / 2;
@@ -86,6 +88,10 @@ async function binarySearchQuality(
       bestBlob = blob;
       lo = mid;
     } else {
+      // Over target — keep the smallest over-target blob as fallback
+      if (blob.size < bestBlob.size) {
+        bestBlob = blob;
+      }
       hi = mid;
     }
 
