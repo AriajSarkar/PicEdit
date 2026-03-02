@@ -281,16 +281,17 @@ async function processResize(
     self.postMessage({ id, type: 'progress', stage, percent });
   };
 
+  let bitmap: ImageBitmap | null = null;
+  let fullBitmap: ImageBitmap | null = null;
   try {
     postProgress('Loading image', 10);
     // If crop is specified, extract only the crop region from the source image
-    let bitmap: ImageBitmap;
     let origWidth: number;
     let origHeight: number;
 
     if (crop && crop.w > 0 && crop.h > 0) {
       // First decode full image to get dimensions
-      const fullBitmap = await createImageBitmap(file);
+      fullBitmap = await createImageBitmap(file);
       // Clamp crop to image bounds
       const cx = Math.max(0, Math.min(crop.x, fullBitmap.width));
       const cy = Math.max(0, Math.min(crop.y, fullBitmap.height));
@@ -299,6 +300,7 @@ async function processResize(
       // Extract cropped region
       bitmap = await createImageBitmap(fullBitmap, cx, cy, cw, ch);
       fullBitmap.close();
+      fullBitmap = null;
       origWidth = bitmap.width;
       origHeight = bitmap.height;
     } else {
@@ -338,7 +340,6 @@ async function processResize(
       }
     }
 
-    bitmap.close();
     postProgress('Finalizing', 90);
 
     const dataUrl = await blobToDataUrl(result.blob);
@@ -371,6 +372,9 @@ async function processResize(
       type: 'error',
       message: err instanceof Error ? err.message : String(err),
     });
+  } finally {
+    bitmap?.close();
+    fullBitmap?.close();
   }
 }
 

@@ -49,10 +49,14 @@ try {
         fs.unlinkSync(linkTarget);
       }
     }
-  } catch {}
+  } catch (error) {
+    console.warn(`Failed to remove preview link target: ${linkTarget}`, error);
+  }
   try {
     if (fs.existsSync(tmpDir)) {
       fs.rmdirSync(tmpDir);
     }
-  } catch {}
+  } catch (error) {
+    console.warn(`Failed to remove preview temp directory: ${tmpDir}`, error);
+  }
 }

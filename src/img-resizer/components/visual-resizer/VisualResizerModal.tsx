@@ -79,6 +79,8 @@ export const VisualResizerModal = memo(function VisualResizerModal({
             {/* Close button */}
             <div className="flex justify-end mb-2">
               <button
+                type="button"
+                aria-label="Close visual resizer"
                 onClick={onClose}
                 className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-elevated)]/80 border border-[var(--border)] backdrop-blur-md text-[var(--text-muted)] hover:text-[var(--foreground)] hover:border-[var(--accent)]/30 transition-all"
                 title="Close (Esc)"

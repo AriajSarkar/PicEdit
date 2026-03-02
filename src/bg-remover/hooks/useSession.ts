@@ -89,6 +89,7 @@ export function useSession() {
 
   // Clear session
   const clearSession = useCallback(async () => {
+    hasLocalWriteRef.current = true;
     sessionRef.current = DEFAULT_SESSION;
     setSession(DEFAULT_SESSION);
     try {

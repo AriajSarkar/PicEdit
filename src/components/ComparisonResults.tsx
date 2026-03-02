@@ -44,9 +44,15 @@ export const ComparisonResults = memo(function ComparisonResults(
   const needsScroll = items.length > MAX_VISIBLE;
   const containerMaxHeight = MAX_VISIBLE * ITEM_HEIGHT + (MAX_VISIBLE - 1) * ITEM_GAP;
 
-  const doneCount = items.filter((i) => i.status === 'done').length;
-  const processingCount = items.filter((i) => i.status === 'processing').length;
-  const errorCount = items.filter((i) => i.status === 'error').length;
+  const { doneCount, processingCount, errorCount } = items.reduce(
+    (acc, item) => {
+      if (item.status === 'done') acc.doneCount += 1;
+      else if (item.status === 'processing') acc.processingCount += 1;
+      else if (item.status === 'error') acc.errorCount += 1;
+      return acc;
+    },
+    { doneCount: 0, processingCount: 0, errorCount: 0 },
+  );
 
   return (
     <div className="space-y-3">
@@ -112,6 +118,7 @@ function ScrollContainer({ needsScroll, maxHeight, children }: ScrollContainerPr
   const ref = useRef<HTMLDivElement>(null);
   const [showTopFade, setShowTopFade] = useState(false);
   const [showBottomFade, setShowBottomFade] = useState(false);
+  const rafRef = useRef(0);
 
   const updateFades = useCallback(() => {
     const el = ref.current;
@@ -122,18 +129,28 @@ function ScrollContainer({ needsScroll, maxHeight, children }: ScrollContainerPr
     setShowBottomFade((prev) => (prev === bottom ? prev : bottom));
   }, []);
 
+  // rAF-throttled scroll handler — prevents setState thrashing during fast scrolls
+  const onScroll = useCallback(() => {
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = 0;
+      updateFades();
+    });
+  }, [updateFades]);
+
   useEffect(() => {
     const el = ref.current;
     if (!el || !needsScroll) return;
     updateFades();
-    el.addEventListener('scroll', updateFades, { passive: true });
-    const observer = new MutationObserver(updateFades);
-    observer.observe(el, { childList: true, subtree: true });
+    el.addEventListener('scroll', onScroll, { passive: true });
     return () => {
-      el.removeEventListener('scroll', updateFades);
-      observer.disconnect();
+      el.removeEventListener('scroll', onScroll);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = 0;
+      }
     };
-  }, [needsScroll, updateFades]);
+  }, [needsScroll, onScroll, updateFades]);
 
   if (!needsScroll) return <>{children}</>;
 
@@ -149,7 +166,13 @@ function ScrollContainer({ needsScroll, maxHeight, children }: ScrollContainerPr
       <div
         ref={ref}
         className="overflow-y-auto pr-1"
-        style={{ maxHeight: `${maxHeight}px`, scrollbarGutter: 'stable' }}
+        style={{
+          maxHeight: `${maxHeight}px`,
+          scrollbarGutter: 'stable',
+          willChange: 'scroll-position',
+          contain: 'strict',
+          height: `${maxHeight}px`,
+        }}
       >
         {children}
       </div>
@@ -176,21 +199,21 @@ const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps) {
 
   const thumbnailSrc = isResize
     ? resizeItem!.result?.dataUrl || resizeItem!.thumbnail || resizeItem!.preview
-    : compressionItem!.result?.dataUrl || compressionItem!.preview;
+    : compressionItem!.result?.dataUrl || compressionItem!.thumbnail || compressionItem!.preview;
 
   const resizeDims = isResize ? props.getOutputDimensions(resizeItem!) : null;
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, x: -20, height: 0 }}
-      animate={{ opacity: 1, x: 0, height: 'auto' }}
-      exit={{ opacity: 0, x: 20, height: 0 }}
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
       transition={{ duration: 0.2 }}
       className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] group"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '0 72px' }}
     >
       <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-white/5">
-        <img src={thumbnailSrc} alt={item.file.name} className="w-full h-full object-cover" />
+        <img src={thumbnailSrc} alt={item.file.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
       </div>
 
       <div className="flex-1 min-w-0">

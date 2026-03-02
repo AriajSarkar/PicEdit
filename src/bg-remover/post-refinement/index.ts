@@ -115,6 +115,9 @@ export async function postProcess(
       } else if (e.data.type === 'error') {
         console.warn('[post-refinement] Processing failed:', e.data.message);
         resolve(maskData);
+      } else {
+        console.warn('[post-refinement] Unexpected message type:', e.data.type);
+        resolve(maskData);
       }
     };
 

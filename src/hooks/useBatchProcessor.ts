@@ -128,7 +128,9 @@ export function useBatchProcessor<T extends BatchItem>({
   );
 
   const clearAll = useCallback(() => {
-    abortControllers.current.forEach((ctrl) => ctrl.abort());
+    abortControllers.current.forEach((ctrl) => {
+      ctrl.abort();
+    });
     abortControllers.current.clear();
     batchAbortRef.current?.abort();
     batchAbortRef.current = null;
@@ -344,7 +346,9 @@ export function useBatchProcessor<T extends BatchItem>({
 
   const cancelAll = useCallback(() => {
     batchAbortRef.current?.abort();
-    abortControllers.current.forEach((ctrl) => ctrl.abort());
+    abortControllers.current.forEach((ctrl) => {
+      ctrl.abort();
+    });
     setIsProcessing(false);
   }, []);
 

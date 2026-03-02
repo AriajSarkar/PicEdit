@@ -197,7 +197,7 @@ function makeCanvas(w: number, h: number): { canvas: AnyCanvas; ctx: AnyCtx } {
 
 /** Convert canvas to blob (handles both OffscreenCanvas and HTMLCanvasElement). */
 function canvasToBlob(canvas: AnyCanvas, type: string, quality?: number): Promise<Blob> {
-  if (canvas instanceof OffscreenCanvas) {
+  if (typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas) {
     return canvas.convertToBlob({ type, quality });
   }
   // HTMLCanvasElement — use callback-based toBlob
@@ -351,67 +351,76 @@ export async function resizeImage(
 ): Promise<ResizeResult> {
   onProgress?.('Loading image', 10);
 
-  // Load image — works for all browser-supported formats
-  let bitmap: ImageBitmap;
-  if (crop && crop.w > 0 && crop.h > 0) {
-    // Crop: decode full image, then extract crop region
-    const fullBitmap = await createImageBitmap(file);
-    const cx = Math.max(0, Math.min(crop.x, fullBitmap.width));
-    const cy = Math.max(0, Math.min(crop.y, fullBitmap.height));
-    const cw = Math.min(crop.w, fullBitmap.width - cx);
-    const ch = Math.min(crop.h, fullBitmap.height - cy);
-    bitmap = await createImageBitmap(fullBitmap, cx, cy, cw, ch);
-    fullBitmap.close();
-  } else {
-    bitmap = await createImageBitmap(file);
-  }
-  const origWidth = bitmap.width;
-  const origHeight = bitmap.height;
+  let bitmap: ImageBitmap | null = null;
+  let fullBitmap: ImageBitmap | null = null;
+  try {
+    // Load image — works for all browser-supported formats
+    if (crop && crop.w > 0 && crop.h > 0) {
+      // Crop: decode full image, then extract crop region
+      fullBitmap = await createImageBitmap(file);
+      const cx = Math.max(0, Math.min(crop.x, fullBitmap.width));
+      const cy = Math.max(0, Math.min(crop.y, fullBitmap.height));
+      const cw = Math.min(crop.w, fullBitmap.width - cx);
+      const ch = Math.min(crop.h, fullBitmap.height - cy);
+      bitmap = await createImageBitmap(fullBitmap, cx, cy, cw, ch);
+      fullBitmap.close();
+      fullBitmap = null;
+    } else {
+      bitmap = await createImageBitmap(file);
+    }
 
-  onProgress?.('Calculating dimensions', 20);
+    if (!bitmap) {
+      throw new Error('Failed to decode image');
+    }
 
-  // Calculate target dimensions
-  const { width: outW, height: outH } = calculateOutputDimensions(origWidth, origHeight, config);
-  const mimeType = resolveOutputMime(config, file.type);
-  const quality = mimeType === 'image/png' ? undefined : config.quality;
+    const origWidth = bitmap.width;
+    const origHeight = bitmap.height;
 
-  // Try loading WASM (first call initializes, subsequent calls are instant)
-  const hasWasm = await tryLoadWasm();
+    onProgress?.('Calculating dimensions', 20);
 
-  let result: { blob: Blob; width: number; height: number };
+    // Calculate target dimensions
+    const { width: outW, height: outH } = calculateOutputDimensions(origWidth, origHeight, config);
+    const mimeType = resolveOutputMime(config, file.type);
+    const quality = mimeType === 'image/png' ? undefined : config.quality;
 
-  // Cover mode needs separate handling
-  if (config.fit === 'cover' && config.method !== 'percentage') {
-    const { targetW, targetH } = getCoverTargetDimensions(config, outW, outH);
-    // Cover requires scale-and-crop behavior, so always use the dedicated cover path.
-    result = await resizeCoverWithCanvas(bitmap, targetW, targetH, mimeType, quality, onProgress);
-  } else {
-    // Standard resize (contain / stretch / percentage / dimensions)
-    if (hasWasm) {
-      try {
-        result = await resizeWithWasm(bitmap, outW, outH, mimeType, quality, onProgress);
-      } catch {
+    // Try loading WASM (first call initializes, subsequent calls are instant)
+    const hasWasm = await tryLoadWasm();
+
+    let result: { blob: Blob; width: number; height: number };
+
+    // Cover mode needs separate handling
+    if (config.fit === 'cover' && config.method !== 'percentage') {
+      const { targetW, targetH } = getCoverTargetDimensions(config, outW, outH);
+      // Cover requires scale-and-crop behavior, so always use the dedicated cover path.
+      result = await resizeCoverWithCanvas(bitmap, targetW, targetH, mimeType, quality, onProgress);
+    } else {
+      // Standard resize (contain / stretch / percentage / dimensions)
+      if (hasWasm) {
+        try {
+          result = await resizeWithWasm(bitmap, outW, outH, mimeType, quality, onProgress);
+        } catch {
+          result = await resizeWithCanvas(bitmap, outW, outH, mimeType, quality, onProgress);
+        }
+      } else {
         result = await resizeWithCanvas(bitmap, outW, outH, mimeType, quality, onProgress);
       }
-    } else {
-      result = await resizeWithCanvas(bitmap, outW, outH, mimeType, quality, onProgress);
     }
+
+    onProgress?.('Finalizing', 90);
+    const dataUrl = await blobToDataUrl(result.blob);
+    onProgress?.('Done', 100);
+
+    return {
+      blob: result.blob,
+      dataUrl,
+      width: result.width,
+      height: result.height,
+      originalSize: file.size,
+      newSize: result.blob.size,
+      format: mimeType.replace('image/', ''),
+    };
+  } finally {
+    bitmap?.close();
+    fullBitmap?.close();
   }
-
-  bitmap.close();
-  onProgress?.('Finalizing', 90);
-
-  const dataUrl = await blobToDataUrl(result.blob);
-
-  onProgress?.('Done', 100);
-
-  return {
-    blob: result.blob,
-    dataUrl,
-    width: result.width,
-    height: result.height,
-    originalSize: file.size,
-    newSize: result.blob.size,
-    format: mimeType.replace('image/', ''),
-  };
 }

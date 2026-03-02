@@ -88,8 +88,49 @@ export const VisualResizerInner = memo(function VisualResizerInner({
   });
 
   const cacheTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const prevPersistImageRef = useRef(imageId);
+
+  // ── Adjust state during render when imageId changes (React recommended pattern) ──
+  // See: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevImageId, setPrevImageId] = useState(imageId);
+  if (prevImageId !== imageId) {
+    setPrevImageId(imageId);
+
+    const next = viewStateCache?.get(imageId);
+
+    setIsDragging(false);
+    setInteractionMode('idle');
+    setActiveHandle(null);
+    setHoveredHandle(null);
+    setDragW(effectiveW);
+    setDragH(effectiveH);
+    setZoom(next?.zoom ?? DEFAULT_ZOOM);
+    setPanX(next?.panX ?? 0);
+    setPanY(next?.panY ?? 0);
+    setFrameOffX(next?.frameOffX ?? 0);
+    setFrameOffY(next?.frameOffY ?? 0);
+  }
+
+  // ── Sync refs when imageId changes (ref mutations belong in effects, not render) ──
+  useEffect(() => {
+    dragRef.current = null;
+    viewStateRef.current = {
+      zoom,
+      panX,
+      panY,
+      frameOffX,
+      frameOffY,
+    };
+  }, [imageId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    // Skip the debounced cache write when imageId just changed — the state
+    // values are from initial hydration, not from user interaction.
+    if (prevPersistImageRef.current !== imageId) {
+      prevPersistImageRef.current = imageId;
+      viewStateRef.current = { zoom, panX, panY, frameOffX, frameOffY };
+      return;
+    }
     viewStateRef.current = { zoom, panX, panY, frameOffX, frameOffY };
     // Debounce cache writes — no need to write 60fps during drag
     clearTimeout(cacheTimer.current);
@@ -143,8 +184,8 @@ export const VisualResizerInner = memo(function VisualResizerInner({
 
   const liveRef = useRef({ w: liveW, h: liveH });
   useEffect(() => {
-    liveRef.current = { w: dragW, h: dragH };
-  }, [dragW, dragH]);
+    liveRef.current = { w: liveW, h: liveH };
+  }, [liveW, liveH]);
 
   // ── Derived geometry ───────────────────────────────────────────────
 
@@ -171,7 +212,22 @@ export const VisualResizerInner = memo(function VisualResizerInner({
   // ── Spacebar + Ctrl keyboard shortcuts ─────────────────────────────
 
   useEffect(() => {
+    const isEditable = (target: EventTarget | null): boolean =>
+      target instanceof HTMLElement &&
+      (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+
+    const isInsideCanvas = (target: EventTarget | null): boolean => {
+      const container = containerRef.current;
+      return !!container && target instanceof Node && container.contains(target);
+    };
+
     const onDown = (e: KeyboardEvent) => {
+      const container = containerRef.current;
+      const active = document.activeElement;
+      const focusedInCanvas =
+        !!container && !!active && (active === container || container.contains(active));
+      if ((!focusedInCanvas && !isInsideCanvas(e.target)) || isEditable(e.target)) return;
+
       if (e.code === 'Space' && !e.repeat) {
         e.preventDefault();
         setSpaceHeld(true);
@@ -194,6 +250,11 @@ export const VisualResizerInner = memo(function VisualResizerInner({
       }
     };
     const onUp = (e: KeyboardEvent) => {
+      const container = containerRef.current;
+      const active = document.activeElement;
+      const focusedInCanvas =
+        !!container && !!active && (active === container || container.contains(active));
+      if ((!focusedInCanvas && !isInsideCanvas(e.target)) || isEditable(e.target)) return;
       if (e.code === 'Space') setSpaceHeld(false);
     };
     window.addEventListener('keydown', onDown);
@@ -431,6 +492,8 @@ export const VisualResizerInner = memo(function VisualResizerInner({
         }
       }
 
+      // Keep ref in sync synchronously so pointerUp commits the latest values.
+      liveRef.current = { w: nw, h: nh };
       setDragW(nw);
       setDragH(nh);
     } else if (d.mode === 'move-frame') {
@@ -489,9 +552,11 @@ export const VisualResizerInner = memo(function VisualResizerInner({
     if (!isDragging) return;
     window.addEventListener('pointermove', pointerMove);
     window.addEventListener('pointerup', pointerUp);
+    window.addEventListener('pointercancel', pointerUp);
     return () => {
       window.removeEventListener('pointermove', pointerMove);
       window.removeEventListener('pointerup', pointerUp);
+      window.removeEventListener('pointercancel', pointerUp);
     };
   }, [isDragging, pointerMove, pointerUp]);
 
@@ -689,7 +754,7 @@ export const VisualResizerInner = memo(function VisualResizerInner({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="rounded-2xl overflow-hidden border border-[var(--border)] bg-[var(--bg-surface)]"
+      className="rounded-2xl overflow-hidden border border-border bg-surface"
       style={{
         boxShadow: '0 4px 24px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.02) inset',
       }}
@@ -995,10 +1060,10 @@ export const VisualResizerInner = memo(function VisualResizerInner({
               transition={{ duration: 0.15 }}
               className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30"
             >
-              <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-black/80 backdrop-blur-md border border-white/[0.06]">
+              <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-black/80 backdrop-blur-md border border-white/6">
                 {interactionMode === 'resize' && (
                   <>
-                    <span className="text-[11px] font-mono text-[var(--accent)] font-semibold tracking-wide">
+                    <span className="text-[11px] font-mono text-accent font-semibold tracking-wide">
                       {liveW} × {liveH}
                     </span>
                     <div className="w-px h-3 bg-white/10" />

@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { motion } from 'motion/react';
 import { CompressorHeader } from '@/imgcompressor/components/CompressorHeader';
 import { FileUploader } from '@/components/FileUploader';
@@ -34,9 +35,25 @@ export default function ImgCompressorPage() {
   } = useCompression();
 
   const hasItems = items.length > 0;
-  const doneCount = items.filter((i) => i.status === 'done').length;
-  const pendingCount = items.filter((i) => i.status === 'pending' || i.status === 'error').length;
-  const retryableCount = items.filter((i) => i.status === 'done' || i.status === 'error').length;
+
+  // Single-pass memoized counts — avoids 3 separate .filter() on every render
+  const { doneCount, pendingCount, retryableCount } = useMemo(() => {
+    let done = 0,
+      pending = 0,
+      retryable = 0;
+    for (const i of items) {
+      if (i.status === 'done') {
+        done++;
+        retryable++;
+      }
+      if (i.status === 'pending') pending++;
+      if (i.status === 'error') {
+        pending++;
+        retryable++;
+      }
+    }
+    return { doneCount: done, pendingCount: pending, retryableCount: retryable };
+  }, [items]);
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--foreground)]">

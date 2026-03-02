@@ -36,7 +36,7 @@ pub fn resize_rgba(
     let expected_input_len = sw.checked_mul(sh).and_then(|v| v.checked_mul(4));
 
     // Validate input
-    if dw == 0 || dh == 0 || expected_input_len != Some(rgba.len()) {
+    if sw == 0 || sh == 0 || dw == 0 || dh == 0 || expected_input_len != Some(rgba.len()) {
         return vec![0u8; output_len];
     }
 
