@@ -8,6 +8,7 @@
 import type { CompressorConfig } from '@/imgcompressor/types';
 import type { CompressedResult } from '@/imgcompressor/lib/compressionUtils';
 import { WorkerPoolBridge } from '@/lib/workerPoolBridge';
+import { workerTimeout } from '@/lib/imageUtils';
 
 // ── Bridge instance ─────────────────────────────────────────────────────────
 
@@ -17,7 +18,7 @@ const bridge = new WorkerPoolBridge<CompressedResult>({
 	wasmJsPath: '/wasm/compressor/compressor.js',
 	wasmBgPath: '/wasm/compressor/compressor_bg.wasm',
 	messageType: 'compress',
-	requestTimeoutMs: 30_000,
+	// No static timeout — computed per-request based on file size
 	transformResult: (r) => {
 		// Reconstruct Blob from transferred ArrayBuffer
 		const blob = new Blob([r.arrayBuf as ArrayBuffer], {
@@ -56,7 +57,8 @@ export async function compressImageInWorker(
 	config: CompressorConfig,
 	onProgress?: (stage: string, percent: number) => void,
 ): Promise<CompressedResult> {
-	const result = await bridge.execute({ file, config }, onProgress);
+	const timeout = workerTimeout({ fileSize: file.size });
+	const result = await bridge.execute({ file, config }, onProgress, timeout);
 	if (result === null) {
 		// Workers unavailable — fall back to main-thread compression
 		console.warn('[compressor] No workers available, falling back to main thread');

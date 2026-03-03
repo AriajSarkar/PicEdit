@@ -1,4 +1,5 @@
 import { PostProcessingConfig, DEFAULT_POST_PROCESSING_CONFIG, PostProcessResult } from './types';
+import { workerTimeout } from '@/lib/imageUtils';
 
 let worker: Worker | null = null;
 let initPromise: Promise<boolean> | null = null;
@@ -103,11 +104,13 @@ export async function postProcess(
 			resolve(maskData);
 		};
 
+		const timeoutMs = workerTimeout({ width: maskData.width, height: maskData.height });
+
 		const timeoutId = setTimeout(() => {
 			worker?.removeEventListener('message', onMessage);
 			console.warn('[post-refinement] Processing timed out');
 			settleWithMask();
-		}, 30000);
+		}, timeoutMs);
 
 		const onMessage = (e: MessageEvent<PostProcessResult>) => {
 			// Ignore messages from other concurrent postProcess calls

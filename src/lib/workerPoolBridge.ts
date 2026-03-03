@@ -249,10 +249,12 @@ export class WorkerPoolBridge<TResult> {
 	/**
 	 * Execute an operation in a worker.
 	 * Returns null if no workers are available (caller should fall back).
+	 * @param requestTimeoutMs Per-request timeout override (takes priority over config default).
 	 */
 	async execute(
 		payload: Record<string, unknown>,
 		onProgress?: (stage: string, percent: number) => void,
+		requestTimeoutMs?: number,
 	): Promise<TResult | null> {
 		// Ensure workers are initialized
 		if (this.initPromise) {
@@ -269,17 +271,16 @@ export class WorkerPoolBridge<TResult> {
 			slot.busy++;
 
 			let timer: ReturnType<typeof setTimeout> | null = null;
-			if (this.config.requestTimeoutMs && this.config.requestTimeoutMs > 0) {
+			const timeoutMs = requestTimeoutMs ?? this.config.requestTimeoutMs;
+			if (timeoutMs && timeoutMs > 0) {
 				timer = setTimeout(() => {
 					const entry = this.pending.get(id);
 					if (entry) {
 						this.pending.delete(id);
 						entry.slot.busy--;
-						reject(
-							new Error(`Request timed out after ${this.config.requestTimeoutMs}ms`),
-						);
+						reject(new Error(`Request timed out after ${timeoutMs}ms`));
 					}
-				}, this.config.requestTimeoutMs);
+				}, timeoutMs);
 			}
 
 			this.pending.set(id, { resolve, reject, onProgress, slot, timer });

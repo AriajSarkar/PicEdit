@@ -114,6 +114,31 @@ export function formatSpeed(bytesPerSec: number): string {
 	return `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`;
 }
 
+// ── Worker Timeout ──────────────────────────────────────────────────────────
+
+const BASE_TIMEOUT_MS = 30_000;
+const MS_PER_MB = 10_000;
+const MS_PER_MEGAPIXEL = 5_000;
+
+/**
+ * Compute a generous worker timeout based on input size.
+ * Uses file byte-size when available, pixel dimensions when not.
+ *
+ * Formula: 30s base + 10s per MB of file size + 5s per megapixel.
+ */
+export function workerTimeout(
+	opts: { fileSize?: number; width?: number; height?: number } = {},
+): number {
+	let ms = BASE_TIMEOUT_MS;
+	if (opts.fileSize && opts.fileSize > 0) {
+		ms += (opts.fileSize / (1024 * 1024)) * MS_PER_MB;
+	}
+	if (opts.width && opts.height) {
+		ms += ((opts.width * opts.height) / 1_000_000) * MS_PER_MEGAPIXEL;
+	}
+	return Math.max(BASE_TIMEOUT_MS, Math.round(ms));
+}
+
 /** Map short format name to MIME type */
 export function getMimeType(format: string): string {
 	switch (format) {
