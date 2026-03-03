@@ -82,7 +82,7 @@ export const VisualResizerModal = memo(function VisualResizerModal({
 								type="button"
 								aria-label="Close visual resizer"
 								onClick={onClose}
-								className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-(--bg-elevated)/80 border border-(--border) backdrop-blur-md text-(--text-muted) hover:text-(--foreground) hover:border-(--accent)/30 transition-all"
+								className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-(--bg-elevated)/80 border border-border backdrop-blur-md text-muted hover:text-foreground hover:border-accent/30 transition-all"
 								title="Close (Esc)"
 							>
 								<svg

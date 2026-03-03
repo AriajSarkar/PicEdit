@@ -111,10 +111,10 @@ export const ResizeControls = memo(function ResizeControls({
 		<div className="space-y-5">
 			{/* Method Tabs */}
 			<div className="space-y-2">
-				<label className="text-xs font-medium text-(--text-muted) uppercase tracking-wider">
+				<label className="text-xs font-medium text-muted uppercase tracking-wider">
 					Resize Method
 				</label>
-				<div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-(--bg-primary)">
+				<div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-background">
 					{METHOD_TABS.map((tab) => (
 						<button
 							key={tab.id}
@@ -122,14 +122,14 @@ export const ResizeControls = memo(function ResizeControls({
 							disabled={disabled}
 							className={`relative px-2.5 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
 								config.method === tab.id
-									? 'text-(--foreground)'
-									: 'text-(--text-muted) hover:text-(--foreground)'
+									? 'text-foreground'
+									: 'text-muted hover:text-foreground'
 							} disabled:opacity-50`}
 						>
 							{config.method === tab.id && (
 								<motion.div
 									layoutId="method-tab"
-									className="absolute inset-0 bg-(--bg-elevated) rounded-lg border border-(--border)"
+									className="absolute inset-0 bg-(--bg-elevated) rounded-lg border border-border"
 									transition={{ type: 'spring', stiffness: 400, damping: 30 }}
 								/>
 							)}
@@ -162,7 +162,7 @@ export const ResizeControls = memo(function ResizeControls({
 						<div className="flex items-end gap-2">
 							{/* Width */}
 							<div className="flex-1 space-y-1">
-								<label className="text-xs text-(--text-muted)">Width (px)</label>
+								<label className="text-xs text-muted">Width (px)</label>
 								<input
 									type="number"
 									value={config.width}
@@ -174,7 +174,7 @@ export const ResizeControls = memo(function ResizeControls({
 									disabled={disabled}
 									min={1}
 									max={16384}
-									className="w-full px-3 py-2 rounded-lg bg-(--bg-primary) border border-(--border) text-sm text-(--foreground) focus:outline-none focus:border-(--accent) focus:ring-1 focus:ring-(--accent)/30 disabled:opacity-50 font-mono"
+									className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 disabled:opacity-50 font-mono"
 								/>
 							</div>
 
@@ -184,8 +184,8 @@ export const ResizeControls = memo(function ResizeControls({
 								disabled={disabled}
 								className={`p-2.5 rounded-lg border transition-all mb-px ${
 									config.lockAspectRatio
-										? 'bg-(--accent)/10 border-(--accent)/30 text-(--accent)'
-										: 'bg-(--bg-primary) border-(--border) text-(--text-muted)'
+										? 'bg-(--accent)/10 border-accent/30 text-accent'
+										: 'bg-background border-border text-muted'
 								} hover:bg-(--accent)/15 disabled:opacity-50`}
 								title={
 									config.lockAspectRatio
@@ -218,7 +218,7 @@ export const ResizeControls = memo(function ResizeControls({
 
 							{/* Height */}
 							<div className="flex-1 space-y-1">
-								<label className="text-xs text-(--text-muted)">Height (px)</label>
+								<label className="text-xs text-muted">Height (px)</label>
 								<input
 									type="number"
 									value={config.height}
@@ -230,14 +230,14 @@ export const ResizeControls = memo(function ResizeControls({
 									disabled={disabled}
 									min={1}
 									max={16384}
-									className="w-full px-3 py-2 rounded-lg bg-(--bg-primary) border border-(--border) text-sm text-(--foreground) focus:outline-none focus:border-(--accent) focus:ring-1 focus:ring-(--accent)/30 disabled:opacity-50 font-mono"
+									className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 disabled:opacity-50 font-mono"
 								/>
 							</div>
 						</div>
 
 						{/* Fit mode */}
 						<div className="space-y-1.5">
-							<label className="text-xs text-(--text-muted)">Fit Mode</label>
+							<label className="text-xs text-muted">Fit Mode</label>
 							<div className="grid grid-cols-3 gap-1.5">
 								{FIT_OPTIONS.map((opt) => (
 									<button
@@ -246,8 +246,8 @@ export const ResizeControls = memo(function ResizeControls({
 										disabled={disabled}
 										className={`px-2 py-2 rounded-lg text-xs transition-all border ${
 											config.fit === opt.id
-												? 'bg-(--accent)/10 border-(--accent)/30 text-(--accent)'
-												: 'bg-(--bg-primary) border-(--border) text-(--text-muted) hover:text-(--foreground)'
+												? 'bg-(--accent)/10 border-accent/30 text-accent'
+												: 'bg-background border-border text-muted hover:text-foreground'
 										} disabled:opacity-50`}
 									>
 										<div className="font-medium">{opt.label}</div>
@@ -280,8 +280,8 @@ export const ResizeControls = memo(function ResizeControls({
 									disabled={disabled}
 									className={`px-2 py-2 rounded-lg text-xs font-mono font-medium transition-all border ${
 										config.percentage === p
-											? 'bg-(--accent)/10 border-(--accent)/30 text-(--accent)'
-											: 'bg-(--bg-primary) border-(--border) text-(--text-muted) hover:text-(--foreground)'
+											? 'bg-(--accent)/10 border-accent/30 text-accent'
+											: 'bg-background border-border text-muted hover:text-foreground'
 									} disabled:opacity-50`}
 								>
 									{p}%
@@ -292,8 +292,8 @@ export const ResizeControls = memo(function ResizeControls({
 						{/* Custom slider */}
 						<div className="space-y-1.5">
 							<div className="flex items-center justify-between">
-								<label className="text-xs text-(--text-muted)">Custom</label>
-								<span className="text-xs font-mono text-(--accent)">
+								<label className="text-xs text-muted">Custom</label>
+								<span className="text-xs font-mono text-accent">
 									{config.percentage}%
 								</span>
 							</div>
@@ -306,7 +306,7 @@ export const ResizeControls = memo(function ResizeControls({
 								disabled={disabled}
 								className="w-full"
 							/>
-							<div className="flex justify-between text-[10px] text-(--text-muted)">
+							<div className="flex justify-between text-[10px] text-muted">
 								<span>1%</span>
 								<span>500%</span>
 							</div>
@@ -332,13 +332,13 @@ export const ResizeControls = memo(function ResizeControls({
 											expandedCategory === category ? null : category,
 										)
 									}
-									className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-(--bg-primary) hover:bg-(--bg-hover) transition-colors"
+									className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-background hover:bg-surface-hover transition-colors"
 								>
-									<span className="text-xs font-medium text-(--foreground)">
+									<span className="text-xs font-medium text-foreground">
 										{category}
 									</span>
 									<svg
-										className={`w-3.5 h-3.5 text-(--text-muted) transition-transform ${expandedCategory === category ? 'rotate-180' : ''}`}
+										className={`w-3.5 h-3.5 text-muted transition-transform ${expandedCategory === category ? 'rotate-180' : ''}`}
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -371,16 +371,16 @@ export const ResizeControls = memo(function ResizeControls({
 														disabled={disabled}
 														className={`px-2.5 py-2 rounded-lg text-left transition-all border ${
 															config.presetId === preset.id
-																? 'bg-(--accent)/10 border-(--accent)/30'
-																: 'bg-(--bg-elevated) border-transparent hover:border-(--border)'
+																? 'bg-(--accent)/10 border-accent/30'
+																: 'bg-(--bg-elevated) border-transparent hover:border-border'
 														} disabled:opacity-50`}
 													>
 														<div
-															className={`text-xs font-medium ${config.presetId === preset.id ? 'text-(--accent)' : 'text-(--foreground)'}`}
+															className={`text-xs font-medium ${config.presetId === preset.id ? 'text-accent' : 'text-foreground'}`}
 														>
 															{preset.label}
 														</div>
-														<div className="text-[10px] text-(--text-muted) font-mono mt-0.5">
+														<div className="text-[10px] text-muted font-mono mt-0.5">
 															{preset.width}×{preset.height}
 														</div>
 													</button>
@@ -393,8 +393,8 @@ export const ResizeControls = memo(function ResizeControls({
 						))}
 
 						{/* Fit mode for presets */}
-						<div className="space-y-1.5 pt-2 border-t border-(--border)">
-							<label className="text-xs text-(--text-muted)">Fit Mode</label>
+						<div className="space-y-1.5 pt-2 border-t border-border">
+							<label className="text-xs text-muted">Fit Mode</label>
 							<div className="grid grid-cols-3 gap-1.5">
 								{FIT_OPTIONS.map((opt) => (
 									<button
@@ -403,8 +403,8 @@ export const ResizeControls = memo(function ResizeControls({
 										disabled={disabled}
 										className={`px-2 py-1.5 rounded-lg text-xs transition-all border ${
 											config.fit === opt.id
-												? 'bg-(--accent)/10 border-(--accent)/30 text-(--accent)'
-												: 'bg-(--bg-primary) border-(--border) text-(--text-muted) hover:text-(--foreground)'
+												? 'bg-(--accent)/10 border-accent/30 text-accent'
+												: 'bg-background border-border text-muted hover:text-foreground'
 										} disabled:opacity-50`}
 									>
 										{opt.label}
@@ -417,11 +417,11 @@ export const ResizeControls = memo(function ResizeControls({
 			</AnimatePresence>
 
 			{/* Divider */}
-			<div className="border-t border-(--border)" />
+			<div className="border-t border-border" />
 
 			{/* Output Format */}
 			<div className="space-y-1.5">
-				<label className="text-xs font-medium text-(--text-muted) uppercase tracking-wider">
+				<label className="text-xs font-medium text-muted uppercase tracking-wider">
 					Output Format
 				</label>
 				<select
@@ -443,8 +443,8 @@ export const ResizeControls = memo(function ResizeControls({
 			{config.outputFormat !== 'png' && (
 				<div className="space-y-1.5">
 					<div className="flex items-center justify-between">
-						<label className="text-xs text-(--text-muted)">Quality</label>
-						<span className="text-xs font-mono text-(--accent)">
+						<label className="text-xs text-muted">Quality</label>
+						<span className="text-xs font-mono text-accent">
 							{Math.round(config.quality * 100)}%
 						</span>
 					</div>

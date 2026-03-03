@@ -119,11 +119,11 @@ export const FileUploader = memo(function FileUploader({
         relative flex flex-col items-center justify-center
         w-full rounded-2xl border-2 border-dashed
         transition-all duration-200 cursor-pointer
-        focus:outline-none focus:ring-2 focus:ring-(--accent)/50
+        focus:outline-none focus:ring-2 focus:ring-accent/50
         ${
 			isDragging
-				? `border-(--accent) bg-(--accent)/10`
-				: 'border-(--border) hover:border-(--accent)/40 bg-(--bg-elevated)/50'
+				? `border-accent bg-(--accent)/10`
+				: 'border-border hover:border-accent/40 bg-(--bg-elevated)/50'
 		}
         ${disabled ? 'pointer-events-none opacity-50' : ''}
         ${accentClass ?? ''}
@@ -149,7 +149,7 @@ export const FileUploader = memo(function FileUploader({
 					{/* Icon */}
 					<div className="p-4 rounded-2xl bg-(--accent)/10">
 						<svg
-							className="w-10 h-10 text-(--accent)"
+							className="w-10 h-10 text-accent"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -164,7 +164,7 @@ export const FileUploader = memo(function FileUploader({
 					</div>
 
 					<div>
-						<p className="text-(--foreground) font-medium text-lg">{title}</p>
+						<p className="text-foreground font-medium text-lg">{title}</p>
 						<p className="text-(--muted) text-sm mt-1">{subtitle}</p>
 					</div>
 

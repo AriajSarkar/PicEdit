@@ -15,11 +15,11 @@ export const Toolbar = memo(function Toolbar({
 	selectedIndex,
 }: ToolbarProps) {
 	return (
-		<div className="flex items-center justify-between px-4 py-2 border-b border-(--border) bg-(--bg-elevated)/60">
+		<div className="flex items-center justify-between px-4 py-2 border-b border-border bg-(--bg-elevated)/60">
 			<div className="flex items-center gap-2.5">
 				<div className="w-6 h-6 rounded-md bg-(--accent)/10 flex items-center justify-center">
 					<svg
-						className="w-3.5 h-3.5 text-(--accent)"
+						className="w-3.5 h-3.5 text-accent"
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke="currentColor"
@@ -32,24 +32,24 @@ export const Toolbar = memo(function Toolbar({
 						/>
 					</svg>
 				</div>
-				<span className="text-xs font-medium text-(--foreground)">Visual Resize</span>
+				<span className="text-xs font-medium text-foreground">Visual Resize</span>
 				{itemCount > 1 && (
-					<span className="text-[10px] text-(--text-muted)">
+					<span className="text-[10px] text-muted">
 						{selectedIndex + 1}/{itemCount}
 					</span>
 				)}
 			</div>
 
 			<div className="flex items-center gap-2">
-				<div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-md bg-(--bg-primary)/60 border border-(--border)">
-					<span className="text-[10px] text-(--text-muted)">Orig</span>
+				<div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-md bg-background/60 border border-border">
+					<span className="text-[10px] text-muted">Orig</span>
 					<span className="text-[10px] font-mono text-(--text-secondary)">
 						{originalWidth}×{originalHeight}
 					</span>
 				</div>
 
 				<svg
-					className="w-3 h-3 text-(--text-muted) hidden sm:block"
+					className="w-3 h-3 text-muted hidden sm:block"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
@@ -62,8 +62,8 @@ export const Toolbar = memo(function Toolbar({
 					/>
 				</svg>
 
-				<div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-(--accent)/8 border border-(--accent)/20">
-					<span className="text-[10px] font-mono text-(--accent) font-semibold">
+				<div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-(--accent)/8 border border-accent/20">
+					<span className="text-[10px] font-mono text-accent font-semibold">
 						{liveW}×{liveH}
 					</span>
 				</div>
@@ -81,8 +81,8 @@ export const Toolbar = memo(function Toolbar({
 				<div
 					className={`w-5 h-5 rounded flex items-center justify-center ${
 						config.lockAspectRatio
-							? 'text-(--accent) bg-(--accent)/8'
-							: 'text-(--text-muted) bg-(--bg-primary)/40'
+							? 'text-accent bg-(--accent)/8'
+							: 'text-muted bg-background/40'
 					}`}
 					title={config.lockAspectRatio ? 'Aspect ratio locked' : 'Free resize'}
 				>

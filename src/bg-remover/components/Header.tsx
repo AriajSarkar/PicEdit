@@ -17,9 +17,9 @@ export function Header({ device, setDevice, model, setModel }: HeaderProps) {
 				<div className="flex items-center gap-3">
 					<Link
 						href="/"
-						className="flex items-center gap-2 text-(--text-secondary) hover:text-(--foreground) transition-colors"
+						className="flex items-center gap-2 text-(--text-secondary) hover:text-foreground transition-colors"
 					>
-						<div className="w-7 h-7 rounded-lg bg-linear-to-br from-(--accent) to-(--accent-hover) flex items-center justify-center">
+						<div className="w-7 h-7 rounded-lg bg-linear-to-br from-accent to-accent-hover flex items-center justify-center">
 							<svg
 								className="w-3.5 h-3.5 text-white"
 								viewBox="0 0 24 24"
@@ -36,15 +36,15 @@ export function Header({ device, setDevice, model, setModel }: HeaderProps) {
 						</div>
 						<span className="text-sm font-bold">PicEdit</span>
 					</Link>
-					<div className="h-4 w-px bg-(--border) hidden sm:block" />
-					<h1 className="text-sm font-medium text-(--foreground) hidden sm:block">
+					<div className="h-4 w-px bg-border hidden sm:block" />
+					<h1 className="text-sm font-medium text-foreground hidden sm:block">
 						Background Remover
 					</h1>
 				</div>
 
 				<div className="flex items-center gap-2">
 					{/* Device Toggle */}
-					<div className="flex bg-(--bg-elevated) rounded-full p-0.5 border border-(--border)">
+					<div className="flex bg-(--bg-elevated) rounded-full p-0.5 border border-border">
 						{(['gpu', 'cpu'] as DeviceType[]).map((d) => (
 							<button
 								key={d}
@@ -52,7 +52,7 @@ export function Header({ device, setDevice, model, setModel }: HeaderProps) {
 								className={`px-4 py-2.5 sm:px-3 sm:py-1.5 text-xs font-semibold rounded-full transition-all min-h-11 sm:min-h-0 ${
 									device === d
 										? 'bg-(--foreground) text-(--bg-primary)'
-										: 'text-(--text-muted) hover:text-(--text-secondary)'
+										: 'text-muted hover:text-(--text-secondary)'
 								}`}
 							>
 								{d.toUpperCase()}
@@ -64,7 +64,7 @@ export function Header({ device, setDevice, model, setModel }: HeaderProps) {
 					<select
 						value={model}
 						onChange={(e) => setModel(e.target.value as ModelType)}
-						className="sm:hidden px-3 py-2 min-h-11 text-xs font-semibold rounded-full bg-(--bg-elevated) border border-(--border) text-(--foreground)"
+						className="sm:hidden px-3 py-2 min-h-11 text-xs font-semibold rounded-full bg-(--bg-elevated) border border-border text-foreground"
 					>
 						{(Object.keys(MODEL_INFO) as ModelType[]).map((m) => (
 							<option key={m} value={m}>
@@ -73,15 +73,15 @@ export function Header({ device, setDevice, model, setModel }: HeaderProps) {
 						))}
 					</select>
 
-					<div className="hidden sm:flex bg-(--bg-elevated) rounded-full p-0.5 border border-(--border)">
+					<div className="hidden sm:flex bg-(--bg-elevated) rounded-full p-0.5 border border-border">
 						{(Object.keys(MODEL_INFO) as ModelType[]).map((m) => (
 							<button
 								key={m}
 								onClick={() => setModel(m)}
 								className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
 									model === m
-										? 'bg-linear-to-r from-(--accent) to-(--accent-hover) text-white'
-										: 'text-(--text-muted) hover:text-(--text-secondary)'
+										? 'bg-linear-to-r from-accent to-accent-hover text-white'
+										: 'text-muted hover:text-(--text-secondary)'
 								}`}
 								title={`${MODEL_INFO[m].size} - ${MODEL_INFO[m].precision}`}
 							>

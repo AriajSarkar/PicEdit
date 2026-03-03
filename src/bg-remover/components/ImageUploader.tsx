@@ -52,7 +52,7 @@ export const ImageUploader = memo(function ImageUploader({
 				<div className="flex flex-col items-center px-8">
 					<div className="mb-6 p-4 rounded-2xl bg-(--accent)/20">
 						<svg
-							className="w-12 h-12 text-(--accent) animate-pulse"
+							className="w-12 h-12 text-accent animate-pulse"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -73,7 +73,7 @@ export const ImageUploader = memo(function ImageUploader({
 						</div>
 						<div className="h-2 bg-white/10 rounded-full overflow-hidden">
 							<motion.div
-								className={`h-full bg-linear-to-r ${STAGE_COLORS[progress.stage] ?? 'from-(--accent) to-purple-500'}`}
+								className={`h-full bg-linear-to-r ${STAGE_COLORS[progress.stage] ?? 'from-accent to-purple-500'}`}
 								initial={{ width: 0 }}
 								animate={{ width: `${progress.progress}%` }}
 								transition={{ duration: 0.2 }}
@@ -81,7 +81,7 @@ export const ImageUploader = memo(function ImageUploader({
 						</div>
 					</div>
 
-					<p className="text-sm text-(--foreground)/70 mb-1">{progress.message}</p>
+					<p className="text-sm text-foreground/70 mb-1">{progress.message}</p>
 					{progress.stage === 'downloading' && (
 						<p className="text-xs text-(--muted)">
 							First time only — model will be cached

@@ -4,7 +4,7 @@ export function HeroSection() {
 	return (
 		<section className="relative pt-20 pb-16 sm:pt-28 sm:pb-24">
 			<div className="max-w-6xl mx-auto px-6 text-center">
-				<div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-(--border) bg-(--bg-surface) text-xs font-medium text-(--text-secondary) mb-8">
+				<div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-border bg-surface text-xs font-medium text-(--text-secondary) mb-8">
 					<span className="w-2 h-2 rounded-full bg-(--success) animate-pulse" />
 					100% free &middot; No sign-up &middot; Runs in your browser
 				</div>
@@ -62,7 +62,7 @@ export function HeroSection() {
 				</div>
 
 				{/* 3-Tap flow */}
-				<div className="mt-12 inline-flex flex-wrap items-center justify-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 rounded-2xl border border-(--border) bg-(--bg-surface)">
+				<div className="mt-12 inline-flex flex-wrap items-center justify-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 rounded-2xl border border-border bg-surface">
 					{[
 						{
 							step: '1',
@@ -79,7 +79,7 @@ export function HeroSection() {
 						<div key={s.step} className="flex items-center gap-3">
 							{i > 0 && (
 								<svg
-									className="w-4 h-4 text-(--text-muted) hidden sm:block"
+									className="w-4 h-4 text-muted hidden sm:block"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -95,7 +95,7 @@ export function HeroSection() {
 							<div className="flex items-center gap-2">
 								<div className="w-8 h-8 rounded-full bg-(--accent-soft) flex items-center justify-center">
 									<svg
-										className="w-4 h-4 text-(--accent)"
+										className="w-4 h-4 text-accent"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"
@@ -109,7 +109,7 @@ export function HeroSection() {
 									</svg>
 								</div>
 								<div className="text-left">
-									<p className="text-[10px] text-(--text-muted) font-medium uppercase tracking-wider">
+									<p className="text-[10px] text-muted font-medium uppercase tracking-wider">
 										Step {s.step}
 									</p>
 									<p className="text-sm font-medium">{s.label}</p>

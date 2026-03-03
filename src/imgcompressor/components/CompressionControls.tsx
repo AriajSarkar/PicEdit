@@ -20,7 +20,7 @@ export const CompressionControls = memo(function CompressionControls({
 		<div className="space-y-5">
 			{/* Format selector */}
 			<div>
-				<label className="block text-sm font-medium text-(--foreground) mb-2">
+				<label className="block text-sm font-medium text-foreground mb-2">
 					Output Format
 				</label>
 				<div className="flex gap-2">
@@ -33,8 +33,8 @@ export const CompressionControls = memo(function CompressionControls({
                 flex-1 py-3 sm:py-2 px-3 rounded-lg text-sm font-medium transition-all
                 ${
 					config.format === fmt
-						? 'bg-(--accent) text-white shadow-lg shadow-(--accent)/25'
-						: 'bg-(--bg-elevated) text-(--muted) hover:text-(--foreground) border border-(--border)'
+						? 'bg-accent text-white shadow-lg shadow-(--accent)/25'
+						: 'bg-(--bg-elevated) text-(--muted) hover:text-foreground border border-border'
 				}
                 disabled:opacity-50
               `}
@@ -49,8 +49,8 @@ export const CompressionControls = memo(function CompressionControls({
 			{config.format !== 'png' && (
 				<div>
 					<div className="flex items-center justify-between mb-2">
-						<label className="text-sm font-medium text-(--foreground)">Quality</label>
-						<span className="text-sm text-(--accent) font-mono">
+						<label className="text-sm font-medium text-foreground">Quality</label>
+						<span className="text-sm text-accent font-mono">
 							{Math.round(config.quality * 100)}%
 						</span>
 					</div>
@@ -61,7 +61,7 @@ export const CompressionControls = memo(function CompressionControls({
 						value={Math.round(config.quality * 100)}
 						onChange={(e) => update({ quality: Number(e.target.value) / 100 })}
 						disabled={disabled}
-						className="w-full accent-(--accent)"
+						className="w-full accent-accent"
 					/>
 					<div className="flex justify-between text-xs text-(--muted) mt-1">
 						<span>Smaller file</span>
@@ -73,7 +73,7 @@ export const CompressionControls = memo(function CompressionControls({
 			{/* Max Dimension */}
 			<div>
 				<div className="flex items-center justify-between mb-2">
-					<label className="text-sm font-medium text-(--foreground)">Max Dimension</label>
+					<label className="text-sm font-medium text-foreground">Max Dimension</label>
 					<span className="text-sm text-(--muted) font-mono">
 						{config.maxDimension > 0 ? `${config.maxDimension}px` : 'Original'}
 					</span>
@@ -82,7 +82,7 @@ export const CompressionControls = memo(function CompressionControls({
 					value={config.maxDimension}
 					onChange={(e) => update({ maxDimension: Number(e.target.value) })}
 					disabled={disabled}
-					className="w-full p-3 sm:p-2 rounded-lg bg-(--bg-elevated) border border-(--border) text-(--foreground) text-sm"
+					className="w-full p-3 sm:p-2 rounded-lg bg-(--bg-elevated) border border-border text-foreground text-sm"
 				>
 					<option value={0}>Original size</option>
 					<option value={3840}>4K (3840px)</option>
@@ -96,7 +96,7 @@ export const CompressionControls = memo(function CompressionControls({
 			{/* WASM optimization toggle */}
 			<div className="flex items-center justify-between">
 				<div>
-					<p className="text-sm font-medium text-(--foreground)">WASM Optimization</p>
+					<p className="text-sm font-medium text-foreground">WASM Optimization</p>
 					<p className="text-xs text-(--muted)">Perceptual pre-processing via Rust</p>
 				</div>
 				<button
@@ -108,7 +108,7 @@ export const CompressionControls = memo(function CompressionControls({
 					disabled={disabled}
 					className={`
             relative w-11 h-6 rounded-full transition-colors
-            ${config.enableWasmOptimize ? 'bg-(--accent)' : 'bg-white/10'}
+            ${config.enableWasmOptimize ? 'bg-accent' : 'bg-white/10'}
           `}
 				>
 					<span
@@ -124,10 +124,10 @@ export const CompressionControls = memo(function CompressionControls({
 			{config.enableWasmOptimize && (
 				<div>
 					<div className="flex items-center justify-between mb-2">
-						<label className="text-sm font-medium text-(--foreground)">
+						<label className="text-sm font-medium text-foreground">
 							Optimization Strength
 						</label>
-						<span className="text-sm text-(--accent) font-mono">
+						<span className="text-sm text-accent font-mono">
 							{Math.round(config.optimizeStrength * 100)}%
 						</span>
 					</div>
@@ -138,7 +138,7 @@ export const CompressionControls = memo(function CompressionControls({
 						value={Math.round(config.optimizeStrength * 100)}
 						onChange={(e) => update({ optimizeStrength: Number(e.target.value) / 100 })}
 						disabled={disabled}
-						className="w-full accent-(--accent)"
+						className="w-full accent-accent"
 					/>
 				</div>
 			)}
@@ -147,7 +147,7 @@ export const CompressionControls = memo(function CompressionControls({
 			{config.format === 'png' && (
 				<div>
 					<div className="flex items-center justify-between mb-2">
-						<label className="text-sm font-medium text-(--foreground)">
+						<label className="text-sm font-medium text-foreground">
 							Color Quantization
 						</label>
 						<span className="text-sm text-(--muted) font-mono">
@@ -158,7 +158,7 @@ export const CompressionControls = memo(function CompressionControls({
 						value={config.maxColors}
 						onChange={(e) => update({ maxColors: Number(e.target.value) })}
 						disabled={disabled}
-						className="w-full p-3 sm:p-2 rounded-lg bg-(--bg-elevated) border border-(--border) text-(--foreground) text-sm"
+						className="w-full p-3 sm:p-2 rounded-lg bg-(--bg-elevated) border border-border text-foreground text-sm"
 					>
 						<option value={0}>Disabled (lossless)</option>
 						<option value={256}>256 colors</option>
@@ -173,7 +173,7 @@ export const CompressionControls = memo(function CompressionControls({
 			{config.format !== 'png' && (
 				<div>
 					<div className="flex items-center justify-between mb-2">
-						<label className="text-sm font-medium text-(--foreground)">
+						<label className="text-sm font-medium text-foreground">
 							Target File Size
 						</label>
 						<span className="text-sm text-(--muted) font-mono">
@@ -188,7 +188,7 @@ export const CompressionControls = memo(function CompressionControls({
 						value={config.targetSize}
 						onChange={(e) => update({ targetSize: Number(e.target.value) })}
 						disabled={disabled}
-						className="w-full p-3 sm:p-2 rounded-lg bg-(--bg-elevated) border border-(--border) text-(--foreground) text-sm"
+						className="w-full p-3 sm:p-2 rounded-lg bg-(--bg-elevated) border border-border text-foreground text-sm"
 					>
 						<option value={0}>Auto (use quality slider)</option>
 						<option value={50 * 1024}>50 KB</option>
@@ -205,9 +205,7 @@ export const CompressionControls = memo(function CompressionControls({
 			{config.enableWasmOptimize && (
 				<div className="flex items-center justify-between">
 					<div>
-						<p className="text-sm font-medium text-(--foreground)">
-							Quality Verification
-						</p>
+						<p className="text-sm font-medium text-foreground">Quality Verification</p>
 						<p className="text-xs text-(--muted)">Calculate SSIM after compression</p>
 					</div>
 					<button
@@ -219,7 +217,7 @@ export const CompressionControls = memo(function CompressionControls({
 						disabled={disabled}
 						className={`
               relative w-11 h-6 rounded-full transition-colors
-              ${config.verifySsim ? 'bg-(--accent)' : 'bg-white/10'}
+              ${config.verifySsim ? 'bg-accent' : 'bg-white/10'}
             `}
 					>
 						<span

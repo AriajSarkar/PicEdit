@@ -34,7 +34,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 			animate={{ opacity: 1, x: 0 }}
 			exit={{ opacity: 0, x: 20 }}
 			transition={{ duration: 0.2 }}
-			className="flex items-center gap-3 p-3 rounded-xl bg-(--bg-elevated) border border-(--border) group"
+			className="flex items-center gap-3 p-3 rounded-xl bg-(--bg-elevated) border border-border group"
 			style={{ contentVisibility: 'auto', containIntrinsicSize: '0 72px' }}
 		>
 			<div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-white/5">
@@ -48,7 +48,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 			</div>
 
 			<div className="flex-1 min-w-0">
-				<p className="text-sm text-(--foreground) truncate font-medium">{item.file.name}</p>
+				<p className="text-sm text-foreground truncate font-medium">{item.file.name}</p>
 
 				{item.status === 'processing' && (
 					<div className="mt-1">
@@ -58,7 +58,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 						</div>
 						<div className="w-full h-1 rounded-full bg-white/5 overflow-hidden">
 							<motion.div
-								className="h-full bg-(--accent) rounded-full"
+								className="h-full bg-accent rounded-full"
 								initial={{ width: 0 }}
 								animate={{ width: `${item.progress}%` }}
 							/>
@@ -72,7 +72,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 							{formatBytes(compressionItem.result.originalSize)}
 						</span>
 						<svg
-							className="w-3 h-3 text-(--accent)"
+							className="w-3 h-3 text-accent"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -110,7 +110,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 							{resizeItem.originalWidth}x{resizeItem.originalHeight}
 						</span>
 						<svg
-							className="w-3 h-3 text-(--accent)"
+							className="w-3 h-3 text-accent"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -122,7 +122,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 								d="M13 7l5 5m0 0l-5 5m5-5H6"
 							/>
 						</svg>
-						<span className="text-xs font-medium text-(--accent)">
+						<span className="text-xs font-medium text-accent">
 							{resizeDims.width}x{resizeDims.height}
 						</span>
 						<span className="text-xs text-(--muted)">
@@ -164,7 +164,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 						type="button"
 						aria-label={`Compress ${item.file.name}`}
 						onClick={() => props.onCompress(item.id)}
-						className="p-1.5 rounded-lg hover:bg-(--accent)/10 text-(--accent) transition-colors"
+						className="p-1.5 rounded-lg hover:bg-(--accent)/10 text-accent transition-colors"
 						title="Compress"
 					>
 						<svg
@@ -188,7 +188,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 						type="button"
 						aria-label={`Resize ${item.file.name}`}
 						onClick={() => props.onResize(item.id)}
-						className="p-1.5 rounded-lg hover:bg-(--accent)/10 text-(--accent) transition-colors"
+						className="p-1.5 rounded-lg hover:bg-(--accent)/10 text-accent transition-colors"
 						title="Resize"
 					>
 						<svg
@@ -303,7 +303,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 					type="button"
 					aria-label={`Remove ${item.file.name}`}
 					onClick={() => props.onRemove(item.id)}
-					className="p-1.5 rounded-lg hover:bg-red-500/10 text-(--text-muted) hover:text-red-400 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100"
+					className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted hover:text-red-400 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100"
 					title="Remove"
 				>
 					<svg

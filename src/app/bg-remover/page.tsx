@@ -207,7 +207,7 @@ export default function BGRemoverPage() {
 	}, [originalImage, device, model, processImage, state, saveSession, imageInfo, isProcessing]);
 
 	return (
-		<div className="min-h-screen bg-(--bg-primary) text-(--foreground)">
+		<div className="min-h-screen bg-background text-foreground">
 			<Header device={device} setDevice={setDevice} model={model} setModel={setModel} />
 
 			<main className="max-w-7xl mx-auto px-4 py-6">
@@ -234,7 +234,7 @@ export default function BGRemoverPage() {
 					// Editor View
 					<div className="grid lg:grid-cols-[1fr,340px] gap-6">
 						{/* Preview */}
-						<div className="relative rounded-2xl overflow-hidden bg-(--bg-surface) border border-(--border)">
+						<div className="relative rounded-2xl overflow-hidden bg-surface border border-border">
 							<AnimatePresence>
 								{isProcessing && (
 									<ProcessingOverlay progress={progress} onCancel={cancel} />
@@ -255,7 +255,7 @@ export default function BGRemoverPage() {
 
 							{/* Retry / Cancel bar */}
 							{!isProcessing && hasImage && (
-								<div className="flex items-center gap-2 px-4 py-2 bg-(--bg-elevated) border-t border-(--border)">
+								<div className="flex items-center gap-2 px-4 py-2 bg-(--bg-elevated) border-t border-border">
 									<RetryButton
 										onClick={handleRetry}
 										label="Re-process"
@@ -268,7 +268,7 @@ export default function BGRemoverPage() {
 								</div>
 							)}
 							{isProcessing && (
-								<div className="flex items-center gap-2 px-4 py-2 bg-(--bg-elevated) border-t border-(--border)">
+								<div className="flex items-center gap-2 px-4 py-2 bg-(--bg-elevated) border-t border-border">
 									<CancelButton onClick={cancel} label="Cancel" size="md" />
 									<span className="text-xs text-(--muted) ml-auto">
 										Stop current processing

@@ -29,12 +29,12 @@ export function ToolCards() {
 									/>
 								)}
 								<span
-									className={`absolute top-4 right-4 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider rounded-full ${isReady ? 'bg-(--success-soft) text-(--success)' : 'bg-white/5 text-(--text-muted)'}`}
+									className={`absolute top-4 right-4 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider rounded-full ${isReady ? 'bg-(--success-soft) text-(--success)' : 'bg-white/5 text-muted'}`}
 								>
 									{tool.badge}
 								</span>
 								<div
-									className={`w-12 h-12 rounded-xl ${tool.iconBg} flex items-center justify-center mb-4 text-(--text-secondary) group-hover:text-(--foreground) transition-colors`}
+									className={`w-12 h-12 rounded-xl ${tool.iconBg} flex items-center justify-center mb-4 text-(--text-secondary) group-hover:text-foreground transition-colors`}
 								>
 									{tool.icon}
 								</div>
@@ -43,7 +43,7 @@ export function ToolCards() {
 									{tool.description}
 								</p>
 								{isReady && (
-									<div className="mt-4 flex items-center text-sm text-(--accent) font-medium opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all">
+									<div className="mt-4 flex items-center text-sm text-accent font-medium opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all">
 										<span>Get started</span>
 										<svg
 											className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"

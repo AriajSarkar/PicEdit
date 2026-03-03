@@ -53,13 +53,13 @@ export const ComparisonResults = memo(function ComparisonResults(
 	return (
 		<div className="space-y-3">
 			<div className="flex items-center justify-between">
-				<h3 className="text-sm font-medium text-(--text-muted) uppercase tracking-wider">
+				<h3 className="text-sm font-medium text-muted uppercase tracking-wider">
 					Images ({items.length})
 				</h3>
 				<div className="flex items-center gap-2">
 					{processingCount > 0 && (
-						<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-(--accent)/10 text-(--accent)">
-							<span className="w-1.5 h-1.5 rounded-full bg-(--accent) animate-pulse" />
+						<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-(--accent)/10 text-accent">
+							<span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
 							{processingCount} {props.mode === 'resize' ? 'resizing' : 'processing'}
 						</span>
 					)}
@@ -87,7 +87,7 @@ export const ComparisonResults = memo(function ComparisonResults(
 			</ScrollContainer>
 
 			{needsScroll && (
-				<div className="flex items-center justify-center gap-1.5 text-xs text-(--text-muted)">
+				<div className="flex items-center justify-center gap-1.5 text-xs text-muted">
 					<svg
 						className="w-3.5 h-3.5 animate-bounce"
 						fill="none"

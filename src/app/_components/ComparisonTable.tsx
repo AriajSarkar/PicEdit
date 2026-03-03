@@ -2,7 +2,7 @@ import { COMPARISON } from '../_data/landing';
 
 export function ComparisonTable() {
 	return (
-		<section className="py-16 border-t border-(--border)">
+		<section className="py-16 border-t border-border">
 			<div className="max-w-4xl mx-auto px-6">
 				<div className="text-center mb-12">
 					<h2 className="text-2xl sm:text-3xl font-bold mb-3">
@@ -16,11 +16,11 @@ export function ComparisonTable() {
 					<div className="overflow-x-auto">
 						<table className="w-full text-sm">
 							<thead>
-								<tr className="border-b border-(--border)">
+								<tr className="border-b border-border">
 									<th className="text-left px-3 sm:px-6 py-4 font-medium text-(--text-secondary)">
 										Feature
 									</th>
-									<th className="px-3 sm:px-6 py-4 font-semibold text-(--accent)">
+									<th className="px-3 sm:px-6 py-4 font-semibold text-accent">
 										PicEdit
 									</th>
 									<th className="px-3 sm:px-6 py-4 font-medium text-(--text-secondary)">
@@ -83,7 +83,7 @@ export function ComparisonTable() {
 														</span>
 													) : (
 														<span
-															className={`text-xs font-medium ${j === 0 ? 'text-(--accent)' : 'text-(--text-muted)'}`}
+															className={`text-xs font-medium ${j === 0 ? 'text-accent' : 'text-muted'}`}
 														>
 															{val as string}
 														</span>

@@ -26,7 +26,7 @@ export function ImageInfoBar({ imageInfo, state, estimatedSize, onNewImage }: Im
 			: 0;
 
 	return (
-		<div className="flex items-center justify-between px-4 py-3 bg-(--bg-surface) border-t border-(--border)">
+		<div className="flex items-center justify-between px-4 py-3 bg-surface border-t border-border">
 			<div className="flex items-center gap-4 text-xs">
 				<span className="text-white/40">
 					{outputWidth} × {outputHeight}

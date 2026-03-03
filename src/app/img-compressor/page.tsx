@@ -56,7 +56,7 @@ export default function ImgCompressorPage() {
 	}, [items]);
 
 	return (
-		<div className="min-h-screen bg-(--bg-primary) text-(--foreground)">
+		<div className="min-h-screen bg-background text-foreground">
 			<CompressorHeader />
 
 			<main className="max-w-6xl mx-auto px-4 py-8">
@@ -66,9 +66,9 @@ export default function ImgCompressorPage() {
 					animate={{ opacity: 1, y: 0 }}
 					className="text-center mb-8"
 				>
-					<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-(--accent)/20 bg-(--accent)/5 mb-4">
-						<div className="w-1.5 h-1.5 rounded-full bg-(--accent) animate-pulse" />
-						<span className="text-xs text-(--accent) font-medium">
+					<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-(--accent)/5 mb-4">
+						<div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+						<span className="text-xs text-accent font-medium">
 							Rust WASM · Perceptual Optimization · Batch Processing
 						</span>
 					</div>
@@ -110,7 +110,7 @@ export default function ImgCompressorPage() {
 								<div className="flex flex-col items-center gap-1.5">
 									<div className="w-10 h-10 rounded-xl bg-(--accent)/10 flex items-center justify-center">
 										<svg
-											className="w-5 h-5 text-(--accent)"
+											className="w-5 h-5 text-accent"
 											fill="none"
 											viewBox="0 0 24 24"
 											stroke="currentColor"
@@ -252,10 +252,10 @@ export default function ImgCompressorPage() {
 									<motion.div
 										initial={{ opacity: 0, y: 5 }}
 										animate={{ opacity: 1, y: 0 }}
-										className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-3 px-4 py-2.5 rounded-xl bg-(--accent)/5 border border-(--accent)/15"
+										className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-3 px-4 py-2.5 rounded-xl bg-(--accent)/5 border border-accent/15"
 									>
 										<div className="flex items-center gap-3 text-xs">
-											<span className="text-(--accent) font-medium">
+											<span className="text-accent font-medium">
 												~Estimated
 											</span>
 											<span className="text-(--muted)">
@@ -298,9 +298,9 @@ export default function ImgCompressorPage() {
 							className="space-y-4"
 						>
 							<div className="glass rounded-xl p-5 sticky top-20">
-								<h2 className="text-sm font-medium text-(--foreground) mb-4 flex items-center gap-2">
+								<h2 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
 									<svg
-										className="w-4 h-4 text-(--accent)"
+										className="w-4 h-4 text-accent"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"

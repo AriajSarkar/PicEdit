@@ -36,7 +36,7 @@ export function EditorToolbar({
 	];
 
 	return (
-		<div className="p-4 bg-(--bg-surface) rounded-2xl border border-(--border) space-y-4">
+		<div className="p-4 bg-surface rounded-2xl border border-border space-y-4">
 			{/* Background */}
 			<div>
 				<label className="text-xs text-white/40 mb-2 block">Background</label>

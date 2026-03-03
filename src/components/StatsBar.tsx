@@ -34,7 +34,7 @@ export const StatsBar = memo(function StatsBar({
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
-			className="flex items-center justify-between px-4 py-3 bg-(--bg-surface) border-t border-(--border)"
+			className="flex items-center justify-between px-4 py-3 bg-surface border-t border-border"
 		>
 			<div className="flex items-center gap-4 text-xs flex-wrap">
 				{entries.map((entry, i) => (
@@ -57,7 +57,7 @@ export const StatsBar = memo(function StatsBar({
 			{progress !== undefined && progress > 0 && progress < 100 && (
 				<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/5">
 					<motion.div
-						className="h-full bg-(--accent)"
+						className="h-full bg-accent"
 						initial={{ width: 0 }}
 						animate={{ width: `${progress}%` }}
 					/>

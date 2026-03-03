@@ -170,7 +170,7 @@ export default function ImgResizerPage() {
 	);
 
 	return (
-		<div className="min-h-screen bg-(--bg-primary) text-(--foreground)">
+		<div className="min-h-screen bg-background text-foreground">
 			<ResizerHeader />
 
 			<main className="max-w-6xl mx-auto px-4 py-8">
@@ -199,11 +199,11 @@ export default function ImgResizerPage() {
 								initial={{ opacity: 0, y: 8 }}
 								animate={{ opacity: 1, y: 0 }}
 								onClick={() => setModalOpen(true)}
-								className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-(--border) bg-(--bg-surface) hover:border-(--accent)/30 hover:bg-(--bg-elevated) transition-all group"
+								className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-surface hover:border-accent/30 hover:bg-(--bg-elevated) transition-all group"
 							>
 								<div className="w-9 h-9 rounded-lg bg-(--accent)/10 flex items-center justify-center shrink-0 group-hover:bg-(--accent)/15 transition-colors">
 									<svg
-										className="w-4.5 h-4.5 text-(--accent)"
+										className="w-4.5 h-4.5 text-accent"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -217,16 +217,16 @@ export default function ImgResizerPage() {
 									</svg>
 								</div>
 								<div className="flex-1 text-left">
-									<span className="text-sm font-medium text-(--foreground) group-hover:text-(--accent) transition-colors">
+									<span className="text-sm font-medium text-foreground group-hover:text-accent transition-colors">
 										Open Visual Resizer
 									</span>
-									<p className="text-[10px] text-(--text-muted) mt-0.5">
+									<p className="text-[10px] text-muted mt-0.5">
 										Drag handles, zoom, pan &mdash; interactive resize with
 										preview
 									</p>
 								</div>
 								<svg
-									className="w-4 h-4 text-(--text-muted) group-hover:text-(--accent) transition-colors"
+									className="w-4 h-4 text-muted group-hover:text-accent transition-colors"
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"
@@ -322,7 +322,7 @@ export default function ImgResizerPage() {
 									<button
 										onClick={clearAll}
 										disabled={isProcessing}
-										className="text-sm text-(--text-muted) hover:text-red-400 transition-colors disabled:opacity-50"
+										className="text-sm text-muted hover:text-red-400 transition-colors disabled:opacity-50"
 									>
 										Clear All
 									</button>
@@ -354,9 +354,9 @@ export default function ImgResizerPage() {
 							className="space-y-4"
 						>
 							<div className="glass rounded-xl p-5 sticky top-20">
-								<h2 className="text-sm font-medium text-(--foreground) mb-4 flex items-center gap-2">
+								<h2 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
 									<svg
-										className="w-4 h-4 text-(--accent)"
+										className="w-4 h-4 text-accent"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -395,16 +395,16 @@ const HeroSection = memo(function HeroSection() {
 			animate={{ opacity: 1, y: 0 }}
 			className="text-center mb-8"
 		>
-			<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-(--accent)/20 bg-(--accent)/5 mb-4">
-				<div className="w-1.5 h-1.5 rounded-full bg-(--accent) animate-pulse" />
-				<span className="text-xs text-(--accent) font-medium">
+			<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-(--accent)/5 mb-4">
+				<div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+				<span className="text-xs text-accent font-medium">
 					Social Presets · Batch Resize · High Quality
 				</span>
 			</div>
 			<h1 className="text-3xl sm:text-4xl font-bold mb-2">
 				<span className="text-gradient">Image Resizer</span>
 			</h1>
-			<p className="text-(--text-muted) text-sm max-w-md mx-auto">
+			<p className="text-muted text-sm max-w-md mx-auto">
 				Resize images to exact dimensions, percentages, or social media presets. Everything
 				runs locally — your images never leave your device.
 			</p>
@@ -425,7 +425,7 @@ const StepGuide = memo(function StepGuide() {
 					<div className="flex flex-col items-center gap-1.5">
 						<div className="w-10 h-10 rounded-xl bg-(--accent)/10 flex items-center justify-center">
 							<svg
-								className="w-5 h-5 text-(--accent)"
+								className="w-5 h-5 text-accent"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -434,7 +434,7 @@ const StepGuide = memo(function StepGuide() {
 								<path strokeLinecap="round" strokeLinejoin="round" d={s.icon} />
 							</svg>
 						</div>
-						<span className="text-xs text-(--text-muted)">{s.label}</span>
+						<span className="text-xs text-muted">{s.label}</span>
 					</div>
 					{i < 2 && (
 						<svg
@@ -476,27 +476,23 @@ const ResizeSummary = memo(function ResizeSummary({ stats, totalCount }: ResizeS
 			className="glass rounded-xl p-4"
 		>
 			<div className="flex items-center justify-between mb-3">
-				<span className="text-sm font-medium text-(--foreground)">Resize Summary</span>
-				<span className="text-xs text-(--text-muted)">
+				<span className="text-sm font-medium text-foreground">Resize Summary</span>
+				<span className="text-xs text-muted">
 					{stats.doneCount}/{totalCount} processed
 				</span>
 			</div>
 
 			<div className="grid grid-cols-3 gap-4">
 				<div>
-					<p className="text-xs text-(--text-muted) mb-0.5">Original</p>
-					<p className="text-sm font-mono text-(--foreground)">
-						{stats.formattedOriginal}
-					</p>
+					<p className="text-xs text-muted mb-0.5">Original</p>
+					<p className="text-sm font-mono text-foreground">{stats.formattedOriginal}</p>
 				</div>
 				<div>
-					<p className="text-xs text-(--text-muted) mb-0.5">Resized</p>
-					<p className="text-sm font-mono text-(--foreground)">
-						{stats.formattedResized}
-					</p>
+					<p className="text-xs text-muted mb-0.5">Resized</p>
+					<p className="text-sm font-mono text-foreground">{stats.formattedResized}</p>
 				</div>
 				<div>
-					<p className="text-xs text-(--text-muted) mb-0.5">Difference</p>
+					<p className="text-xs text-muted mb-0.5">Difference</p>
 					<p
 						className={`text-sm font-mono ${stats.totalResized <= stats.totalOriginal ? 'text-green-400' : 'text-amber-400'}`}
 					>
@@ -509,7 +505,7 @@ const ResizeSummary = memo(function ResizeSummary({ stats, totalCount }: ResizeS
 			{stats.doneCount > 0 && (
 				<div className="mt-3 w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
 					<motion.div
-						className="h-full rounded-full bg-linear-to-r from-(--accent) to-green-400"
+						className="h-full rounded-full bg-linear-to-r from-accent to-green-400"
 						initial={{ width: 0 }}
 						animate={{ width: `${(stats.doneCount / totalCount) * 100}%` }}
 						transition={{ duration: 0.5 }}

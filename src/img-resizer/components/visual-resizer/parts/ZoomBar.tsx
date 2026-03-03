@@ -21,13 +21,13 @@ export const ZoomBar = memo(function ZoomBar({ zoom, onZoom, onReset }: ZoomBarP
 	);
 
 	return (
-		<div className="flex items-center justify-between px-4 py-1.5 border-t border-(--border) bg-(--bg-elevated)/40 gap-2">
+		<div className="flex items-center justify-between px-4 py-1.5 border-t border-border bg-(--bg-elevated)/40 gap-2">
 			{/* Zoom slider group */}
 			<div className="flex items-center gap-1.5">
-				<span className="text-[10px] text-(--text-muted) select-none">Zoom</span>
+				<span className="text-[10px] text-muted select-none">Zoom</span>
 				<button
 					onClick={() => step(-0.1)}
-					className="w-5 h-5 rounded flex items-center justify-center text-(--text-muted) hover:text-(--foreground) hover:bg-white/5 transition-colors"
+					className="w-5 h-5 rounded flex items-center justify-center text-muted hover:text-foreground hover:bg-white/5 transition-colors"
 					title="Zoom out (Ctrl+−)"
 				>
 					<svg
@@ -46,12 +46,12 @@ export const ZoomBar = memo(function ZoomBar({ zoom, onZoom, onReset }: ZoomBarP
 					max={MAX_ZOOM * 100}
 					value={zoom * 100}
 					onChange={(e) => onZoom(clamp(+e.target.value / 100, MIN_ZOOM, MAX_ZOOM))}
-					className="w-20 h-1 accent-(--accent) cursor-pointer"
+					className="w-20 h-1 accent-accent cursor-pointer"
 					style={{ accentColor: 'var(--accent)' }}
 				/>
 				<button
 					onClick={() => step(0.1)}
-					className="w-5 h-5 rounded flex items-center justify-center text-(--text-muted) hover:text-(--foreground) hover:bg-white/5 transition-colors"
+					className="w-5 h-5 rounded flex items-center justify-center text-muted hover:text-foreground hover:bg-white/5 transition-colors"
 					title="Zoom in (Ctrl+=)"
 				>
 					<svg
@@ -64,7 +64,7 @@ export const ZoomBar = memo(function ZoomBar({ zoom, onZoom, onReset }: ZoomBarP
 						<path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
 					</svg>
 				</button>
-				<span className="text-[10px] font-mono text-(--text-muted) w-8 text-center select-none">
+				<span className="text-[10px] font-mono text-muted w-8 text-center select-none">
 					{pct}%
 				</span>
 			</div>
@@ -80,8 +80,8 @@ export const ZoomBar = memo(function ZoomBar({ zoom, onZoom, onReset }: ZoomBarP
 							onClick={() => (q.label === 'Fit' ? onReset() : onZoom(q.value))}
 							className={`px-1.5 py-0.5 rounded text-[10px] transition-colors ${
 								active
-									? 'text-(--accent) bg-(--accent)/10 font-medium'
-									: 'text-(--text-muted) hover:text-(--foreground) hover:bg-white/5'
+									? 'text-accent bg-(--accent)/10 font-medium'
+									: 'text-muted hover:text-foreground hover:bg-white/5'
 							}`}
 							title={
 								q.label === 'Fit' ? 'Fit to canvas (Ctrl+0)' : `Zoom to ${q.label}`
@@ -94,7 +94,7 @@ export const ZoomBar = memo(function ZoomBar({ zoom, onZoom, onReset }: ZoomBarP
 			</div>
 
 			{/* Shortcut hints */}
-			<span className="text-[9px] text-(--text-muted)/50 hidden lg:inline select-none">
+			<span className="text-[9px] text-muted/50 hidden lg:inline select-none">
 				Scroll=zoom · Space+drag=pan · Dbl-click=toggle · Pinch=zoom
 			</span>
 		</div>

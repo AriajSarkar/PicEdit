@@ -32,7 +32,7 @@ export const StatsBar = memo(function StatsBar({
 			className="glass rounded-xl p-4"
 		>
 			<div className="flex items-center justify-between mb-3">
-				<span className="text-sm font-medium text-(--foreground)">Compression Summary</span>
+				<span className="text-sm font-medium text-foreground">Compression Summary</span>
 				<span className="text-xs text-(--muted)">
 					{doneCount}/{totalCount} processed
 				</span>
@@ -41,11 +41,11 @@ export const StatsBar = memo(function StatsBar({
 			<div className="grid grid-cols-3 gap-4">
 				<div>
 					<p className="text-xs text-(--muted) mb-0.5">Original</p>
-					<p className="text-sm font-mono text-(--foreground)">{totalOriginal}</p>
+					<p className="text-sm font-mono text-foreground">{totalOriginal}</p>
 				</div>
 				<div>
 					<p className="text-xs text-(--muted) mb-0.5">Compressed</p>
-					<p className="text-sm font-mono text-(--foreground)">{totalCompressed}</p>
+					<p className="text-sm font-mono text-foreground">{totalCompressed}</p>
 				</div>
 				<div>
 					<p className="text-xs text-(--muted) mb-0.5">
@@ -71,7 +71,7 @@ export const StatsBar = memo(function StatsBar({
 			{doneCount > 0 && (
 				<div className="mt-3 w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
 					<motion.div
-						className="h-full rounded-full bg-linear-to-r from-(--accent) to-green-400"
+						className="h-full rounded-full bg-linear-to-r from-accent to-green-400"
 						initial={{ width: 0 }}
 						animate={{ width: `${(doneCount / totalCount) * 100}%` }}
 						transition={{ duration: 0.5 }}
