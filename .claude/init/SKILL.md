@@ -1,129 +1,82 @@
 ---
 name: init
-description: Initialize the BG Remover development environment
+description: Initialize the PicEdit development environment — static SPA with modular image tools
 disable-model-invocation: true
-user-invocable: true
+user-invokable: true
 ---
 
-# BG Remover - Development Setup
+# PicEdit — Development Setup
 
 ## Quick Start
 
 ```bash
-pnpm install
-pnpm dev
+pnpm install            # dependencies
+pnpm dev                # http://localhost:3000
+pnpm build              # build:wasm → build:next → /out
+pnpm build:next         # skip WASM (uses pre-built from public/wasm/)
+pnpm lint               # eslint (flat config)
+pnpm format             # prettier (tabs)
 ```
 
-Open http://localhost:3000
+Static SPA — Next.js 16, React 19, TypeScript 5, Tailwind v4, Rust/WASM. No SSR, no API routes.
 
-## Features
+## Tools
 
-### Background Removal
-- **100% Client-side** - Uses WebGPU/WASM, no server needed
-- **Device Selection** - GPU (faster) or CPU (more compatible)
-- **3 Model Options**:
-  - Fast (~20MB) - Quick previews
-  - Balanced (~40MB) - Good quality
-  - Precise (~80MB) - Best results
-- **Retry with Higher Precision** - One-click upgrade
-
-### Image Editing
-- **Background Options**: Transparent, solid color, custom image, blur
-- **Resize**: Scale presets (25-200%), custom W×H, aspect lock
-- **Rotate**: -180° to 180°, flip H/V
-- **Compression**: Scale down for smaller files
-
-### Export
-- **Formats**: PNG, JPG, WebP
-- **Quality Slider**: 10-100% for JPG/WebP
-- **Scale Down**: Reduce dimensions for smaller file
-- **File Size Display**: Shows estimated output size
-- **Smart Naming**: Downloads as `{original}-AriajSarkar.{ext}`
-
-### Model Caching
-- Models cached in browser Cache API
-- Persists across sessions
-- "AI model cached and ready" indicator
-- Preloads default model on page load
-- Error handling for WebGPU, memory, network issues
+| Tool               | Route             | Domain               |
+| ------------------ | ----------------- | -------------------- |
+| Background Remover | `/bg-remover`     | `src/bg-remover/`    |
+| Image Compressor   | `/img-compressor` | `src/imgcompressor/` |
+| Image Resizer      | `/img-resizer`    | `src/img-resizer/`   |
 
 ## Project Structure
 
 ```
-src/
-├── app/
-│   ├── layout.tsx    # Dark theme, metadata
-│   ├── page.tsx      # Main app with all state
-│   └── globals.css   # Tailwind v4 + custom styles
-├── components/
-│   ├── Header.tsx           # Device/Model selector
-│   ├── ImageUploader.tsx    # Drag/drop/paste
-│   ├── CompareSlider.tsx    # Before/after with clip-path
-│   ├── ControlTabs.tsx      # Tab container
-│   ├── ProcessingOverlay.tsx
-│   ├── RetryButton.tsx
-│   ├── DownloadButton.tsx
-│   ├── HistoryPanel.tsx
-│   └── tabs/
-│       ├── BackgroundTab.tsx
-│       ├── ResizeTab.tsx
-│       ├── RotateTab.tsx
-│       └── ExportTab.tsx    # Compression + file size
-├── hooks/
-│   ├── useBackgroundRemoval.ts  # AI processing + caching
-│   ├── useImageEditor.ts        # Editor state
-│   └── useHistory.ts
-├── lib/
-│   ├── imageUtils.ts    # Canvas, download, file info
-│   └── modelCache.ts    # IndexedDB cache (optional)
-└── types/
-    └── index.ts         # All types + defaults
+src/app/bg-remover/page.tsx      → thin route shell (metadata in layout.tsx)
+src/bg-remover/                  → domain: components/, hooks/, lib/, types/, workers/
+src/app/img-compressor/page.tsx  → thin route shell
+src/imgcompressor/               → domain: components/, hooks/, lib/, types/, worker.ts
+src/app/img-resizer/page.tsx     → thin route shell
+src/img-resizer/                 → domain: components/, hooks/, lib/, types/
+src/app/page.tsx                 → landing page (imports from _data/ + _components/)
+src/components/                  → shared: FileUploader, RetryButton, CancelButton, DownloadButton, StatsBar, ComparisonResults/
+src/hooks/                       → shared: useBatchProcessor (generic batch engine)
+src/lib/                         → shared: imageUtils, workerPool, workerPoolBridge, zipUtil, crc32, thumbnailUtils, downloadUtils
+src/types/                       → shared types (barrel index.ts → image.ts, bgRemover.ts, compressor.ts, worker.ts)
+wasm/                            → Rust workspace (5 crates) → built to public/wasm/
 ```
 
-## Key Types
+**Key pattern:** Routes are thin wrappers. Domain logic lives in `src/<feature>/`, NOT `src/app/<feature>/`.
 
-```typescript
-interface ImageInfo {
-  fileName: string;    // Original name (without extension)
-  fileSize: number;    // Original size in bytes
-  width: number;
-  height: number;
-  type: string;
-}
+## Key Patterns
 
-interface EditorState {
-  backgroundType: "transparent" | "solid" | "image" | "blur";
-  backgroundColor: string;
-  outputFormat: "image/png" | "image/jpeg" | "image/webp";
-  outputQuality: number;      // 0.1 to 1.0
-  compressionEnabled: boolean;
-  compressionScale: number;   // 0.1 to 1.0
-  // ... resize, rotate, crop fields
-}
-```
+- **Domain module split**: `src/app/<route>/page.tsx` (thin shell) + `src/<feature>/` (domain logic)
+- **Batch processing**: `useBatchProcessor<T>` in `src/hooks/` — all retry/cancel/progress
+- **Worker bridge**: `WorkerPoolBridge<TResult>` in `src/lib/workerPoolBridge.ts` — multi-worker, message-ID routing
+- **Motion**: import from `'motion/react'` (NOT `'framer-motion'`)
+- **Tailwind v4**: `@theme inline` in `globals.css`, no `tailwind.config.js`
+- **All pages are `'use client'`** — no SSR, no API routes, no middleware
 
-## Build & Deploy
+## WASM Crates
 
-```bash
-# Development
-pnpm dev
+| Crate             | Purpose                                                   |
+| ----------------- | --------------------------------------------------------- |
+| `pre-refinement`  | CLAHE, denoise, sharpen for BG removal                    |
+| `post-refinement` | Edge refine, guided filter, Poisson blend                 |
+| `server`          | Chunked model download                                    |
+| `compressor`      | Bilateral denoise, median-cut quantize, SSIM, PNG filters |
+| `resizer`         | Lanczos3 resize kernel                                    |
 
-# Build static export
-pnpm build
+Pre-built `.wasm`/`.js`/`.d.ts` files committed to `public/wasm/`. Build script (`scripts/build-wasm.mjs`) auto-installs `wasm-pack`, exits 0 gracefully when no Rust toolchain is available.
 
-# Output in /out directory
-```
+## Critical Gotchas
 
-### GitHub Pages
+1. **Import `motion` from `'motion/react'`**, never `'framer-motion'`
+2. **No `tailwind.config.js`** — Tailwind v4 uses `@theme inline` in CSS
+3. **Static export only** — no server components, no API routes, no middleware
+4. **Domain module pattern** — new tools go in `src/<tool-name>/` with thin route in `src/app/<tool-name>/page.tsx`
+5. **ESLint flat config** (`eslint.config.mjs`) — ignores `public/wasm/**`, `public/workers/**`
+6. **Pre-built WASM is committed** — `public/wasm/` files tracked in git for serverless deploys
 
-The `next.config.ts` is configured for static export:
-- `output: "export"`
-- `basePath: "/bg-remover"` (production)
-- `images: { unoptimized: true }`
+## Skills
 
-## Tech Stack
-
-- Next.js 16.1.6
-- Tailwind CSS v4
-- @imgly/background-removal 1.7.0
-- Motion 12.x (import from "motion/react")
+- **Code Quality**: See `.claude/skills/code-quality.md` — refactoring, DRY, module patterns, file split criteria, anti-patterns

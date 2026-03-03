@@ -147,3 +147,7 @@ Both compressor and resizer use `WorkerPoolBridge<TResult>` from `src/lib/worker
 8. **ESLint flat config** (`eslint.config.mjs`) — ignores `public/wasm/**`, `public/workers/**`
 9. **wasm-pack outputs junk** — `.gitignore` (with `*`), `package.json`, `README.md` must be deleted after builds
 10. **Pre-built WASM is committed** — `public/wasm/` files are tracked in git for serverless deploys
+
+## Skills
+
+- **Code Quality** — [`.github/skills/code-quality.md`](skills/code-quality.md): Refactoring workflow, DRY principles, file split criteria, module patterns, anti-patterns to avoid. Reference this skill when restructuring code, adding features, or reviewing architecture.

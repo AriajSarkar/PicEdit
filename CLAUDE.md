@@ -1,6 +1,8 @@
 # PicEdit
 
 > **Canonical AI agent instructions**: See [`.github/copilot-instructions.md`](.github/copilot-instructions.md)
+>
+> **Code quality skill**: See [`.github/skills/code-quality.md`](.github/skills/code-quality.md) — refactoring, DRY, module patterns, file split criteria
 
 ## Quick Reference
 
