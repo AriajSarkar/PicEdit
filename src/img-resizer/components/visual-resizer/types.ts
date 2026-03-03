@@ -9,32 +9,32 @@ export type HandleId = 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w';
 export type InteractionMode = 'idle' | 'resize' | 'move-frame' | 'pan-image';
 
 export interface DragState {
-  mode: InteractionMode;
-  handle: HandleId | null;
-  startX: number;
-  startY: number;
-  startW: number;
-  startH: number;
-  startOffX: number;
-  startOffY: number;
-  startPanX: number;
-  startPanY: number;
+	mode: InteractionMode;
+	handle: HandleId | null;
+	startX: number;
+	startY: number;
+	startW: number;
+	startH: number;
+	startOffX: number;
+	startOffY: number;
+	startPanX: number;
+	startPanY: number;
 }
 
 export interface Rect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
+	x: number;
+	y: number;
+	w: number;
+	h: number;
 }
 
 /** Per-image visual editor view state (zoom, pan, frame offset). */
 export interface ViewState {
-  zoom: number;
-  panX: number;
-  panY: number;
-  frameOffX: number;
-  frameOffY: number;
+	zoom: number;
+	panX: number;
+	panY: number;
+	frameOffX: number;
+	frameOffY: number;
 }
 
 /** Mutable map storing per-image view state across re-mounts. */
@@ -45,63 +45,63 @@ export type ViewStateCache = Map<string, ViewState>;
 // ═══════════════════════════════════════════════════════════════════════════
 
 export interface VisualResizerProps {
-  items: ResizeItem[];
-  selectedIndex: number;
-  onSelectIndex: (idx: number) => void;
-  config: ResizerConfig;
-  onResize: (w: number, h: number, cropX: number, cropY: number) => void;
-  disabled?: boolean;
-  perImageDims?: PerImageDims;
-  viewStateCache?: ViewStateCache;
+	items: ResizeItem[];
+	selectedIndex: number;
+	onSelectIndex: (idx: number) => void;
+	config: ResizerConfig;
+	onResize: (w: number, h: number, cropX: number, cropY: number) => void;
+	disabled?: boolean;
+	perImageDims?: PerImageDims;
+	viewStateCache?: ViewStateCache;
 }
 
 export interface InnerProps {
-  imageSrc: string;
-  originalWidth: number;
-  originalHeight: number;
-  config: ResizerConfig;
-  effectiveW: number;
-  effectiveH: number;
-  onResize: (w: number, h: number, cropX: number, cropY: number) => void;
-  disabled: boolean;
-  items: ResizeItem[];
-  selectedIndex: number;
-  onSelectIndex: (i: number) => void;
-  viewStateCache?: ViewStateCache;
-  /** Unique id of the current image — used as cache key. */
-  imageId: string;
+	imageSrc: string;
+	originalWidth: number;
+	originalHeight: number;
+	config: ResizerConfig;
+	effectiveW: number;
+	effectiveH: number;
+	onResize: (w: number, h: number, cropX: number, cropY: number) => void;
+	disabled: boolean;
+	items: ResizeItem[];
+	selectedIndex: number;
+	onSelectIndex: (i: number) => void;
+	viewStateCache?: ViewStateCache;
+	/** Unique id of the current image — used as cache key. */
+	imageId: string;
 }
 
 export interface ToolbarProps {
-  config: ResizerConfig;
-  liveW: number;
-  liveH: number;
-  originalWidth: number;
-  originalHeight: number;
-  pctW: string;
-  isUpscale: boolean;
-  itemCount: number;
-  selectedIndex: number;
+	config: ResizerConfig;
+	liveW: number;
+	liveH: number;
+	originalWidth: number;
+	originalHeight: number;
+	pctW: string;
+	isUpscale: boolean;
+	itemCount: number;
+	selectedIndex: number;
 }
 
 export interface EdgeLabelProps {
-  value: string;
-  axis: 'x' | 'y';
-  x: number;
-  y: number;
+	value: string;
+	axis: 'x' | 'y';
+	x: number;
+	y: number;
 }
 
 export interface ZoomBarProps {
-  zoom: number;
-  onZoom: (z: number) => void;
-  onReset: () => void;
+	zoom: number;
+	onZoom: (z: number) => void;
+	onReset: () => void;
 }
 
 export interface ImageStripProps {
-  items: ResizeItem[];
-  selectedIndex: number;
-  onSelect: (i: number) => void;
-  disabled: boolean;
+	items: ResizeItem[];
+	selectedIndex: number;
+	onSelect: (i: number) => void;
+	disabled: boolean;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -133,12 +133,12 @@ export const MAX_ZOOM = 5;
 export const DEFAULT_ZOOM = 1;
 
 export const CURSOR: Record<HandleId, string> = {
-  nw: 'nwse-resize',
-  ne: 'nesw-resize',
-  sw: 'nesw-resize',
-  se: 'nwse-resize',
-  n: 'ns-resize',
-  s: 'ns-resize',
-  e: 'ew-resize',
-  w: 'ew-resize',
+	nw: 'nwse-resize',
+	ne: 'nesw-resize',
+	sw: 'nesw-resize',
+	se: 'nwse-resize',
+	n: 'ns-resize',
+	s: 'ns-resize',
+	e: 'ew-resize',
+	w: 'ew-resize',
 };

@@ -6,58 +6,62 @@ export {};
 let wasmModule: any = null;
 
 self.onmessage = async (e: MessageEvent) => {
-  const msg = e.data;
+	const msg = e.data;
 
-  if (msg.type === 'init') {
-    try {
-      const mod = await import(/* webpackIgnore: true */ msg.wasmJsUrl);
+	if (msg.type === 'init') {
+		try {
+			const mod = await import(/* webpackIgnore: true */ msg.wasmJsUrl);
 
-      await mod.default({ module_or_path: msg.wasmBgUrl });
-      wasmModule = mod;
-      self.postMessage({ type: 'ready' });
-    } catch (err) {
-      self.postMessage({
-        type: 'error',
-        message: `Failed to init WASM: ${err}`,
-      });
-    }
-    return;
-  }
+			await mod.default({ module_or_path: msg.wasmBgUrl });
+			wasmModule = mod;
+			self.postMessage({ type: 'ready' });
+		} catch (err) {
+			self.postMessage({
+				type: 'error',
+				message: `Failed to init WASM: ${err}`,
+			});
+		}
+		return;
+	}
 
-  if (msg.type === 'process') {
-    if (!wasmModule) {
-      self.postMessage({ type: 'error', requestId: msg.requestId, message: 'WASM not initialized' });
-      return;
-    }
+	if (msg.type === 'process') {
+		if (!wasmModule) {
+			self.postMessage({
+				type: 'error',
+				requestId: msg.requestId,
+				message: 'WASM not initialized',
+			});
+			return;
+		}
 
-    try {
-      const { maskRgba, originalRgba, width, height, config, requestId } = msg;
-      const maskInput = new Uint8Array(maskRgba);
-      const originalInput = new Uint8Array(originalRgba);
+		try {
+			const { maskRgba, originalRgba, width, height, config, requestId } = msg;
+			const maskInput = new Uint8Array(maskRgba);
+			const originalInput = new Uint8Array(originalRgba);
 
-      const result: Uint8Array = wasmModule.post_process(
-        maskInput,
-        originalInput,
-        width,
-        height,
-        config.guideRadius,
-        config.guideEps,
-        config.edgeThreshold,
-        config.featherRadius,
-      );
+			const result: Uint8Array = wasmModule.post_process(
+				maskInput,
+				originalInput,
+				width,
+				height,
+				config.guideRadius,
+				config.guideEps,
+				config.edgeThreshold,
+				config.featherRadius,
+			);
 
-      const buffer = result.buffer;
-      self.postMessage(
-        { type: 'result', requestId, rgba: buffer, width, height },
-        // @ts-expect-error transferable
-        [buffer],
-      );
-    } catch (err) {
-      self.postMessage({
-        type: 'error',
-        requestId: msg.requestId,
-        message: `Post-processing failed: ${err}`,
-      });
-    }
-  }
+			const buffer = result.buffer;
+			self.postMessage(
+				{ type: 'result', requestId, rgba: buffer, width, height },
+				// @ts-expect-error transferable
+				[buffer],
+			);
+		} catch (err) {
+			self.postMessage({
+				type: 'error',
+				requestId: msg.requestId,
+				message: `Post-processing failed: ${err}`,
+			});
+		}
+	}
 };

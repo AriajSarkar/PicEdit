@@ -81,12 +81,12 @@ pnpm preview       # local static preview for /out
 
 ## Rust/WASM Crates
 
-| Crate | Purpose |
-|------|---------|
-| `pre-refinement` | CLAHE, denoise, sharpen for background-removal preprocessing |
-| `post-refinement` | Edge refinement, guided filter, Poisson blend |
-| `server` | Chunked model download helpers |
-| `compressor` | Compression algorithms (denoise, quantization, SSIM, PNG filtering) |
+| Crate             | Purpose                                                             |
+| ----------------- | ------------------------------------------------------------------- |
+| `pre-refinement`  | CLAHE, denoise, sharpen for background-removal preprocessing        |
+| `post-refinement` | Edge refinement, guided filter, Poisson blend                       |
+| `server`          | Chunked model download helpers                                      |
+| `compressor`      | Compression algorithms (denoise, quantization, SSIM, PNG filtering) |
 
 ## Deployment
 

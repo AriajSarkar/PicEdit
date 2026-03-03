@@ -23,271 +23,273 @@ import { useSession } from '@/bg-remover/hooks/useSession';
 // Types & Utils
 import { DeviceType, ModelType, HistoryItem, DEFAULT_IMAGE_INFO, ImageInfo } from '@/types';
 import {
-  fileToDataUrl,
-  loadImage,
-  getImageInfo,
-  generateId,
-  estimateDataUrlSize,
+	fileToDataUrl,
+	loadImage,
+	getImageInfo,
+	generateId,
+	estimateDataUrlSize,
 } from '@/lib/imageUtils';
 import { applyEdits, downloadImage } from '@/bg-remover/lib/imageUtils';
 
 export default function BGRemoverPage() {
-  // State
-  const [device, setDevice] = useState<DeviceType>('gpu');
-  const [model, setModel] = useState<ModelType>('isnet_quint8');
-  const [originalImage, setOriginalImage] = useState<string | null>(null);
-  const [processedImage, setProcessedImage] = useState<string | null>(null);
-  const [finalImage, setFinalImage] = useState<string | null>(null);
-  const [imageInfo, setImageInfo] = useState<ImageInfo>(DEFAULT_IMAGE_INFO);
+	// State
+	const [device, setDevice] = useState<DeviceType>('gpu');
+	const [model, setModel] = useState<ModelType>('isnet_quint8');
+	const [originalImage, setOriginalImage] = useState<string | null>(null);
+	const [processedImage, setProcessedImage] = useState<string | null>(null);
+	const [finalImage, setFinalImage] = useState<string | null>(null);
+	const [imageInfo, setImageInfo] = useState<ImageInfo>(DEFAULT_IMAGE_INFO);
 
-  // Hooks
-  const { processImage, progress, isProcessing, cancel } = useBackgroundRemoval();
-  const { state, updateState, initializeFromImage, setScale, currentScale } = useImageEditor();
-  const {
-    history,
-    addToHistory,
-    removeFromHistory,
-    clearHistory,
-    isLoaded: historyLoaded,
-  } = useHistory();
-  const { session, saveSession, isLoaded: sessionLoaded } = useSession();
+	// Hooks
+	const { processImage, progress, isProcessing, cancel } = useBackgroundRemoval();
+	const { state, updateState, initializeFromImage, setScale, currentScale } = useImageEditor();
+	const {
+		history,
+		addToHistory,
+		removeFromHistory,
+		clearHistory,
+		isLoaded: historyLoaded,
+	} = useHistory();
+	const { session, saveSession, isLoaded: sessionLoaded } = useSession();
 
-  // Derived
-  const hasImage = Boolean(originalImage && processedImage);
-  const estimatedSize = useMemo(() => {
-    if (!finalImage) return 0;
-    return estimateDataUrlSize(finalImage);
-  }, [finalImage]);
+	// Derived
+	const hasImage = Boolean(originalImage && processedImage);
+	const estimatedSize = useMemo(() => {
+		if (!finalImage) return 0;
+		return estimateDataUrlSize(finalImage);
+	}, [finalImage]);
 
-  // Restore session - DON'T auto-open, just sync settings
-  const sessionRestoredRef = useRef(false);
-  useEffect(() => {
-    if (!sessionLoaded || sessionRestoredRef.current) return;
-    sessionRestoredRef.current = true;
-    // Only restore device/model preferences, not the image
-    if (session.device) setDevice(session.device);
-    if (session.model) setModel(session.model);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionLoaded]);
+	// Restore session - DON'T auto-open, just sync settings
+	const sessionRestoredRef = useRef(false);
+	useEffect(() => {
+		if (!sessionLoaded || sessionRestoredRef.current) return;
+		sessionRestoredRef.current = true;
+		// Only restore device/model preferences, not the image
+		if (session.device) setDevice(session.device);
+		if (session.model) setModel(session.model);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [sessionLoaded]);
 
-  // Apply edits when state changes
-  useEffect(() => {
-    if (!processedImage || !originalImage || !state.width || !state.height) return;
+	// Apply edits when state changes
+	useEffect(() => {
+		if (!processedImage || !originalImage || !state.width || !state.height) return;
 
-    applyEdits(processedImage, originalImage, state).then(setFinalImage);
-  }, [processedImage, originalImage, state]);
+		applyEdits(processedImage, originalImage, state).then(setFinalImage);
+	}, [processedImage, originalImage, state]);
 
-  // Handle device/model change
-  const prevDeviceRef = useRef<DeviceType | null>(null);
-  const prevModelRef = useRef<ModelType | null>(null);
-  useEffect(() => {
-    if (!originalImage || !sessionLoaded || isProcessing) return;
+	// Handle device/model change
+	const prevDeviceRef = useRef<DeviceType | null>(null);
+	const prevModelRef = useRef<ModelType | null>(null);
+	useEffect(() => {
+		if (!originalImage || !sessionLoaded || isProcessing) return;
 
-    if (prevDeviceRef.current === null || prevModelRef.current === null) {
-      prevDeviceRef.current = device;
-      prevModelRef.current = model;
-      return;
-    }
+		if (prevDeviceRef.current === null || prevModelRef.current === null) {
+			prevDeviceRef.current = device;
+			prevModelRef.current = model;
+			return;
+		}
 
-    if (prevDeviceRef.current !== device || prevModelRef.current !== model) {
-      prevDeviceRef.current = device;
-      prevModelRef.current = model;
+		if (prevDeviceRef.current !== device || prevModelRef.current !== model) {
+			prevDeviceRef.current = device;
+			prevModelRef.current = model;
 
-      processImage(originalImage, device, model, originalImage).then(async (result) => {
-        if (result) {
-          setProcessedImage(result);
-          const applied = await applyEdits(result, originalImage, state);
-          setFinalImage(applied);
-          saveSession({ device, model, processedImage: result, finalImage: applied });
-        }
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [device, model, originalImage, sessionLoaded, isProcessing]);
+			processImage(originalImage, device, model, originalImage).then(async (result) => {
+				if (result) {
+					setProcessedImage(result);
+					const applied = await applyEdits(result, originalImage, state);
+					setFinalImage(applied);
+					saveSession({ device, model, processedImage: result, finalImage: applied });
+				}
+			});
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [device, model, originalImage, sessionLoaded, isProcessing]);
 
-  // Handlers
-  const handleImageSelect = useCallback(
-    async (file: File) => {
-      const dataUrl = await fileToDataUrl(file);
-      const img = await loadImage(dataUrl);
-      const info = getImageInfo(file);
-      info.width = img.width;
-      info.height = img.height;
+	// Handlers
+	const handleImageSelect = useCallback(
+		async (file: File) => {
+			const dataUrl = await fileToDataUrl(file);
+			const img = await loadImage(dataUrl);
+			const info = getImageInfo(file);
+			info.width = img.width;
+			info.height = img.height;
 
-      setOriginalImage(dataUrl);
-      setImageInfo(info);
-      initializeFromImage(img.width, img.height);
+			setOriginalImage(dataUrl);
+			setImageInfo(info);
+			initializeFromImage(img.width, img.height);
 
-      const result = await processImage(dataUrl, device, model, dataUrl);
-      if (result) {
-        setProcessedImage(result);
-        setFinalImage(result);
+			const result = await processImage(dataUrl, device, model, dataUrl);
+			if (result) {
+				setProcessedImage(result);
+				setFinalImage(result);
 
-        saveSession({
-          originalImage: dataUrl,
-          processedImage: result,
-          finalImage: result,
-          device,
-          model,
-          imageInfo: info,
-          editorState: state,
-        });
+				saveSession({
+					originalImage: dataUrl,
+					processedImage: result,
+					finalImage: result,
+					device,
+					model,
+					imageInfo: info,
+					editorState: state,
+				});
 
-        addToHistory({
-          id: generateId(),
-          originalImage: dataUrl,
-          processedImage: result,
-          model,
-          device,
-          timestamp: Date.now(),
-          editorState: state,
-          imageInfo: info,
-        });
-      }
-    },
-    [device, model, processImage, initializeFromImage, state, saveSession, addToHistory],
-  );
+				addToHistory({
+					id: generateId(),
+					originalImage: dataUrl,
+					processedImage: result,
+					model,
+					device,
+					timestamp: Date.now(),
+					editorState: state,
+					imageInfo: info,
+				});
+			}
+		},
+		[device, model, processImage, initializeFromImage, state, saveSession, addToHistory],
+	);
 
-  const handleDownload = useCallback(() => {
-    if (!finalImage) return;
-    downloadImage(finalImage, state.outputFormat, imageInfo.fileName);
-  }, [finalImage, state.outputFormat, imageInfo.fileName]);
+	const handleDownload = useCallback(() => {
+		if (!finalImage) return;
+		downloadImage(finalImage, state.outputFormat, imageInfo.fileName);
+	}, [finalImage, state.outputFormat, imageInfo.fileName]);
 
-  const handleHistorySelect = useCallback(
-    (item: HistoryItem) => {
-      setOriginalImage(item.originalImage);
-      setProcessedImage(item.processedImage);
-      setFinalImage(item.processedImage);
-      setDevice(item.device);
-      setModel(item.model);
-      setImageInfo(item.imageInfo);
+	const handleHistorySelect = useCallback(
+		(item: HistoryItem) => {
+			setOriginalImage(item.originalImage);
+			setProcessedImage(item.processedImage);
+			setFinalImage(item.processedImage);
+			setDevice(item.device);
+			setModel(item.model);
+			setImageInfo(item.imageInfo);
 
-      Object.entries(item.editorState).forEach(([key, value]) => {
-        updateState({ [key]: value });
-      });
+			Object.entries(item.editorState).forEach(([key, value]) => {
+				updateState({ [key]: value });
+			});
 
-      saveSession({
-        originalImage: item.originalImage,
-        processedImage: item.processedImage,
-        finalImage: item.processedImage,
-        device: item.device,
-        model: item.model,
-        imageInfo: item.imageInfo,
-        editorState: item.editorState,
-      });
-    },
-    [updateState, saveSession],
-  );
+			saveSession({
+				originalImage: item.originalImage,
+				processedImage: item.processedImage,
+				finalImage: item.processedImage,
+				device: item.device,
+				model: item.model,
+				imageInfo: item.imageInfo,
+				editorState: item.editorState,
+			});
+		},
+		[updateState, saveSession],
+	);
 
-  const handleNewImage = useCallback(() => {
-    setOriginalImage(null);
-    setProcessedImage(null);
-    setFinalImage(null);
-    setImageInfo(DEFAULT_IMAGE_INFO);
-  }, []);
+	const handleNewImage = useCallback(() => {
+		setOriginalImage(null);
+		setProcessedImage(null);
+		setFinalImage(null);
+		setImageInfo(DEFAULT_IMAGE_INFO);
+	}, []);
 
-  // Retry: re-process same image with current device/model/settings
-  const handleRetry = useCallback(async () => {
-    if (!originalImage || isProcessing) return;
-    const result = await processImage(originalImage, device, model, originalImage);
-    if (result) {
-      setProcessedImage(result);
-      const applied = await applyEdits(result, originalImage, state);
-      setFinalImage(applied);
-      saveSession({
-        originalImage,
-        processedImage: result,
-        finalImage: applied,
-        device,
-        model,
-        imageInfo,
-        editorState: state,
-      });
-    }
-  }, [originalImage, device, model, processImage, state, saveSession, imageInfo, isProcessing]);
+	// Retry: re-process same image with current device/model/settings
+	const handleRetry = useCallback(async () => {
+		if (!originalImage || isProcessing) return;
+		const result = await processImage(originalImage, device, model, originalImage);
+		if (result) {
+			setProcessedImage(result);
+			const applied = await applyEdits(result, originalImage, state);
+			setFinalImage(applied);
+			saveSession({
+				originalImage,
+				processedImage: result,
+				finalImage: applied,
+				device,
+				model,
+				imageInfo,
+				editorState: state,
+			});
+		}
+	}, [originalImage, device, model, processImage, state, saveSession, imageInfo, isProcessing]);
 
-  return (
-    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--foreground)]">
-      <Header device={device} setDevice={setDevice} model={model} setModel={setModel} />
+	return (
+		<div className="min-h-screen bg-(--bg-primary) text-(--foreground)">
+			<Header device={device} setDevice={setDevice} model={model} setModel={setModel} />
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        {!hasImage ? (
-          // Upload View
-          <div className="max-w-2xl mx-auto">
-            <ImageUploader
-              onImageSelect={handleImageSelect}
-              disabled={isProcessing}
-              isProcessing={isProcessing}
-              progress={progress}
-            />
+			<main className="max-w-7xl mx-auto px-4 py-6">
+				{!hasImage ? (
+					// Upload View
+					<div className="max-w-2xl mx-auto">
+						<ImageUploader
+							onImageSelect={handleImageSelect}
+							disabled={isProcessing}
+							isProcessing={isProcessing}
+							progress={progress}
+						/>
 
-            {historyLoaded && (
-              <HistoryPanel
-                history={history}
-                onSelect={handleHistorySelect}
-                onRemove={removeFromHistory}
-                onClear={clearHistory}
-              />
-            )}
-          </div>
-        ) : (
-          // Editor View
-          <div className="grid lg:grid-cols-[1fr,340px] gap-6">
-            {/* Preview */}
-            <div className="relative rounded-2xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border)]">
-              <AnimatePresence>
-                {isProcessing && <ProcessingOverlay progress={progress} onCancel={cancel} />}
-              </AnimatePresence>
+						{historyLoaded && (
+							<HistoryPanel
+								history={history}
+								onSelect={handleHistorySelect}
+								onRemove={removeFromHistory}
+								onClear={clearHistory}
+							/>
+						)}
+					</div>
+				) : (
+					// Editor View
+					<div className="grid lg:grid-cols-[1fr,340px] gap-6">
+						{/* Preview */}
+						<div className="relative rounded-2xl overflow-hidden bg-(--bg-surface) border border-(--border)">
+							<AnimatePresence>
+								{isProcessing && (
+									<ProcessingOverlay progress={progress} onCancel={cancel} />
+								)}
+							</AnimatePresence>
 
-              <CompareSlider
-                originalImage={originalImage!}
-                processedImage={finalImage || processedImage!}
-              />
+							<CompareSlider
+								originalImage={originalImage!}
+								processedImage={finalImage || processedImage!}
+							/>
 
-              <ImageInfoBar
-                imageInfo={imageInfo}
-                state={state}
-                estimatedSize={estimatedSize}
-                onNewImage={handleNewImage}
-              />
+							<ImageInfoBar
+								imageInfo={imageInfo}
+								state={state}
+								estimatedSize={estimatedSize}
+								onNewImage={handleNewImage}
+							/>
 
-              {/* Retry / Cancel bar */}
-              {!isProcessing && hasImage && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-elevated)] border-t border-[var(--border)]">
-                  <RetryButton
-                    onClick={handleRetry}
-                    label="Re-process"
-                    disabled={isProcessing}
-                    size="md"
-                  />
-                  <span className="text-xs text-[var(--muted)] ml-auto">
-                    Retry with current settings
-                  </span>
-                </div>
-              )}
-              {isProcessing && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-elevated)] border-t border-[var(--border)]">
-                  <CancelButton onClick={cancel} label="Cancel" size="md" />
-                  <span className="text-xs text-[var(--muted)] ml-auto">
-                    Stop current processing
-                  </span>
-                </div>
-              )}
-            </div>
+							{/* Retry / Cancel bar */}
+							{!isProcessing && hasImage && (
+								<div className="flex items-center gap-2 px-4 py-2 bg-(--bg-elevated) border-t border-(--border)">
+									<RetryButton
+										onClick={handleRetry}
+										label="Re-process"
+										disabled={isProcessing}
+										size="md"
+									/>
+									<span className="text-xs text-(--muted) ml-auto">
+										Retry with current settings
+									</span>
+								</div>
+							)}
+							{isProcessing && (
+								<div className="flex items-center gap-2 px-4 py-2 bg-(--bg-elevated) border-t border-(--border)">
+									<CancelButton onClick={cancel} label="Cancel" size="md" />
+									<span className="text-xs text-(--muted) ml-auto">
+										Stop current processing
+									</span>
+								</div>
+							)}
+						</div>
 
-            {/* Toolbar */}
-            <EditorToolbar
-              state={state}
-              updateState={updateState}
-              setScale={setScale}
-              currentScale={currentScale}
-              estimatedSize={estimatedSize}
-              onDownload={handleDownload}
-              isProcessing={isProcessing}
-            />
-          </div>
-        )}
-      </main>
-    </div>
-  );
+						{/* Toolbar */}
+						<EditorToolbar
+							state={state}
+							updateState={updateState}
+							setScale={setScale}
+							currentScale={currentScale}
+							estimatedSize={estimatedSize}
+							onDownload={handleDownload}
+							isProcessing={isProcessing}
+						/>
+					</div>
+				)}
+			</main>
+		</div>
+	);
 }

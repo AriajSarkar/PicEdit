@@ -16,8 +16,8 @@ import os from 'os';
 const outDir = path.resolve('out');
 
 if (!fs.existsSync(outDir)) {
-  console.error("No 'out' directory found. Run `pnpm build` first.");
-  process.exit(1);
+	console.error("No 'out' directory found. Run `pnpm build` first.");
+	process.exit(1);
 }
 
 // Create temp dir with /PicEdit symlink (or junction on Windows)
@@ -25,38 +25,38 @@ const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'picedit-preview-'));
 const linkTarget = path.join(tmpDir, 'PicEdit');
 
 try {
-  // Use junction on Windows (no admin needed), symlink on Unix
-  if (process.platform === 'win32') {
-    execSync(`mklink /J "${linkTarget}" "${outDir}"`, { shell: 'cmd.exe', stdio: 'ignore' });
-  } else {
-    fs.symlinkSync(outDir, linkTarget);
-  }
+	// Use junction on Windows (no admin needed), symlink on Unix
+	if (process.platform === 'win32') {
+		execSync(`mklink /J "${linkTarget}" "${outDir}"`, { shell: 'cmd.exe', stdio: 'ignore' });
+	} else {
+		fs.symlinkSync(outDir, linkTarget);
+	}
 
-  console.log('');
-  console.log('  Preview ready — open http://localhost:3000/PicEdit');
-  console.log('');
+	console.log('');
+	console.log('  Preview ready — open http://localhost:3000/PicEdit');
+	console.log('');
 
-  execSync(`pnpm exec serve "${tmpDir}" -l 3000`, { stdio: 'inherit' });
+	execSync(`pnpm exec serve "${tmpDir}" -l 3000`, { stdio: 'inherit' });
 } finally {
-  // Cleanup
-  try {
-    if (process.platform === 'win32') {
-      if (fs.existsSync(linkTarget)) {
-        execSync(`rmdir "${linkTarget}"`, { shell: 'cmd.exe', stdio: 'ignore' });
-      }
-    } else {
-      if (fs.existsSync(linkTarget)) {
-        fs.unlinkSync(linkTarget);
-      }
-    }
-  } catch (error) {
-    console.warn(`Failed to remove preview link target: ${linkTarget}`, error);
-  }
-  try {
-    if (fs.existsSync(tmpDir)) {
-      fs.rmdirSync(tmpDir);
-    }
-  } catch (error) {
-    console.warn(`Failed to remove preview temp directory: ${tmpDir}`, error);
-  }
+	// Cleanup
+	try {
+		if (process.platform === 'win32') {
+			if (fs.existsSync(linkTarget)) {
+				execSync(`rmdir "${linkTarget}"`, { shell: 'cmd.exe', stdio: 'ignore' });
+			}
+		} else {
+			if (fs.existsSync(linkTarget)) {
+				fs.unlinkSync(linkTarget);
+			}
+		}
+	} catch (error) {
+		console.warn(`Failed to remove preview link target: ${linkTarget}`, error);
+	}
+	try {
+		if (fs.existsSync(tmpDir)) {
+			fs.rmdirSync(tmpDir);
+		}
+	} catch (error) {
+		console.warn(`Failed to remove preview temp directory: ${tmpDir}`, error);
+	}
 }

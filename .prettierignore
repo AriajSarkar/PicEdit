@@ -7,3 +7,5 @@ public/workers/
 pnpm-lock.yaml
 wasm/target/
 *.wasm
+.claude/
+.agent/
