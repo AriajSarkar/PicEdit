@@ -4,6 +4,8 @@ import { memo } from 'react';
 import { motion } from 'motion/react';
 import { formatBytes } from '@/lib/imageUtils';
 
+// ── Original StatsBar (entry-based) ─────────────────────────────────────────
+
 interface InfoEntry {
 	label: string;
 	value: string | number;
@@ -66,3 +68,88 @@ export const StatsBar = memo(function StatsBar({
 		</motion.div>
 	);
 });
+
+// ── SummaryStatsBar (column-based, glass card) ──────────────────────────────
+
+interface StatColumn {
+	/** Column header label (e.g. "Original", "Compressed") */
+	label: string;
+	/** Formatted value string (e.g. "1.2 MB") */
+	value: string;
+	/** Tailwind color class for the value text */
+	color?: string;
+	/** Optional suffix shown after value (e.g. "(+2.1%)") */
+	suffix?: string;
+	/** Tailwind color class for the suffix */
+	suffixColor?: string;
+}
+
+interface SummaryStatsBarProps {
+	/** Summary title (e.g. "Compression Summary") */
+	title: string;
+	/** Count label shown top-right (e.g. "3/5 processed") */
+	countLabel: string;
+	/** Stat columns to display in a grid */
+	columns: StatColumn[];
+	/** Progress bar — { done, total }. Hidden when done === 0. */
+	progress?: { done: number; total: number };
+}
+
+export const SummaryStatsBar = memo(function SummaryStatsBar({
+	title,
+	countLabel,
+	columns,
+	progress,
+}: SummaryStatsBarProps) {
+	if (columns.length === 0) return null;
+
+	const percent =
+		progress && progress.total > 0
+			? (progress.done / progress.total) * 100
+			: 0;
+
+	return (
+		<motion.div
+			initial={{ opacity: 0, y: 10 }}
+			animate={{ opacity: 1, y: 0 }}
+			className="glass rounded-xl p-4"
+		>
+			<div className="flex items-center justify-between mb-3">
+				<span className="text-sm font-medium text-foreground">{title}</span>
+				<span className="text-xs text-muted">{countLabel}</span>
+			</div>
+
+			<div
+				className="grid gap-4"
+				style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
+			>
+				{columns.map((col, i) => (
+					<div key={i}>
+						<p className="text-xs text-muted mb-0.5">{col.label}</p>
+						<p className={`text-sm font-mono ${col.color || 'text-foreground'}`}>
+							{col.value}
+							{col.suffix && (
+								<span className={`${col.suffixColor || col.color || 'text-muted'} ml-1`}>
+									{col.suffix}
+								</span>
+							)}
+						</p>
+					</div>
+				))}
+			</div>
+
+			{progress && progress.done > 0 && (
+				<div className="mt-3 w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
+					<motion.div
+						className="h-full rounded-full bg-linear-to-r from-accent to-green-400"
+						initial={{ width: 0 }}
+						animate={{ width: `${percent}%` }}
+						transition={{ duration: 0.5 }}
+					/>
+				</div>
+			)}
+		</motion.div>
+	);
+});
+
+export type { StatsBarProps, SummaryStatsBarProps, StatColumn };

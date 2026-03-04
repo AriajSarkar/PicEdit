@@ -4,6 +4,7 @@ import { memo } from 'react';
 import { AnimatePresence } from 'motion/react';
 import type { CompressionItem } from '@/imgcompressor/hooks/useCompression';
 import type { ResizeItem } from '@/img-resizer/types';
+import type { ConversionItem } from '@/img-converter/hooks/useConversion';
 import { ScrollContainer, MAX_VISIBLE, ITEM_HEIGHT, ITEM_GAP } from './ScrollContainer';
 import { ResultRow } from './ResultRow';
 
@@ -29,7 +30,17 @@ type ResizeProps = {
 	getOutputDimensions: (item: ResizeItem) => { width: number; height: number };
 };
 
-export type GlobalCompressionResultsProps = CompressProps | ResizeProps;
+type ConvertProps = {
+	mode: 'convert';
+	items: ConversionItem[];
+	onRemove: (id: string) => void;
+	onDownload: (id: string) => void;
+	onConvert: (id: string) => void;
+	onRetry: (id: string) => void;
+	onCancel: (id: string) => void;
+};
+
+export type GlobalCompressionResultsProps = CompressProps | ResizeProps | ConvertProps;
 
 export const ComparisonResults = memo(function ComparisonResults(
 	props: GlobalCompressionResultsProps,
@@ -60,7 +71,7 @@ export const ComparisonResults = memo(function ComparisonResults(
 					{processingCount > 0 && (
 						<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-(--accent)/10 text-accent">
 							<span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-							{processingCount} {props.mode === 'resize' ? 'resizing' : 'processing'}
+							{processingCount} {props.mode === 'resize' ? 'resizing' : props.mode === 'convert' ? 'converting' : 'processing'}
 						</span>
 					)}
 					{doneCount > 0 && (

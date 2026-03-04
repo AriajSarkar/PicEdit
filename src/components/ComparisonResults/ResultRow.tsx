@@ -5,25 +5,32 @@ import { memo } from 'react';
 import { motion } from 'motion/react';
 import type { CompressionItem } from '@/imgcompressor/hooks/useCompression';
 import type { ResizeItem } from '@/img-resizer/types';
+import type { ConversionItem } from '@/img-converter/hooks/useConversion';
 import { formatBytes } from '@/lib/imageUtils';
 import type { GlobalCompressionResultsProps } from './index';
 
 type ResultRowProps = {
-	item: CompressionItem | ResizeItem;
+	item: CompressionItem | ResizeItem | ConversionItem;
 	props: GlobalCompressionResultsProps;
 };
 
 export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps) {
 	const isResize = props.mode === 'resize';
+	const isConvert = props.mode === 'convert';
 	const resizeItem = isResize ? (item as ResizeItem) : null;
-	const compressionItem = !isResize ? (item as CompressionItem) : null;
+	const compressionItem = !isResize && !isConvert ? (item as CompressionItem) : null;
+	const conversionItem = isConvert ? (item as ConversionItem) : null;
 
 	const thumbnailSrc =
 		(isResize
 			? resizeItem!.result?.dataUrl || resizeItem!.thumbnail || resizeItem!.preview
-			: compressionItem!.result?.dataUrl ||
-				compressionItem!.thumbnail ||
-				compressionItem!.preview) ||
+			: isConvert
+				? conversionItem!.result?.dataUrl ||
+					conversionItem!.thumbnail ||
+					conversionItem!.preview
+				: compressionItem!.result?.dataUrl ||
+					compressionItem!.thumbnail ||
+					compressionItem!.preview) ||
 		'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
 
 	const resizeDims = isResize ? props.getOutputDimensions(resizeItem!) : null;
@@ -131,15 +138,48 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 					</div>
 				)}
 
+				{isConvert && item.status === 'done' && conversionItem?.result && (
+					<div className="flex items-center gap-2 mt-0.5">
+						<span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-white/5 text-(--muted) uppercase">
+							{conversionItem.result.originalFormat}
+						</span>
+						<svg
+							className="w-3 h-3 text-accent"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M13 7l5 5m0 0l-5 5m5-5H6"
+							/>
+						</svg>
+						<span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-accent/10 text-accent uppercase">
+							{conversionItem.result.outputFormat}
+						</span>
+						<span className="text-xs text-(--muted)">
+							{formatBytes(conversionItem.result.originalSize)}
+						</span>
+						<span className="text-xs text-(--muted)">→</span>
+						<span
+							className={`text-xs font-medium ${conversionItem.result.compressionRatio >= 0 ? 'text-green-400' : 'text-amber-400'}`}
+						>
+							{formatBytes(conversionItem.result.convertedSize)}
+						</span>
+					</div>
+				)}
+
 				{item.status === 'error' && (
 					<p className="text-xs text-red-400 mt-0.5">{item.error}</p>
 				)}
 
-				{!isResize && item.status === 'pending' && (
+				{!isResize && !isConvert && item.status === 'pending' && (
 					<p className="text-xs text-(--muted) mt-0.5">
 						{formatBytes(item.file.size)}
 						{props.getEstimate && (
-							<span className="text-(--accent)/70 ml-2">
+							<span className="text-accent/70 ml-2">
 								-&gt; ~{formatBytes(props.getEstimate(compressionItem!))} estimated
 							</span>
 						)}{' '}
@@ -147,10 +187,16 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 					</p>
 				)}
 
+				{isConvert && item.status === 'pending' && (
+					<p className="text-xs text-(--muted) mt-0.5">
+						{formatBytes(item.file.size)} - Ready to convert
+					</p>
+				)}
+
 				{isResize && item.status === 'pending' && resizeDims && (
 					<p className="text-xs text-(--muted) mt-0.5">
 						{resizeItem!.originalWidth}x{resizeItem!.originalHeight}
-						<span className="text-(--accent)/70 ml-2">
+						<span className="text-accent/70 ml-2">
 							-&gt; {resizeDims.width}x{resizeDims.height}
 						</span>{' '}
 						- Ready to resize
@@ -159,7 +205,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 			</div>
 
 			<div className="flex items-center gap-1 shrink-0">
-				{item.status === 'pending' && !isResize && (
+				{item.status === 'pending' && !isResize && !isConvert && (
 					<button
 						type="button"
 						aria-label={`Compress ${item.file.name}`}
@@ -178,6 +224,30 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 								strokeLinecap="round"
 								strokeLinejoin="round"
 								d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"
+							/>
+						</svg>
+					</button>
+				)}
+
+				{item.status === 'pending' && isConvert && (
+					<button
+						type="button"
+						aria-label={`Convert ${item.file.name}`}
+						onClick={() => props.onConvert(item.id)}
+						className="p-1.5 rounded-lg hover:bg-(--accent)/10 text-accent transition-colors"
+						title="Convert"
+					>
+						<svg
+							className="w-4 h-4"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							strokeWidth={2}
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
 							/>
 						</svg>
 					</button>

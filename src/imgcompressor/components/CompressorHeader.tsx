@@ -40,7 +40,7 @@ export function CompressorHeader() {
 						BG Remover
 					</Link>
 					<a
-						href="https://github.com/AriajSarworworker/PicEdit"
+						href="https://github.com/AriajSarkar/PicEdit"
 						target="_blank"
 						rel="noopener noreferrer"
 						className="p-3 sm:p-2 rounded-lg text-(--muted) hover:text-foreground hover:bg-white/5 transition-all"
