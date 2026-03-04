@@ -6,7 +6,7 @@ import { CompressorHeader } from '@/imgcompressor/components/CompressorHeader';
 import { FileUploader } from '@/components/FileUploader';
 import { CompressionControls } from '@/imgcompressor/components/CompressionControls';
 import { CompressionResults } from '@/imgcompressor/components/CompressionResults';
-import { StatsBar } from '@/imgcompressor/components/StatsBar';
+import { SummaryStatsBar } from '@/components/StatsBar';
 import { RetryButton } from '@/components/RetryButton';
 import { CancelButton } from '@/components/CancelButton';
 import { useCompression } from '@/imgcompressor/hooks/useCompression';
@@ -277,14 +277,23 @@ export default function ImgCompressorPage() {
 									</motion.div>
 								)}
 
-								<StatsBar
-									totalOriginal={stats.formattedOriginal}
-									totalCompressed={stats.formattedCompressed}
-									totalSaved={stats.formattedSaved}
-									savedPercent={stats.savedPercent}
-									increased={stats.increased}
-									doneCount={doneCount}
-									totalCount={items.length}
+								<SummaryStatsBar
+									title="Compression Summary"
+									countLabel={`${doneCount}/${items.length} processed`}
+									columns={[
+										{ label: 'Original', value: stats.formattedOriginal },
+										{ label: 'Compressed', value: stats.formattedCompressed },
+										{
+											label: stats.increased ? 'Increased' : 'Saved',
+											value: `${stats.increased ? '+' : ''}${stats.formattedSaved}`,
+											color: stats.increased ? 'text-amber-400' : 'text-green-400',
+											suffix: stats.savedPercent !== 0
+												? `(${stats.increased ? '+' : ''}${Math.abs(stats.savedPercent).toFixed(1)}%)`
+												: undefined,
+											suffixColor: stats.increased ? 'text-amber-400/70' : 'text-green-400/70',
+										},
+									]}
+									progress={{ done: doneCount, total: items.length }}
 								/>
 							</>
 						)}

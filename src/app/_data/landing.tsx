@@ -74,9 +74,9 @@ export const TOOLS: ToolDef[] = [
 	},
 	{
 		name: 'Format Converter',
-		description: 'Convert between PNG, JPG, WebP, AVIF and more. Batch supported.',
-		href: '#',
-		badge: 'Coming Soon',
+		description: 'Convert between JPEG, PNG, WebP, AVIF, BMP, TIFF, ICO, and PDF. Rust WASM encoding. Batch supported.',
+		href: '/img-converter',
+		badge: 'Ready',
 		gradient: 'from-emerald-500 via-green-500 to-teal-500',
 		iconBg: 'bg-emerald-500/10',
 		icon: (
@@ -86,6 +86,24 @@ export const TOOLS: ToolDef[] = [
 					strokeLinejoin="round"
 					strokeWidth={1.5}
 					d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+				/>
+			</svg>
+		),
+	},
+	{
+		name: 'AI Image Upscaler',
+		description: 'Enhance resolution with AI super-resolution. 2× and 4× upscale, powered by Swin2SR — 100% client-side.',
+		href: '/img-upscaler',
+		badge: 'AI',
+		gradient: 'from-pink-500 via-rose-500 to-red-500',
+		iconBg: 'bg-pink-500/10',
+		icon: (
+			<svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					strokeWidth={1.5}
+					d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
 				/>
 			</svg>
 		),
@@ -183,6 +201,13 @@ export const COMPARISON: ComparisonRow[] = [
 		removebg: false,
 		tinypng: true,
 		iloveimg: true,
+	},
+	{
+		feature: 'AI Upscaling',
+		picedit: true,
+		removebg: false,
+		tinypng: false,
+		iloveimg: false,
 	},
 	{
 		feature: 'Batch Processing',

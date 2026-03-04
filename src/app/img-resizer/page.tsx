@@ -201,7 +201,7 @@ export default function ImgResizerPage() {
 								onClick={() => setModalOpen(true)}
 								className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-surface hover:border-accent/30 hover:bg-(--bg-elevated) transition-all group"
 							>
-								<div className="w-9 h-9 rounded-lg bg-(--accent)/10 flex items-center justify-center shrink-0 group-hover:bg-(--accent)/15 transition-colors">
+								<div className="w-9 h-9 rounded-lg bg-(--accent)/10 flex items-center justify-center shrink-0 group-hover:bg-accent/15 transition-colors">
 									<svg
 										className="w-4.5 h-4.5 text-accent"
 										fill="none"
