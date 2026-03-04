@@ -147,8 +147,8 @@ export const TracerControls = memo(function TracerControls({
 								py-2.5 px-3 rounded-lg text-sm font-medium transition-all text-left
 								${
 									config.preset === p.key
-										? 'bg-accent text-white shadow-lg shadow-(--accent)/25'
-										: 'bg-(--bg-elevated) text-(--muted) hover:text-foreground border border-border'
+										? 'bg-accent text-white shadow-lg shadow-accent/25'
+										: 'bg-elevated text-muted hover:text-foreground border border-border'
 								}
 								disabled:opacity-50
 							`}
@@ -156,7 +156,7 @@ export const TracerControls = memo(function TracerControls({
 							<span className="block">{p.label}</span>
 							<span
 								className={`block text-[10px] mt-0.5 ${
-									config.preset === p.key ? 'text-white/70' : 'text-(--muted)'
+									config.preset === p.key ? 'text-white/70' : 'text-muted'
 								}`}
 							>
 								{p.desc}
@@ -185,7 +185,7 @@ export const TracerControls = memo(function TracerControls({
 								${
 									config.colorMode === m.key
 										? 'bg-accent/15 text-accent border border-accent/30'
-										: 'bg-(--bg-elevated) text-(--muted) hover:text-foreground border border-border'
+										: 'bg-elevated text-muted hover:text-foreground border border-border'
 								}
 								disabled:opacity-50
 							`}
@@ -224,7 +224,7 @@ export const TracerControls = memo(function TracerControls({
 								${
 									config.hierarchical === h.key
 										? 'bg-accent/15 text-accent border border-accent/30'
-										: 'bg-(--bg-elevated) text-(--muted) hover:text-foreground border border-border'
+										: 'bg-elevated text-muted hover:text-foreground border border-border'
 								}
 								disabled:opacity-50
 							`}
@@ -234,7 +234,7 @@ export const TracerControls = memo(function TracerControls({
 								className={`block text-[10px] mt-0.5 ${
 									config.hierarchical === h.key
 										? 'text-accent/60'
-										: 'text-(--muted)'
+										: 'text-muted'
 								}`}
 							>
 								{h.desc}
@@ -249,7 +249,7 @@ export const TracerControls = memo(function TracerControls({
 				<button
 					type="button"
 					onClick={() => setShowAdvanced((v) => !v)}
-					className="flex items-center gap-1.5 text-xs text-(--muted) hover:text-accent transition-colors w-full"
+					className="flex items-center gap-1.5 text-xs text-muted hover:text-accent transition-colors w-full"
 				>
 					<svg
 						className={`w-3 h-3 transition-transform ${showAdvanced ? 'rotate-90' : ''}`}
@@ -301,7 +301,7 @@ export const TracerControls = memo(function TracerControls({
 									className="w-full accent-accent"
 								/>
 								{s.desc && (
-									<p className="text-[10px] text-(--muted) mt-0.5">
+									<p className="text-[10px] text-muted mt-0.5">
 										{s.desc}
 									</p>
 								)}
@@ -312,8 +312,8 @@ export const TracerControls = memo(function TracerControls({
 			)}
 
 			{/* Info note */}
-			<div className="rounded-lg bg-(--bg-elevated) border border-border p-3">
-				<p className="text-[11px] text-(--muted) leading-relaxed">
+			<div className="rounded-lg bg-elevated border border-border p-3">
+				<p className="text-[11px] text-muted leading-relaxed">
 					<span className="text-accent font-medium">SVG Tracer</span> — Converts
 					raster images (JPEG, PNG, WebP, etc.) into scalable vector graphics using{' '}
 					<span className="font-mono text-[10px]">vtracer</span> (Rust WASM). Output

@@ -50,7 +50,7 @@ export const ImageUploader = memo(function ImageUploader({
 		>
 			{isProcessing && progress ? (
 				<div className="flex flex-col items-center px-8">
-					<div className="mb-6 p-4 rounded-2xl bg-(--accent)/20">
+					<div className="mb-6 p-4 rounded-2xl bg-accent/20">
 						<svg
 							className="w-12 h-12 text-accent animate-pulse"
 							fill="none"
@@ -67,7 +67,7 @@ export const ImageUploader = memo(function ImageUploader({
 					</div>
 
 					<div className="w-72 mb-4">
-						<div className="flex justify-between text-xs text-(--muted) mb-2">
+						<div className="flex justify-between text-xs text-muted mb-2">
 							<span>{STAGE_LABELS[progress.stage] ?? progress.stage}</span>
 							<span>{progress.progress}%</span>
 						</div>
@@ -83,7 +83,7 @@ export const ImageUploader = memo(function ImageUploader({
 
 					<p className="text-sm text-foreground/70 mb-1">{progress.message}</p>
 					{progress.stage === 'downloading' && (
-						<p className="text-xs text-(--muted)">
+						<p className="text-xs text-muted">
 							First time only — model will be cached
 						</p>
 					)}

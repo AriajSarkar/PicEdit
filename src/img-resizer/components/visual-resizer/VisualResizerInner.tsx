@@ -3,7 +3,7 @@
 
 import { memo, useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { fitScale, imgRect, boxRect } from './geometry';
+import { fitScale, imgRect, boxRect } from './utils/geometry';
 import { Toolbar } from './parts/Toolbar';
 import { EdgeLabel } from './parts/EdgeLabel';
 import { ZoomBar } from './parts/ZoomBar';
@@ -19,7 +19,7 @@ import {
 	CURSOR,
 	type InnerProps,
 	type ViewState,
-} from './types';
+} from './utils/types';
 
 export const VisualResizerInner = memo(function VisualResizerInner({
 	imageSrc,

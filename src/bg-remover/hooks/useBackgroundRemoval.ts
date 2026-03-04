@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import { removeBackground, Config } from '@imgly/background-removal';
+import { type Config } from '@imgly/background-removal';
 import { DeviceType, ModelType, ProcessingProgress, MODEL_INFO } from '@/types';
 import { formatBytes, formatSpeed, blobToDataUrl, loadImage } from '@/lib/imageUtils';
 import {
@@ -211,6 +211,7 @@ export function useBackgroundRemoval() {
 				// there is no customFetch hook. This is the only way to intercept.
 				installFetchInterceptor();
 				let aiResult: Blob;
+				const { removeBackground } = await import('@imgly/background-removal');
 				try {
 					try {
 						aiResult = await removeBackground(sourceForAI, config);

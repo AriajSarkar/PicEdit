@@ -168,7 +168,7 @@ When a component folder gets crowded (6+ files at root level):
 
 1. **God files** — single files doing everything (>500 lines)
 2. **Copy-paste utilities** — same function in multiple files
-3. **Cross-feature imports** — `src/imgcompressor/` importing from `src/img-resizer/`
+3. **Cross-feature imports** — `src/img-compressor/` importing from `src/img-resizer/`
 4. **Hardcoded constants in workers** — duplicate data that drifts out of sync
 5. **Deep import paths** — prefer barrel exports over `import from './sub/deep/module'`
 6. **Premature abstraction** — don't create shared utilities for single-use functions

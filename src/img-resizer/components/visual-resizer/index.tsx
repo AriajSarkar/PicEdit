@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { VisualResizerInner } from './VisualResizerInner';
-import type { VisualResizerProps } from './types';
+import type { VisualResizerProps } from './utils/types';
 
 /**
  * Main VisualResizer — thin wrapper that resolves per-image dims
@@ -46,4 +46,4 @@ export const VisualResizer = memo(function VisualResizer({
 });
 
 // Re-export types consumers may need
-export type { VisualResizerProps } from './types';
+export type { VisualResizerProps } from './utils/types';

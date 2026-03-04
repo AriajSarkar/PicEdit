@@ -8,7 +8,7 @@ Static SPA (Next.js 16 + `output: "export"`) with modular image tools:
 src/app/bg-remover/page.tsx      → thin route shell (metadata in layout.tsx)
 src/bg-remover/                  → domain: components/, hooks/, lib/, types/, workers/
 src/app/img-compressor/page.tsx  → thin route shell
-src/imgcompressor/               → domain: components/, hooks/, lib/, types/, worker.ts, index.ts
+src/img-compressor/              → domain: components/, hooks/, lib/, types/, worker.ts, index.ts
 src/app/img-resizer/page.tsx     → thin route shell
 src/img-resizer/                 → domain: components/, hooks/, lib/, types/
 src/app/page.tsx                 → landing page (thin orchestrator importing _data/ + _components/)
@@ -117,7 +117,7 @@ Both compressor and resizer use `WorkerPoolBridge<TResult>` from `src/lib/worker
 - Routes messages via numeric `id` for concurrency-safe request/response correlation
 - Least-busy worker selection with configurable timeout
 - Init uses `'ready'`/`'init-error'` types; operations use `'error'` + `msg.id`
-- Thin domain wrappers in `src/imgcompressor/lib/compressionWorkerBridge.ts` and `src/img-resizer/lib/resizeWorkerBridge.ts`
+- Thin domain wrappers in `src/img-compressor/lib/compressionWorkerBridge.ts` and `src/img-resizer/lib/resizeWorkerBridge.ts`
 - Worker (`worker.ts`) queues operations behind `initDone` promise during async WASM load
 
 ## Download Pattern
@@ -150,4 +150,4 @@ Both compressor and resizer use `WorkerPoolBridge<TResult>` from `src/lib/worker
 
 ## Skills
 
-- **Code Quality** — [`.github/skills/code-quality.md`](skills/code-quality.md): Refactoring workflow, DRY principles, file split criteria, module patterns, anti-patterns to avoid. Reference this skill when restructuring code, adding features, or reviewing architecture.
+- **Code Quality** — [`.github/skills/code-quality.md`](./skills/code-quality.md): Refactoring workflow, DRY principles, file split criteria, module patterns, anti-patterns to avoid. Reference this skill when restructuring code, adding features, or reviewing architecture.

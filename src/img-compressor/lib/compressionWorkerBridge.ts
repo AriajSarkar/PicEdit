@@ -5,8 +5,8 @@
  * Falls back to main-thread compression if workers are unavailable.
  */
 
-import type { CompressorConfig } from '@/imgcompressor/types';
-import type { CompressedResult } from '@/imgcompressor/lib/compressionUtils';
+import type { CompressorConfig } from '@/img-compressor/types';
+import type { CompressedResult } from '@/img-compressor/lib/compressionUtils';
 import { WorkerPoolBridge } from '@/lib/workerPoolBridge';
 import { workerTimeout } from '@/lib/imageUtils';
 

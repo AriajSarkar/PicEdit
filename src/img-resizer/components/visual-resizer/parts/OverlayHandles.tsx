@@ -11,8 +11,8 @@ import {
 	HIT_EXPAND,
 	CURSOR,
 	type HandleId,
-} from '../types';
-import type { Rect } from '../types';
+} from '../utils/types';
+import type { Rect } from '../utils/types';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Props

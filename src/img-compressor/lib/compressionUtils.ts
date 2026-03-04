@@ -4,7 +4,7 @@
  * WASM pipeline for perceptual optimization.
  */
 
-import type { CompressorConfig } from '@/imgcompressor/types';
+import type { CompressorConfig } from '@/img-compressor/types';
 import { blobToDataUrl, getMimeType } from '@/lib/imageUtils';
 
 export interface CompressedResult {
@@ -54,7 +54,7 @@ export async function compressImage(
 	if (config.enableWasmOptimize) {
 		try {
 			onProgress?.('Optimizing', 50);
-			const { wasmOptimize, wasmQuantize } = await import('@/imgcompressor/index');
+			const { wasmOptimize, wasmQuantize } = await import('@/img-compressor/index');
 
 			const optimized = await wasmOptimize(
 				{ data: new Uint8Array(imageData.data.buffer), width, height },
@@ -107,7 +107,7 @@ export async function compressImage(
 	let ssim: number | undefined;
 	if (config.verifySsim && config.enableWasmOptimize) {
 		try {
-			const { wasmSsim } = await import('@/imgcompressor/index');
+			const { wasmSsim } = await import('@/img-compressor/index');
 			// Decode compressed output back
 			const compressedBitmap = await createImageBitmap(blob);
 			const compCanvas = new OffscreenCanvas(width, height);

@@ -2,8 +2,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { memo, useRef, useEffect } from 'react';
-import { THUMB_SIZE } from '../types';
-import type { ImageStripProps } from '../types';
+import { THUMB_SIZE } from '../utils/types';
+import type { ImageStripProps } from '../utils/types';
 
 export const ImageStrip = memo(function ImageStrip({
 	items,
@@ -24,7 +24,7 @@ export const ImageStrip = memo(function ImageStrip({
 	}, [selectedIndex]);
 
 	return (
-		<div className="border-t border-border bg-(--bg-elevated)/40">
+		<div className="border-t border-border bg-elevated/40">
 			<div className="flex items-center gap-2 px-3 py-2">
 				<button
 					onClick={() => onSelect(Math.max(0, selectedIndex - 1))}
@@ -56,7 +56,7 @@ export const ImageStrip = memo(function ImageStrip({
 								: it.status === 'error'
 									? 'border-red-400/60'
 									: it.status === 'processing'
-										? 'border-(--accent)/60'
+										? 'border-accent/60'
 										: 'border-transparent';
 
 						return (
@@ -66,7 +66,7 @@ export const ImageStrip = memo(function ImageStrip({
 								disabled={disabled}
 								className={`relative shrink-0 rounded-lg overflow-hidden transition-all duration-150 border-b-2 ${statusBorder} ${
 									sel
-										? 'ring-1 ring-accent ring-offset-1 ring-offset-(--bg-elevated)'
+										? 'ring-1 ring-accent ring-offset-1 ring-offset-elevated'
 										: 'opacity-55 hover:opacity-90'
 								} disabled:pointer-events-none`}
 								style={{ width: THUMB_SIZE, height: THUMB_SIZE }}

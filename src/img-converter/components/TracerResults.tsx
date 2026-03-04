@@ -133,7 +133,7 @@ const TracerRow = memo(function TracerRow({
 		>
 			<div className="flex items-center gap-3">
 				{/* Source thumbnail */}
-				<div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-(--bg-elevated) border border-border">
+				<div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-elevated border border-border">
 					<img
 						src={thumbnailSrc}
 						alt={item.file.name}
@@ -145,7 +145,7 @@ const TracerRow = memo(function TracerRow({
 
 				{/* Arrow */}
 				<svg
-					className="w-4 h-4 shrink-0 text-(--muted)"
+					className="w-4 h-4 shrink-0 text-muted"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
@@ -157,7 +157,7 @@ const TracerRow = memo(function TracerRow({
 				</svg>
 
 				{/* SVG preview or status */}
-				<div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-(--bg-elevated) border border-border flex items-center justify-center">
+				<div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-elevated border border-border flex items-center justify-center">
 					{item.status === 'done' && item.result ? (
 						<img
 							src={item.result.url}
@@ -205,7 +205,7 @@ const TracerRow = memo(function TracerRow({
 							/>
 						</svg>
 					) : (
-						<span className="text-xs text-(--muted) font-mono">SVG</span>
+						<span className="text-xs text-muted font-mono">SVG</span>
 					)}
 				</div>
 
@@ -215,14 +215,14 @@ const TracerRow = memo(function TracerRow({
 					<div className="flex items-center gap-2 mt-0.5">
 						{item.status === 'done' && item.result ? (
 							<>
-								<span className="text-xs text-(--muted)">
+								<span className="text-xs text-muted">
 									{formatBytes(item.result.originalSize)}
 								</span>
-								<span className="text-xs text-(--muted)">→</span>
+								<span className="text-xs text-muted">→</span>
 								<span className="text-xs text-accent font-medium">
 									{formatBytes(item.result.svgSize)}
 								</span>
-								<span className="text-[10px] text-(--muted)">
+								<span className="text-[10px] text-muted">
 									{item.result.durationMs}ms
 								</span>
 							</>
@@ -230,7 +230,7 @@ const TracerRow = memo(function TracerRow({
 							<>
 								<span className="text-xs text-accent">{item.stage || 'Starting...'}</span>
 								{item.progress > 0 && (
-									<span className="text-xs text-(--muted) font-mono">
+									<span className="text-xs text-muted font-mono">
 										{item.progress}%
 									</span>
 								)}
@@ -240,7 +240,7 @@ const TracerRow = memo(function TracerRow({
 								{item.error || 'Failed'}
 							</span>
 						) : (
-							<span className="text-xs text-(--muted)">
+							<span className="text-xs text-muted">
 								{formatBytes(item.file.size)} · {item.originalWidth}×{item.originalHeight}
 							</span>
 						)}
@@ -249,7 +249,7 @@ const TracerRow = memo(function TracerRow({
 
 				{/* Progress bar for processing items */}
 				{item.status === 'processing' && item.progress > 0 && (
-					<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-(--bg-elevated) rounded-b-xl overflow-hidden">
+					<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-elevated rounded-b-xl overflow-hidden">
 						<div
 							className="h-full bg-accent transition-all duration-300"
 							style={{ width: `${item.progress}%` }}

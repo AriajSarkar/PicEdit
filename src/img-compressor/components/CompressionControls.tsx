@@ -1,7 +1,9 @@
 'use client';
 
-import { memo } from 'react';
-import type { CompressorConfig } from '@/imgcompressor/types';
+import { memo, useRef, useEffect, useCallback } from 'react';
+import type { CompressorConfig } from '@/img-compressor/types';
+import { ToggleSwitch } from '@/components/ToggleSwitch';
+import { SegmentedButtons, type SegmentedOption } from '@/components/SegmentedButtons';
 
 interface CompressionControlsProps {
 	config: CompressorConfig;
@@ -9,12 +11,43 @@ interface CompressionControlsProps {
 	disabled?: boolean;
 }
 
+const FORMAT_OPTIONS: SegmentedOption<'jpeg' | 'png' | 'webp'>[] = [
+	{ value: 'jpeg', label: 'JPEG' },
+	{ value: 'png', label: 'PNG' },
+	{ value: 'webp', label: 'WebP' },
+];
+
 export const CompressionControls = memo(function CompressionControls({
 	config,
 	onChange,
 	disabled,
 }: CompressionControlsProps) {
-	const update = (patch: Partial<CompressorConfig>) => onChange({ ...config, ...patch });
+	// Ref-based stable callback — avoids re-creating update() on every config/onChange change
+	const configRef = useRef(config);
+	useEffect(() => { configRef.current = config; }, [config]);
+	const onChangeRef = useRef(onChange);
+	useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+
+	const update = useCallback((patch: Partial<CompressorConfig>) => {
+		onChangeRef.current({ ...configRef.current, ...patch });
+	}, []);
+
+	// RAF-throttled range handler — prevents 200+ setState calls during slider drag
+	const rafRef = useRef(0);
+	const makeRangeHandler = useCallback(
+		(key: keyof CompressorConfig, divisor = 1) =>
+			(e: React.ChangeEvent<HTMLInputElement>) => {
+				cancelAnimationFrame(rafRef.current);
+				const raw = Number(e.target.value);
+				rafRef.current = requestAnimationFrame(() => {
+					update({ [key]: divisor === 1 ? raw : raw / divisor } as Partial<CompressorConfig>);
+				});
+			},
+		[update],
+	);
+
+	// Cleanup RAF on unmount
+	useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
 	return (
 		<div className="space-y-5">
@@ -23,26 +56,12 @@ export const CompressionControls = memo(function CompressionControls({
 				<label className="block text-sm font-medium text-foreground mb-2">
 					Output Format
 				</label>
-				<div className="flex gap-2">
-					{(['jpeg', 'png', 'webp'] as const).map((fmt) => (
-						<button
-							key={fmt}
-							onClick={() => update({ format: fmt })}
-							disabled={disabled}
-							className={`
-                flex-1 py-3 sm:py-2 px-3 rounded-lg text-sm font-medium transition-all
-                ${
-					config.format === fmt
-						? 'bg-accent text-white shadow-lg shadow-(--accent)/25'
-						: 'bg-(--bg-elevated) text-(--muted) hover:text-foreground border border-border'
-				}
-                disabled:opacity-50
-              `}
-						>
-							{fmt.toUpperCase()}
-						</button>
-					))}
-				</div>
+				<SegmentedButtons
+					options={FORMAT_OPTIONS}
+					value={config.format}
+					onChange={(fmt) => update({ format: fmt })}
+					disabled={disabled}
+				/>
 			</div>
 
 			{/* Quality slider (not for PNG) */}
@@ -59,11 +78,11 @@ export const CompressionControls = memo(function CompressionControls({
 						min={1}
 						max={100}
 						value={Math.round(config.quality * 100)}
-						onChange={(e) => update({ quality: Number(e.target.value) / 100 })}
+						onChange={makeRangeHandler('quality', 100)}
 						disabled={disabled}
 						className="w-full accent-accent"
 					/>
-					<div className="flex justify-between text-xs text-(--muted) mt-1">
+					<div className="flex justify-between text-xs text-muted mt-1">
 						<span>Smaller file</span>
 						<span>Higher quality</span>
 					</div>
@@ -74,7 +93,7 @@ export const CompressionControls = memo(function CompressionControls({
 			<div>
 				<div className="flex items-center justify-between mb-2">
 					<label className="text-sm font-medium text-foreground">Max Dimension</label>
-					<span className="text-sm text-(--muted) font-mono">
+					<span className="text-sm text-muted font-mono">
 						{config.maxDimension > 0 ? `${config.maxDimension}px` : 'Original'}
 					</span>
 				</div>
@@ -82,7 +101,7 @@ export const CompressionControls = memo(function CompressionControls({
 					value={config.maxDimension}
 					onChange={(e) => update({ maxDimension: Number(e.target.value) })}
 					disabled={disabled}
-					className="w-full p-3 sm:p-2 rounded-lg bg-(--bg-elevated) border border-border text-foreground text-sm"
+					className="w-full p-3 sm:p-2 rounded-lg bg-elevated border border-border text-foreground text-sm"
 				>
 					<option value={0}>Original size</option>
 					<option value={3840}>4K (3840px)</option>
@@ -94,31 +113,13 @@ export const CompressionControls = memo(function CompressionControls({
 			</div>
 
 			{/* WASM optimization toggle */}
-			<div className="flex items-center justify-between">
-				<div>
-					<p className="text-sm font-medium text-foreground">WASM Optimization</p>
-					<p className="text-xs text-(--muted)">Perceptual pre-processing via Rust</p>
-				</div>
-				<button
-					type="button"
-					role="switch"
-					aria-checked={config.enableWasmOptimize}
-					aria-label="WASM optimization"
-					onClick={() => update({ enableWasmOptimize: !config.enableWasmOptimize })}
-					disabled={disabled}
-					className={`
-            relative w-11 h-6 rounded-full transition-colors
-            ${config.enableWasmOptimize ? 'bg-accent' : 'bg-white/10'}
-          `}
-				>
-					<span
-						className={`
-            absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform
-            ${config.enableWasmOptimize ? 'translate-x-5' : ''}
-          `}
-					/>
-				</button>
-			</div>
+			<ToggleSwitch
+				checked={config.enableWasmOptimize}
+				onChange={(v) => update({ enableWasmOptimize: v })}
+				label="WASM Optimization"
+				description="Perceptual pre-processing via Rust"
+				disabled={disabled}
+			/>
 
 			{/* Optimization strength */}
 			{config.enableWasmOptimize && (
@@ -136,7 +137,7 @@ export const CompressionControls = memo(function CompressionControls({
 						min={0}
 						max={100}
 						value={Math.round(config.optimizeStrength * 100)}
-						onChange={(e) => update({ optimizeStrength: Number(e.target.value) / 100 })}
+						onChange={makeRangeHandler('optimizeStrength', 100)}
 						disabled={disabled}
 						className="w-full accent-accent"
 					/>
@@ -150,7 +151,7 @@ export const CompressionControls = memo(function CompressionControls({
 						<label className="text-sm font-medium text-foreground">
 							Color Quantization
 						</label>
-						<span className="text-sm text-(--muted) font-mono">
+						<span className="text-sm text-muted font-mono">
 							{config.maxColors > 0 ? `${config.maxColors} colors` : 'Off'}
 						</span>
 					</div>
@@ -158,7 +159,7 @@ export const CompressionControls = memo(function CompressionControls({
 						value={config.maxColors}
 						onChange={(e) => update({ maxColors: Number(e.target.value) })}
 						disabled={disabled}
-						className="w-full p-3 sm:p-2 rounded-lg bg-(--bg-elevated) border border-border text-foreground text-sm"
+						className="w-full p-3 sm:p-2 rounded-lg bg-elevated border border-border text-foreground text-sm"
 					>
 						<option value={0}>Disabled (lossless)</option>
 						<option value={256}>256 colors</option>
@@ -176,7 +177,7 @@ export const CompressionControls = memo(function CompressionControls({
 						<label className="text-sm font-medium text-foreground">
 							Target File Size
 						</label>
-						<span className="text-sm text-(--muted) font-mono">
+						<span className="text-sm text-muted font-mono">
 							{config.targetSize > 0
 								? config.targetSize >= 1024 * 1024
 									? `${(config.targetSize / (1024 * 1024)).toFixed(1)} MB`
@@ -188,7 +189,7 @@ export const CompressionControls = memo(function CompressionControls({
 						value={config.targetSize}
 						onChange={(e) => update({ targetSize: Number(e.target.value) })}
 						disabled={disabled}
-						className="w-full p-3 sm:p-2 rounded-lg bg-(--bg-elevated) border border-border text-foreground text-sm"
+						className="w-full p-3 sm:p-2 rounded-lg bg-elevated border border-border text-foreground text-sm"
 					>
 						<option value={0}>Auto (use quality slider)</option>
 						<option value={50 * 1024}>50 KB</option>
@@ -203,31 +204,13 @@ export const CompressionControls = memo(function CompressionControls({
 
 			{/* SSIM verification */}
 			{config.enableWasmOptimize && (
-				<div className="flex items-center justify-between">
-					<div>
-						<p className="text-sm font-medium text-foreground">Quality Verification</p>
-						<p className="text-xs text-(--muted)">Calculate SSIM after compression</p>
-					</div>
-					<button
-						type="button"
-						role="switch"
-						aria-checked={config.verifySsim}
-						aria-label="Quality verification (SSIM)"
-						onClick={() => update({ verifySsim: !config.verifySsim })}
-						disabled={disabled}
-						className={`
-              relative w-11 h-6 rounded-full transition-colors
-              ${config.verifySsim ? 'bg-accent' : 'bg-white/10'}
-            `}
-					>
-						<span
-							className={`
-              absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform
-              ${config.verifySsim ? 'translate-x-5' : ''}
-            `}
-						/>
-					</button>
-				</div>
+				<ToggleSwitch
+					checked={config.verifySsim}
+					onChange={(v) => update({ verifySsim: v })}
+					label="Quality Verification"
+					description="Calculate SSIM after compression"
+					disabled={disabled}
+				/>
 			)}
 		</div>
 	);

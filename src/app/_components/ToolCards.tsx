@@ -6,10 +6,13 @@ export function ToolCards() {
 		<section className="py-16 relative">
 			<div className="max-w-6xl mx-auto px-6">
 				<div className="text-center mb-12">
+					<p className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">
+						Tools
+					</p>
 					<h2 className="text-2xl sm:text-3xl font-bold mb-3">
 						Professional Image Tools
 					</h2>
-					<p className="text-(--text-secondary)">
+					<p className="text-secondary">
 						Select a tool to get started — no account needed
 					</p>
 				</div>
@@ -29,17 +32,17 @@ export function ToolCards() {
 									/>
 								)}
 								<span
-									className={`absolute top-4 right-4 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider rounded-full ${isReady ? 'bg-(--success-soft) text-(--success)' : 'bg-white/5 text-muted'}`}
+									className={`absolute top-4 right-4 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider rounded-full ${isReady ? 'bg-success-soft text-success' : 'bg-white/5 text-muted'}`}
 								>
 									{tool.badge}
 								</span>
 								<div
-									className={`w-12 h-12 rounded-xl ${tool.iconBg} flex items-center justify-center mb-4 text-(--text-secondary) group-hover:text-foreground transition-colors`}
+									className={`w-12 h-12 rounded-xl ${tool.iconBg} flex items-center justify-center mb-4 text-secondary group-hover:text-foreground transition-colors`}
 								>
 									{tool.icon}
 								</div>
 								<h3 className="text-base font-semibold mb-2">{tool.name}</h3>
-								<p className="text-sm text-(--text-secondary) leading-relaxed flex-1">
+								<p className="text-sm text-secondary leading-relaxed flex-1">
 									{tool.description}
 								</p>
 								{isReady && (

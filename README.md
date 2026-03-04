@@ -29,7 +29,7 @@ It currently includes:
 ```text
 src/app/                    # Thin route shells (pages/layouts)
 src/bg-remover/             # Background remover domain module
-src/imgcompressor/          # Image compressor domain module
+src/img-compressor/         # Image compressor domain module
 src/components/             # Shared UI components
 src/hooks/                  # Shared hooks (includes useBatchProcessor)
 src/lib/                    # Shared utilities (worker pool, zip, image utils)

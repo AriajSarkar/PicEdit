@@ -2,14 +2,14 @@
 
 import { useMemo } from 'react';
 import { motion } from 'motion/react';
-import { CompressorHeader } from '@/imgcompressor/components/CompressorHeader';
+import { CompressorHeader } from '@/img-compressor/components/CompressorHeader';
 import { FileUploader } from '@/components/FileUploader';
-import { CompressionControls } from '@/imgcompressor/components/CompressionControls';
-import { CompressionResults } from '@/imgcompressor/components/CompressionResults';
+import { CompressionControls } from '@/img-compressor/components/CompressionControls';
+import { CompressionResults } from '@/img-compressor/components/CompressionResults';
 import { SummaryStatsBar } from '@/components/StatsBar';
 import { RetryButton } from '@/components/RetryButton';
 import { CancelButton } from '@/components/CancelButton';
-import { useCompression } from '@/imgcompressor/hooks/useCompression';
+import { useCompression } from '@/img-compressor/hooks/useCompression';
 
 export default function ImgCompressorPage() {
 	const {
@@ -55,6 +55,30 @@ export default function ImgCompressorPage() {
 		return { doneCount: done, pendingCount: pending, retryableCount: retryable };
 	}, [items]);
 
+	// Memoize columns array to prevent SummaryStatsBar memo bypass
+	const summaryColumns = useMemo(
+		() => [
+			{ label: 'Original', value: stats.formattedOriginal },
+			{ label: 'Compressed', value: stats.formattedCompressed },
+			{
+				label: stats.increased ? 'Increased' : 'Saved',
+				value: `${stats.increased ? '+' : ''}${stats.formattedSaved}`,
+				color: stats.increased ? 'text-amber-400' : 'text-green-400',
+				suffix:
+					stats.savedPercent !== 0
+						? `(${stats.increased ? '+' : ''}${Math.abs(stats.savedPercent).toFixed(1)}%)`
+						: undefined,
+				suffixColor: stats.increased ? 'text-amber-400/70' : 'text-green-400/70',
+			},
+		],
+		[stats],
+	);
+
+	const summaryProgress = useMemo(
+		() => ({ done: doneCount, total: items.length }),
+		[doneCount, items.length],
+	);
+
 	return (
 		<div className="min-h-screen bg-background text-foreground">
 			<CompressorHeader />
@@ -66,16 +90,16 @@ export default function ImgCompressorPage() {
 					animate={{ opacity: 1, y: 0 }}
 					className="text-center mb-8"
 				>
-					<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-(--accent)/5 mb-4">
-						<div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-						<span className="text-xs text-accent font-medium">
+					<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-accent/5 mb-4">
+						<div className="w-1.5 h-1.5 rounded-full bg-accent badge-dot animate-pulse [animation-iteration-count:3]" />
+						<span className="text-xs text-accent font-medium tracking-wide">
 							Rust WASM · Perceptual Optimization · Batch Processing
 						</span>
 					</div>
 					<h1 className="text-3xl sm:text-4xl font-bold mb-2">
 						<span className="text-gradient">Image Compressor</span>
 					</h1>
-					<p className="text-(--muted) text-sm max-w-md mx-auto">
+					<p className="text-muted text-sm max-w-md mx-auto">
 						Compress images up to 90% smaller using production-grade algorithms.
 						Everything runs locally — your images never leave your device.
 					</p>
@@ -125,24 +149,10 @@ export default function ImgCompressorPage() {
 											/>
 										</svg>
 									</div>
-									<span className="text-xs text-(--muted)">{s.label}</span>
+									<span className="text-xs text-muted">{s.label}</span>
 								</div>
 								{i < 2 && (
-									<svg
-										className="w-4 h-4 text-white/10 -mt-5"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										aria-hidden="true"
-										focusable={false}
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M9 5l7 7-7 7"
-										/>
-									</svg>
+									<div className="w-8 h-px bg-linear-to-r from-accent/30 to-transparent -mt-5" />
 								)}
 							</div>
 						))}
@@ -150,163 +160,146 @@ export default function ImgCompressorPage() {
 				)}
 
 				{/* Main Layout */}
-				<div className={`grid gap-6 ${hasItems ? 'lg:grid-cols-[1fr_320px]' : ''}`}>
-					{/* Left: Upload + Results */}
-					<div className="space-y-6">
-						<FileUploader
-							onFilesSelect={addFiles}
-							disabled={isProcessing}
-							multiple
-							title="Drop images here or click to browse"
-							subtitle="Supports JPEG, PNG, WebP — batch upload supported"
-							formats={['JPEG', 'PNG', 'WebP']}
-						/>
+				<FileUploader
+					onFilesSelect={addFiles}
+					disabled={isProcessing}
+					multiple
+					title="Drop images here or click to browse"
+					subtitle="Supports JPEG, PNG, WebP — batch upload supported"
+					formats={['JPEG', 'PNG', 'WebP']}
+				/>
 
-						{hasItems && (
-							<>
-								{/* Action bar */}
-								<div className="flex flex-wrap items-center justify-between gap-2">
-									<div className="flex items-center gap-2">
-										{pendingCount > 0 && (
-											<button
-												onClick={compressAll}
-												disabled={isProcessing}
-												className="btn-primary text-sm px-4 py-2"
-											>
-												{isProcessing ? (
-													<span className="flex items-center gap-2">
-														<svg
-															className="w-4 h-4 animate-spin"
-															fill="none"
-															viewBox="0 0 24 24"
-															aria-hidden="true"
-															focusable={false}
-														>
-															<circle
-																className="opacity-25"
-																cx="12"
-																cy="12"
-																r="10"
-																stroke="currentColor"
-																strokeWidth="4"
-															/>
-															<path
-																className="opacity-75"
-																fill="currentColor"
-																d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-															/>
-														</svg>
-														Compressing...
-													</span>
-												) : (
-													`Compress All (${pendingCount})`
+				{hasItems && (
+					<div className="mt-5 flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_320px] lg:gap-6">
+						{/* Results & Stats */}
+						<div className="space-y-4 lg:space-y-5 min-w-0">
+							{/* Action bar */}
+							<div className="flex flex-wrap items-center justify-between gap-2">
+								<div className="flex items-center gap-2">
+									{pendingCount > 0 && (
+										<button
+											onClick={compressAll}
+											disabled={isProcessing}
+											className="btn-primary text-sm px-4 py-2"
+										>
+											{isProcessing ? (
+												<span className="flex items-center gap-2">
+													<svg
+														className="w-4 h-4 animate-spin"
+														fill="none"
+														viewBox="0 0 24 24"
+														aria-hidden="true"
+														focusable={false}
+													>
+														<circle
+															className="opacity-25"
+															cx="12"
+															cy="12"
+															r="10"
+															stroke="currentColor"
+															strokeWidth="4"
+														/>
+														<path
+															className="opacity-75"
+															fill="currentColor"
+															d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+														/>
+													</svg>
+													Compressing...
+												</span>
+											) : (
+												`Compress All (${pendingCount})`
+											)}
+										</button>
+									)}
+									{isProcessing && (
+										<CancelButton
+											onClick={cancelAll}
+											variant="all"
+											count={processingIds.length}
+											size="md"
+										/>
+									)}
+									{!isProcessing && retryableCount > 0 && (
+										<RetryButton
+											onClick={retryAll}
+											variant="all"
+											count={retryableCount}
+											size="md"
+										/>
+									)}
+									{doneCount > 0 && (
+										<button
+											onClick={downloadAll}
+											className="btn-secondary text-sm px-4 py-2"
+										>
+											Download All ({doneCount})
+										</button>
+									)}
+								</div>
+								<button
+									onClick={clearAll}
+									disabled={isProcessing}
+									className="text-sm text-muted hover:text-red-400 transition-colors disabled:opacity-50"
+								>
+									Clear All
+								</button>
+							</div>
+
+							<CompressionResults
+								items={items}
+								onRemove={removeItem}
+								onDownload={downloadOne}
+								onCompress={compressOne}
+								onRetry={retryOne}
+								onCancel={cancelOne}
+								getEstimate={getEstimate}
+							/>
+
+							{/* Estimated savings (shown when there are pending items) */}
+							{pendingCount > 0 && (
+								<motion.div
+									initial={{ opacity: 0, y: 5 }}
+									animate={{ opacity: 1, y: 0 }}
+									className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-3 px-4 py-2.5 rounded-xl bg-accent/5 border border-accent/15"
+								>
+									<div className="flex items-center gap-3 text-xs">
+										<span className="text-accent font-medium">
+											~Estimated
+										</span>
+										<span className="text-muted">
+											{estimatedStats.formattedEstimated} output
+										</span>
+										{estimatedStats.estimatedSavedPercent > 0 && (
+											<span className="text-green-400 font-medium">
+												~
+												{estimatedStats.estimatedSavedPercent.toFixed(
+													0,
 												)}
-											</button>
-										)}
-										{isProcessing && (
-											<CancelButton
-												onClick={cancelAll}
-												variant="all"
-												count={processingIds.length}
-												size="md"
-											/>
-										)}
-										{!isProcessing && retryableCount > 0 && (
-											<RetryButton
-												onClick={retryAll}
-												variant="all"
-												count={retryableCount}
-												size="md"
-											/>
-										)}
-										{doneCount > 0 && (
-											<button
-												onClick={downloadAll}
-												className="btn-secondary text-sm px-4 py-2"
-											>
-												Download All ({doneCount})
-											</button>
+												% savings
+											</span>
 										)}
 									</div>
-									<button
-										onClick={clearAll}
-										disabled={isProcessing}
-										className="text-sm text-(--muted) hover:text-red-400 transition-colors disabled:opacity-50"
-									>
-										Clear All
-									</button>
-								</div>
+									<span className="text-xs text-muted">
+										Based on current settings
+									</span>
+								</motion.div>
+							)}
 
-								<CompressionResults
-									items={items}
-									onRemove={removeItem}
-									onDownload={downloadOne}
-									onCompress={compressOne}
-									onRetry={retryOne}
-									onCancel={cancelOne}
-									getEstimate={getEstimate}
-								/>
+							<SummaryStatsBar
+								title="Compression Summary"
+								countLabel={`${doneCount}/${items.length} processed`}
+								columns={summaryColumns}
+								progress={summaryProgress}
+							/>
+						</div>
 
-								{/* Estimated savings (shown when there are pending items) */}
-								{pendingCount > 0 && (
-									<motion.div
-										initial={{ opacity: 0, y: 5 }}
-										animate={{ opacity: 1, y: 0 }}
-										className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-3 px-4 py-2.5 rounded-xl bg-(--accent)/5 border border-accent/15"
-									>
-										<div className="flex items-center gap-3 text-xs">
-											<span className="text-accent font-medium">
-												~Estimated
-											</span>
-											<span className="text-(--muted)">
-												{estimatedStats.formattedEstimated} output
-											</span>
-											{estimatedStats.estimatedSavedPercent > 0 && (
-												<span className="text-green-400 font-medium">
-													~
-													{estimatedStats.estimatedSavedPercent.toFixed(
-														0,
-													)}
-													% savings
-												</span>
-											)}
-										</div>
-										<span className="text-xs text-(--muted)">
-											Based on current settings
-										</span>
-									</motion.div>
-								)}
-
-								<SummaryStatsBar
-									title="Compression Summary"
-									countLabel={`${doneCount}/${items.length} processed`}
-									columns={[
-										{ label: 'Original', value: stats.formattedOriginal },
-										{ label: 'Compressed', value: stats.formattedCompressed },
-										{
-											label: stats.increased ? 'Increased' : 'Saved',
-											value: `${stats.increased ? '+' : ''}${stats.formattedSaved}`,
-											color: stats.increased ? 'text-amber-400' : 'text-green-400',
-											suffix: stats.savedPercent !== 0
-												? `(${stats.increased ? '+' : ''}${Math.abs(stats.savedPercent).toFixed(1)}%)`
-												: undefined,
-											suffixColor: stats.increased ? 'text-amber-400/70' : 'text-green-400/70',
-										},
-									]}
-									progress={{ done: doneCount, total: items.length }}
-								/>
-							</>
-						)}
-					</div>
-
-					{/* Right: Controls sidebar */}
-					{hasItems && (
+						{/* Settings panel */}
 						<motion.div
-							initial={{ opacity: 0, x: 20 }}
-							animate={{ opacity: 1, x: 0 }}
-							className="space-y-4"
+							initial={{ opacity: 0, y: 10 }}
+							animate={{ opacity: 1, y: 0 }}
 						>
-							<div className="glass rounded-xl p-5 sticky top-20">
+							<div className="glass-panel p-5 lg:sticky lg:top-20">
 								<h2 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
 									<svg
 										className="w-4 h-4 text-accent"
@@ -332,8 +325,8 @@ export default function ImgCompressorPage() {
 								/>
 							</div>
 						</motion.div>
-					)}
-				</div>
+					</div>
+				)}
 			</main>
 		</div>
 	);

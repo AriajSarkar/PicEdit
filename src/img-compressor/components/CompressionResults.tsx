@@ -1,6 +1,6 @@
 'use client';
 
-import type { CompressionItem } from '@/imgcompressor/hooks/useCompression';
+import type { CompressionItem } from '@/img-compressor/hooks/useCompression';
 import { ComparisonResults } from '@/components/ComparisonResults';
 
 interface CompressionResultsProps {

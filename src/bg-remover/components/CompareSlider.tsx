@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useCallback, useEffect } from 'react';
+import { memo, useRef, useCallback, useEffect } from 'react';
 
 interface CompareSliderProps {
 	originalImage: string;
@@ -17,7 +17,7 @@ interface CompareSliderProps {
  *  - Constant memory (canvas is always display-size, not image-size)
  *  - 60fps+ on 4K images because we never decode or composite full-res during drag
  */
-export function CompareSlider({ originalImage, processedImage }: CompareSliderProps) {
+export const CompareSlider = memo(function CompareSlider({ originalImage, processedImage }: CompareSliderProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const handleRef = useRef<HTMLDivElement>(null);
@@ -249,4 +249,4 @@ export function CompareSlider({ originalImage, processedImage }: CompareSliderPr
 			</div>
 		</div>
 	);
-}
+});

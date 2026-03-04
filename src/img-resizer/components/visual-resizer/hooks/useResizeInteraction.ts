@@ -8,7 +8,7 @@ import {
 	type PointerEvent as ReactPointerEvent,
 } from 'react';
 import type { ResizerConfig } from '@/img-resizer/types';
-import { clamp } from '../geometry';
+import { clamp } from '../utils/geometry';
 import {
 	CORNERS,
 	MIN_DIM,
@@ -18,7 +18,7 @@ import {
 	type HandleId,
 	type InteractionMode,
 	type DragState,
-} from '../types';
+} from '../utils/types';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Types

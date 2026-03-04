@@ -70,11 +70,14 @@ export default function BGRemoverPage() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [sessionLoaded]);
 
-	// Apply edits when state changes
+	// Apply edits when state changes (cancelled flag prevents stale results)
 	useEffect(() => {
 		if (!processedImage || !originalImage || !state.width || !state.height) return;
-
-		applyEdits(processedImage, originalImage, state).then(setFinalImage);
+		let cancelled = false;
+		applyEdits(processedImage, originalImage, state).then((result) => {
+			if (!cancelled) setFinalImage(result);
+		});
+		return () => { cancelled = true; };
 	}, [processedImage, originalImage, state]);
 
 	// Handle device/model change
@@ -255,22 +258,22 @@ export default function BGRemoverPage() {
 
 							{/* Retry / Cancel bar */}
 							{!isProcessing && hasImage && (
-								<div className="flex items-center gap-2 px-4 py-2 bg-(--bg-elevated) border-t border-border">
+								<div className="flex items-center gap-2 px-4 py-2 bg-elevated border-t border-border">
 									<RetryButton
 										onClick={handleRetry}
 										label="Re-process"
 										disabled={isProcessing}
 										size="md"
 									/>
-									<span className="text-xs text-(--muted) ml-auto">
+									<span className="text-xs text-muted ml-auto">
 										Retry with current settings
 									</span>
 								</div>
 							)}
 							{isProcessing && (
-								<div className="flex items-center gap-2 px-4 py-2 bg-(--bg-elevated) border-t border-border">
+								<div className="flex items-center gap-2 px-4 py-2 bg-elevated border-t border-border">
 									<CancelButton onClick={cancel} label="Cancel" size="md" />
-									<span className="text-xs text-(--muted) ml-auto">
+									<span className="text-xs text-muted ml-auto">
 										Stop current processing
 									</span>
 								</div>

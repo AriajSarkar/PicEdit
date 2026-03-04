@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import type { EdgeLabelProps } from '../types';
+import type { EdgeLabelProps } from '../utils/types';
 
 export const EdgeLabel = memo(function EdgeLabel({ value, axis, x, y }: EdgeLabelProps) {
 	return (

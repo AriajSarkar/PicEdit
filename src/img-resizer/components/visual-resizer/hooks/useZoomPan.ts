@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { clamp } from '../geometry';
-import { MIN_ZOOM, MAX_ZOOM, DEFAULT_ZOOM, PADDING } from '../types';
+import { clamp } from '../utils/geometry';
+import { MIN_ZOOM, MAX_ZOOM, DEFAULT_ZOOM, PADDING } from '../utils/types';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Types

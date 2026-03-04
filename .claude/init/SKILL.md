@@ -25,7 +25,7 @@ Static SPA — Next.js 16, React 19, TypeScript 5, Tailwind v4, Rust/WASM. No SS
 | Tool               | Route             | Domain               |
 | ------------------ | ----------------- | -------------------- |
 | Background Remover | `/bg-remover`     | `src/bg-remover/`    |
-| Image Compressor   | `/img-compressor` | `src/imgcompressor/` |
+| Image Compressor   | `/img-compressor` | `src/img-compressor/` |
 | Image Resizer      | `/img-resizer`    | `src/img-resizer/`   |
 
 ## Project Structure
@@ -34,7 +34,7 @@ Static SPA — Next.js 16, React 19, TypeScript 5, Tailwind v4, Rust/WASM. No SS
 src/app/bg-remover/page.tsx      → thin route shell (metadata in layout.tsx)
 src/bg-remover/                  → domain: components/, hooks/, lib/, types/, workers/
 src/app/img-compressor/page.tsx  → thin route shell
-src/imgcompressor/               → domain: components/, hooks/, lib/, types/, worker.ts
+src/img-compressor/              → domain: components/, hooks/, lib/, types/, worker.ts
 src/app/img-resizer/page.tsx     → thin route shell
 src/img-resizer/                 → domain: components/, hooks/, lib/, types/
 src/app/page.tsx                 → landing page (imports from _data/ + _components/)

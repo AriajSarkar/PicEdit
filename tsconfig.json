@@ -21,7 +21,7 @@
 		"paths": {
 			"@/*": ["./src/*"],
 			"@/bg-remover/*": ["./src/bg-remover/*"],
-			"@/imgcompressor/*": ["./src/imgcompressor/*"],
+			"@/img-compressor/*": ["./src/img-compressor/*"],
 			"@/img-resizer/*": ["./src/img-resizer/*"],
 			"@/types": ["./src/types"],
 			"@/lib/*": ["./src/lib/*"]
@@ -35,5 +35,5 @@
 		".next/dev/types/**/*.ts",
 		"**/*.mts"
 	],
-	"exclude": ["node_modules"]
+	"exclude": ["node_modules", "out"]
 }

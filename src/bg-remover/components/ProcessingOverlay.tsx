@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { motion } from 'motion/react';
 import { ProcessingProgress } from '@/types';
 
@@ -109,7 +110,7 @@ function formatElapsed(ms: number | undefined): string {
 	return `${Math.floor(sec / 60)}m ${sec % 60}s`;
 }
 
-export function ProcessingOverlay({ progress, onCancel }: ProcessingOverlayProps) {
+export const ProcessingOverlay = memo(function ProcessingOverlay({ progress, onCancel }: ProcessingOverlayProps) {
 	const config = STAGE_CONFIG[progress.stage] || STAGE_CONFIG.processing;
 	const overall = getOverallProgress(progress.stage, progress.progress);
 	const elapsed = formatElapsed(progress.elapsed);
@@ -211,4 +212,4 @@ export function ProcessingOverlay({ progress, onCancel }: ProcessingOverlayProps
 			</div>
 		</motion.div>
 	);
-}
+});

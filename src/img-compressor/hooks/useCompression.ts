@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import type { CompressorConfig } from '@/imgcompressor/types';
-import { DEFAULT_COMPRESSOR_CONFIG } from '@/imgcompressor/types';
-import type { CompressedResult } from '@/imgcompressor/lib/compressionUtils';
+import type { CompressorConfig } from '@/img-compressor/types';
+import { DEFAULT_COMPRESSOR_CONFIG } from '@/img-compressor/types';
+import type { CompressedResult } from '@/img-compressor/lib/compressionUtils';
 import {
 	initCompressionWorkers,
 	compressImageInWorker,
 	terminateCompressionWorkers,
-} from '@/imgcompressor/lib/compressionWorkerBridge';
+} from '@/img-compressor/lib/compressionWorkerBridge';
 import { formatBytes } from '@/lib/imageUtils';
 import { useBatchProcessor, type BatchItem } from '@/hooks/useBatchProcessor';
 import { createThumbnailItems, cleanupItemUrls, cleanupAllItemUrls } from '@/lib/thumbnailUtils';

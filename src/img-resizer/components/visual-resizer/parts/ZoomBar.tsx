@@ -1,9 +1,9 @@
 'use client';
 
 import { memo, useCallback } from 'react';
-import { clamp } from '../geometry';
-import { MIN_ZOOM, MAX_ZOOM, DEFAULT_ZOOM } from '../types';
-import type { ZoomBarProps } from '../types';
+import { clamp } from '../utils/geometry';
+import { MIN_ZOOM, MAX_ZOOM, DEFAULT_ZOOM } from '../utils/types';
+import type { ZoomBarProps } from '../utils/types';
 
 const QUICK_ZOOM = [
 	{ label: 'Fit', value: DEFAULT_ZOOM },
@@ -21,7 +21,7 @@ export const ZoomBar = memo(function ZoomBar({ zoom, onZoom, onReset }: ZoomBarP
 	);
 
 	return (
-		<div className="flex items-center justify-between px-4 py-1.5 border-t border-border bg-(--bg-elevated)/40 gap-2">
+		<div className="flex items-center justify-between px-4 py-1.5 border-t border-border bg-elevated/40 gap-2">
 			{/* Zoom slider group */}
 			<div className="flex items-center gap-1.5">
 				<span className="text-[10px] text-muted select-none">Zoom</span>
@@ -80,7 +80,7 @@ export const ZoomBar = memo(function ZoomBar({ zoom, onZoom, onReset }: ZoomBarP
 							onClick={() => (q.label === 'Fit' ? onReset() : onZoom(q.value))}
 							className={`px-1.5 py-0.5 rounded text-[10px] transition-colors ${
 								active
-									? 'text-accent bg-(--accent)/10 font-medium'
+									? 'text-accent bg-accent/10 font-medium'
 									: 'text-muted hover:text-foreground hover:bg-white/5'
 							}`}
 							title={

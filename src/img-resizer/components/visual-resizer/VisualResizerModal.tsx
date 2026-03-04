@@ -3,7 +3,7 @@
 import { memo, useCallback, useEffect, useId } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { VisualResizer } from './index';
-import type { VisualResizerProps } from './types';
+import type { VisualResizerProps } from './utils/types';
 
 interface VisualResizerModalProps extends VisualResizerProps {
 	open: boolean;
@@ -82,7 +82,7 @@ export const VisualResizerModal = memo(function VisualResizerModal({
 								type="button"
 								aria-label="Close visual resizer"
 								onClick={onClose}
-								className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-(--bg-elevated)/80 border border-border backdrop-blur-md text-muted hover:text-foreground hover:border-accent/30 transition-all"
+								className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-elevated/80 border border-border backdrop-blur-md text-muted hover:text-foreground hover:border-accent/30 transition-all"
 								title="Close (Esc)"
 							>
 								<svg

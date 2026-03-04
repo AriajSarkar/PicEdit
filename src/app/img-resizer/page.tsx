@@ -6,7 +6,7 @@ import { ResizerHeader } from '@/img-resizer/components/ResizerHeader';
 import { ResizeControls } from '@/img-resizer/components/ResizeControls';
 import { ResizeResults } from '@/img-resizer/components/ResizeResults';
 import { VisualResizerModal } from '@/img-resizer/components/visual-resizer/VisualResizerModal';
-import type { ViewStateCache } from '@/img-resizer/components/visual-resizer/types';
+import type { ViewStateCache } from '@/img-resizer/components/visual-resizer/utils/types';
 import { FileUploader } from '@/components/FileUploader';
 import { RetryButton } from '@/components/RetryButton';
 import { CancelButton } from '@/components/CancelButton';
@@ -181,9 +181,9 @@ export default function ImgResizerPage() {
 				{!hasItems && <StepGuide />}
 
 				{/* Main Layout */}
-				<div className={`grid gap-6 ${hasItems ? 'lg:grid-cols-[1fr_320px]' : ''}`}>
-					{/* Left: Upload + Results */}
-					<div className="space-y-6">
+				<div className={`flex flex-col gap-4 lg:gap-6 ${hasItems ? 'lg:grid lg:grid-cols-[1fr_320px]' : ''}`}>
+					{/* Upload + Results */}
+					<div className="space-y-4 lg:space-y-5 min-w-0">
 						<FileUploader
 							onFilesSelect={addFiles}
 							disabled={isProcessing}
@@ -199,7 +199,7 @@ export default function ImgResizerPage() {
 								initial={{ opacity: 0, y: 8 }}
 								animate={{ opacity: 1, y: 0 }}
 								onClick={() => setModalOpen(true)}
-								className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-surface hover:border-accent/30 hover:bg-(--bg-elevated) transition-all group"
+								className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-surface hover:border-accent/30 hover:bg-elevated transition-all group"
 							>
 								<div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 group-hover:bg-accent/15 transition-colors">
 									<svg
@@ -346,14 +346,13 @@ export default function ImgResizerPage() {
 						)}
 					</div>
 
-					{/* Right: Controls sidebar */}
+					{/* Settings panel */}
 					{hasItems && (
 						<motion.div
-							initial={{ opacity: 0, x: 20 }}
-							animate={{ opacity: 1, x: 0 }}
-							className="space-y-4"
+							initial={{ opacity: 0, y: 10 }}
+							animate={{ opacity: 1, y: 0 }}
 						>
-							<div className="glass rounded-xl p-5 sticky top-20">
+							<div className="glass-panel p-5 lg:sticky lg:top-20">
 								<h2 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
 									<svg
 										className="w-4 h-4 text-accent"
@@ -395,9 +394,9 @@ const HeroSection = memo(function HeroSection() {
 			animate={{ opacity: 1, y: 0 }}
 			className="text-center mb-8"
 		>
-			<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-(--accent)/5 mb-4">
-				<div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-				<span className="text-xs text-accent font-medium">
+			<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-accent/5 mb-4">
+				<div className="w-1.5 h-1.5 rounded-full bg-accent badge-dot animate-pulse [animation-iteration-count:3]" />
+				<span className="text-xs text-accent font-medium tracking-wide">
 					Social Presets · Batch Resize · High Quality
 				</span>
 			</div>
@@ -437,19 +436,7 @@ const StepGuide = memo(function StepGuide() {
 						<span className="text-xs text-muted">{s.label}</span>
 					</div>
 					{i < 2 && (
-						<svg
-							className="w-4 h-4 text-white/10 -mt-5"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M9 5l7 7-7 7"
-							/>
-						</svg>
+						<div className="w-8 h-px bg-linear-to-r from-accent/30 to-transparent -mt-5" />
 					)}
 				</div>
 			))}
@@ -473,11 +460,16 @@ const ResizeSummary = memo(function ResizeSummary({ stats, totalCount }: ResizeS
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
-			className="glass rounded-xl p-4"
+			className="glass rounded-xl p-4 border-l-2 border-l-accent/40"
 		>
 			<div className="flex items-center justify-between mb-3">
-				<span className="text-sm font-medium text-foreground">Resize Summary</span>
-				<span className="text-xs text-muted">
+				<span className="text-sm font-medium text-foreground flex items-center gap-2">
+					<svg className="w-3.5 h-3.5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+						<path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+					</svg>
+					Resize Summary
+				</span>
+				<span className="text-xs text-muted font-mono">
 					{stats.doneCount}/{totalCount} processed
 				</span>
 			</div>

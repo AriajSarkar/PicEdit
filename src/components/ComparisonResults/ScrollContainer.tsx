@@ -86,6 +86,7 @@ export const ScrollContainer = memo(function ScrollContainer({
 					willChange: 'scroll-position',
 					contain: 'strict',
 					height: `${maxHeight}px`,
+					overscrollBehaviorY: 'contain',
 				}}
 			>
 				{children}

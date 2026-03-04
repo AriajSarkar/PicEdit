@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useRef, useEffect, useCallback } from 'react';
 import type {
 	ConverterConfig,
 	ConvertOutputFormat,
@@ -10,6 +10,7 @@ import type {
 	PdfDpi,
 } from '@/img-converter/types';
 import { FORMAT_INFO, ICO_SIZES } from '@/img-converter/types';
+import { ToggleSwitch } from '@/components/ToggleSwitch';
 
 interface ConversionControlsProps {
 	config: ConverterConfig;
@@ -22,7 +23,30 @@ export const ConversionControls = memo(function ConversionControls({
 	onChange,
 	disabled,
 }: ConversionControlsProps) {
-	const update = (patch: Partial<ConverterConfig>) => onChange({ ...config, ...patch });
+	// Ref-based stable callback — prevents child re-renders
+	const configRef = useRef(config);
+	useEffect(() => { configRef.current = config; }, [config]);
+	const onChangeRef = useRef(onChange);
+	useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+
+	const update = useCallback((patch: Partial<ConverterConfig>) => {
+		onChangeRef.current({ ...configRef.current, ...patch });
+	}, []);
+
+	// RAF-throttled range handler
+	const rafRef = useRef(0);
+	const handleQualityChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			cancelAnimationFrame(rafRef.current);
+			const raw = Number(e.target.value);
+			rafRef.current = requestAnimationFrame(() => {
+				update({ quality: raw / 100 });
+			});
+		},
+		[update],
+	);
+	useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
+
 	const currentFormat = FORMAT_INFO[config.outputFormat];
 
 	return (
@@ -44,8 +68,8 @@ export const ConversionControls = memo(function ConversionControls({
 									py-3 sm:py-2 px-2 rounded-lg text-sm font-medium transition-all
 									${
 										config.outputFormat === fmt
-											? 'bg-accent text-white shadow-lg shadow-(--accent)/25'
-											: 'bg-(--bg-elevated) text-(--muted) hover:text-foreground border border-border'
+											? 'bg-accent text-white shadow-lg shadow-accent/25'
+											: 'bg-elevated text-muted hover:text-foreground border border-border'
 									}
 									disabled:opacity-50
 								`}
@@ -76,11 +100,11 @@ export const ConversionControls = memo(function ConversionControls({
 						min={1}
 						max={100}
 						value={Math.round(config.quality * 100)}
-						onChange={(e) => update({ quality: Number(e.target.value) / 100 })}
+						onChange={handleQualityChange}
 						disabled={disabled}
 						className="w-full accent-accent"
 					/>
-					<div className="flex justify-between text-xs text-(--muted) mt-1">
+					<div className="flex justify-between text-xs text-muted mt-1">
 						<span>Smaller file</span>
 						<span>Higher quality</span>
 					</div>
@@ -89,35 +113,13 @@ export const ConversionControls = memo(function ConversionControls({
 
 			{/* Transparency toggle */}
 			{currentFormat.supportsAlpha && (
-				<div className="flex items-center justify-between">
-					<div>
-						<p className="text-sm font-medium text-foreground">
-							Preserve Transparency
-						</p>
-						<p className="text-xs text-(--muted)">Keep alpha channel in output</p>
-					</div>
-					<button
-						type="button"
-						role="switch"
-						aria-checked={config.preserveTransparency}
-						aria-label="Preserve transparency"
-						onClick={() =>
-							update({ preserveTransparency: !config.preserveTransparency })
-						}
-						disabled={disabled}
-						className={`
-							relative w-11 h-6 rounded-full transition-colors
-							${config.preserveTransparency ? 'bg-accent' : 'bg-white/10'}
-						`}
-					>
-						<span
-							className={`
-								absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform
-								${config.preserveTransparency ? 'translate-x-5' : ''}
-							`}
-						/>
-					</button>
-				</div>
+				<ToggleSwitch
+					checked={config.preserveTransparency}
+					onChange={(v) => update({ preserveTransparency: v })}
+					label="Preserve Transparency"
+					description="Keep alpha channel in output"
+					disabled={disabled}
+				/>
 			)}
 
 			{/* Background color picker */}
@@ -126,7 +128,7 @@ export const ConversionControls = memo(function ConversionControls({
 					<label className="block text-sm font-medium text-foreground mb-2">
 						Background Color
 					</label>
-					<p className="text-xs text-(--muted) mb-2">
+					<p className="text-xs text-muted mb-2">
 						Replaces transparent areas when alpha is removed
 					</p>
 					<div className="flex items-center gap-3">
@@ -156,7 +158,7 @@ export const ConversionControls = memo(function ConversionControls({
 								/>
 							))}
 						</div>
-						<span className="text-xs text-(--muted) font-mono ml-auto">
+						<span className="text-xs text-muted font-mono ml-auto">
 							{config.backgroundColor}
 						</span>
 					</div>
@@ -164,31 +166,13 @@ export const ConversionControls = memo(function ConversionControls({
 			)}
 
 			{/* Grayscale toggle */}
-			<div className="flex items-center justify-between">
-				<div>
-					<p className="text-sm font-medium text-foreground">Grayscale</p>
-					<p className="text-xs text-(--muted)">BT.709 perceptual luminance</p>
-				</div>
-				<button
-					type="button"
-					role="switch"
-					aria-checked={config.grayscale}
-					aria-label="Convert to grayscale"
-					onClick={() => update({ grayscale: !config.grayscale })}
-					disabled={disabled}
-					className={`
-						relative w-11 h-6 rounded-full transition-colors
-						${config.grayscale ? 'bg-accent' : 'bg-white/10'}
-					`}
-				>
-					<span
-						className={`
-							absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform
-							${config.grayscale ? 'translate-x-5' : ''}
-						`}
-					/>
-				</button>
-			</div>
+			<ToggleSwitch
+				checked={config.grayscale}
+				onChange={(v) => update({ grayscale: v })}
+				label="Grayscale"
+				description="BT.709 perceptual luminance"
+				disabled={disabled}
+			/>
 
 			{/* ICO sizes multi-select */}
 			{config.outputFormat === 'ico' && (
@@ -196,7 +180,7 @@ export const ConversionControls = memo(function ConversionControls({
 					<label className="block text-sm font-medium text-foreground mb-2">
 						ICO Sizes
 					</label>
-					<p className="text-xs text-(--muted) mb-2">
+					<p className="text-xs text-muted mb-2">
 						Select which resolutions to embed in the .ico file.
 						All sizes are packed into one file &mdash; apps pick
 						the best size automatically.
@@ -220,7 +204,7 @@ export const ConversionControls = memo(function ConversionControls({
 										${
 											selected
 												? 'bg-accent/15 text-accent border border-accent/30'
-												: 'bg-(--bg-elevated) text-(--muted) border border-border hover:text-foreground'
+												: 'bg-elevated text-muted border border-border hover:text-foreground'
 										}
 										disabled:opacity-50
 									`}
@@ -239,8 +223,8 @@ export const ConversionControls = memo(function ConversionControls({
 							placeholder="Custom size"
 							disabled={disabled}
 							className="flex-1 px-3 py-1.5 rounded-lg text-sm font-mono
-								bg-(--bg-elevated) border border-border text-foreground
-								placeholder:text-(--muted) focus:outline-none focus:border-accent/50
+								bg-elevated border border-border text-foreground
+								placeholder:text-muted focus:outline-none focus:border-accent/50
 								disabled:opacity-50"
 							onKeyDown={(e) => {
 								if (e.key === 'Enter') {
@@ -254,7 +238,7 @@ export const ConversionControls = memo(function ConversionControls({
 								}
 							}}
 						/>
-						<span className="text-xs text-(--muted) shrink-0">1–1024 px</span>
+						<span className="text-xs text-muted shrink-0">1–1024 px</span>
 					</div>
 					{/* Custom sizes display */}
 					{config.icoSizes.some((s) => !(ICO_SIZES as readonly number[]).includes(s)) && (
@@ -279,7 +263,7 @@ export const ConversionControls = memo(function ConversionControls({
 								))}
 						</div>
 					)}
-					<p className="text-xs text-(--muted) mt-2">
+					<p className="text-xs text-muted mt-2">
 						{config.icoSizes.length} size{config.icoSizes.length !== 1 ? 's' : ''}{' '}
 						selected
 						{config.icoSizes.some((s) => s > 256) && (
@@ -297,7 +281,7 @@ export const ConversionControls = memo(function ConversionControls({
 						<label className="block text-sm font-medium text-foreground mb-2">
 							Resolution (DPI)
 						</label>
-						<p className="text-xs text-(--muted) mb-2">
+						<p className="text-xs text-muted mb-2">
 							Higher DPI = sharper image, larger file
 						</p>
 						<div className="grid grid-cols-4 gap-2">
@@ -311,7 +295,7 @@ export const ConversionControls = memo(function ConversionControls({
 										${
 											config.pdfDpi === dpi
 												? 'bg-accent/15 text-accent border border-accent/30'
-												: 'bg-(--bg-elevated) text-(--muted) border border-border hover:text-foreground'
+												: 'bg-elevated text-muted border border-border hover:text-foreground'
 										}
 										disabled:opacity-50
 									`}
@@ -320,7 +304,7 @@ export const ConversionControls = memo(function ConversionControls({
 								</button>
 							))}
 						</div>
-						<p className="text-xs text-(--muted) mt-1">
+						<p className="text-xs text-muted mt-1">
 							{config.pdfDpi === 72 && 'Screen quality — small file'}
 							{config.pdfDpi === 150 && 'Good for digital sharing'}
 							{config.pdfDpi === 300 && 'Print quality — recommended'}
@@ -352,7 +336,7 @@ export const ConversionControls = memo(function ConversionControls({
 										${
 											config.pdfPageSize === value
 												? 'bg-accent/15 text-accent border border-accent/30'
-												: 'bg-(--bg-elevated) text-(--muted) border border-border hover:text-foreground'
+												: 'bg-elevated text-muted border border-border hover:text-foreground'
 										}
 										disabled:opacity-50
 									`}
@@ -386,7 +370,7 @@ export const ConversionControls = memo(function ConversionControls({
 											${
 												config.pdfFitMode === value
 													? 'bg-accent/15 text-accent border border-accent/30'
-													: 'bg-(--bg-elevated) text-(--muted) border border-border hover:text-foreground'
+													: 'bg-elevated text-muted border border-border hover:text-foreground'
 											}
 											disabled:opacity-50
 										`}
@@ -422,7 +406,7 @@ export const ConversionControls = memo(function ConversionControls({
 											${
 												config.pdfOrientation === value
 													? 'bg-accent/15 text-accent border border-accent/30'
-													: 'bg-(--bg-elevated) text-(--muted) border border-border hover:text-foreground'
+													: 'bg-elevated text-muted border border-border hover:text-foreground'
 											}
 											disabled:opacity-50
 										`}
@@ -437,7 +421,7 @@ export const ConversionControls = memo(function ConversionControls({
 			)}
 
 			{/* Format info */}
-			<div className="px-3 py-2.5 rounded-lg bg-(--bg-elevated) border border-border">
+			<div className="px-3 py-2.5 rounded-lg bg-elevated border border-border">
 				<div className="flex items-center gap-2 mb-1">
 					<svg
 						className="w-3.5 h-3.5 text-accent"
@@ -456,7 +440,7 @@ export const ConversionControls = memo(function ConversionControls({
 						{currentFormat.label} Info
 					</span>
 				</div>
-				<p className="text-xs text-(--muted) leading-relaxed">
+				<p className="text-xs text-muted leading-relaxed">
 					{config.outputFormat === 'jpeg' &&
 						'Lossy compression. Best for photos. No transparency support.'}
 					{config.outputFormat === 'png' &&

@@ -69,6 +69,26 @@ export const ResizeControls = memo(function ResizeControls({
 		onChangeRef.current({ ...configRef.current, ...partial });
 	}, []);
 
+	// RAF-throttled range handler — prevents excess setState during slider drag
+	const rafRef = useRef(0);
+	const handlePercentageChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			cancelAnimationFrame(rafRef.current);
+			const v = parseInt(e.target.value);
+			rafRef.current = requestAnimationFrame(() => update({ percentage: v }));
+		},
+		[update],
+	);
+	const handleQualityChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			cancelAnimationFrame(rafRef.current);
+			const v = parseInt(e.target.value) / 100;
+			rafRef.current = requestAnimationFrame(() => update({ quality: v }));
+		},
+		[update],
+	);
+	useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
+
 	// Group presets by category
 	const presetCategories = useMemo(() => {
 		const cats = new Map<string, typeof RESIZE_PRESETS>();
@@ -129,7 +149,7 @@ export const ResizeControls = memo(function ResizeControls({
 							{config.method === tab.id && (
 								<motion.div
 									layoutId="method-tab"
-									className="absolute inset-0 bg-(--bg-elevated) rounded-lg border border-border"
+									className="absolute inset-0 bg-elevated rounded-lg border border-border"
 									transition={{ type: 'spring', stiffness: 400, damping: 30 }}
 								/>
 							)}
@@ -184,9 +204,9 @@ export const ResizeControls = memo(function ResizeControls({
 								disabled={disabled}
 								className={`p-2.5 rounded-lg border transition-all mb-px ${
 									config.lockAspectRatio
-										? 'bg-(--accent)/10 border-accent/30 text-accent'
+										? 'bg-accent/10 border-accent/30 text-accent'
 										: 'bg-background border-border text-muted'
-								} hover:bg-(--accent)/15 disabled:opacity-50`}
+								} hover:bg-accent/15 disabled:opacity-50`}
 								title={
 									config.lockAspectRatio
 										? 'Aspect ratio locked'
@@ -246,7 +266,7 @@ export const ResizeControls = memo(function ResizeControls({
 										disabled={disabled}
 										className={`px-2 py-2 rounded-lg text-xs transition-all border ${
 											config.fit === opt.id
-												? 'bg-(--accent)/10 border-accent/30 text-accent'
+												? 'bg-accent/10 border-accent/30 text-accent'
 												: 'bg-background border-border text-muted hover:text-foreground'
 										} disabled:opacity-50`}
 									>
@@ -280,7 +300,7 @@ export const ResizeControls = memo(function ResizeControls({
 									disabled={disabled}
 									className={`px-2 py-2 rounded-lg text-xs font-mono font-medium transition-all border ${
 										config.percentage === p
-											? 'bg-(--accent)/10 border-accent/30 text-accent'
+											? 'bg-accent/10 border-accent/30 text-accent'
 											: 'bg-background border-border text-muted hover:text-foreground'
 									} disabled:opacity-50`}
 								>
@@ -302,7 +322,7 @@ export const ResizeControls = memo(function ResizeControls({
 								min={1}
 								max={500}
 								value={config.percentage}
-								onChange={(e) => update({ percentage: parseInt(e.target.value) })}
+							onChange={handlePercentageChange}
 								disabled={disabled}
 								className="w-full"
 							/>
@@ -371,8 +391,8 @@ export const ResizeControls = memo(function ResizeControls({
 														disabled={disabled}
 														className={`px-2.5 py-2 rounded-lg text-left transition-all border ${
 															config.presetId === preset.id
-																? 'bg-(--accent)/10 border-accent/30'
-																: 'bg-(--bg-elevated) border-transparent hover:border-border'
+																? 'bg-accent/10 border-accent/30'
+																: 'bg-elevated border-transparent hover:border-border'
 														} disabled:opacity-50`}
 													>
 														<div
@@ -403,7 +423,7 @@ export const ResizeControls = memo(function ResizeControls({
 										disabled={disabled}
 										className={`px-2 py-1.5 rounded-lg text-xs transition-all border ${
 											config.fit === opt.id
-												? 'bg-(--accent)/10 border-accent/30 text-accent'
+												? 'bg-accent/10 border-accent/30 text-accent'
 												: 'bg-background border-border text-muted hover:text-foreground'
 										} disabled:opacity-50`}
 									>
@@ -453,7 +473,7 @@ export const ResizeControls = memo(function ResizeControls({
 						min={10}
 						max={100}
 						value={Math.round(config.quality * 100)}
-						onChange={(e) => update({ quality: parseInt(e.target.value) / 100 })}
+						onChange={handleQualityChange}
 						disabled={disabled}
 						className="w-full"
 					/>

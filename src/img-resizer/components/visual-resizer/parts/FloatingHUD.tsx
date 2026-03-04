@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import type { InteractionMode } from '../types';
+import type { InteractionMode } from '../utils/types';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Props

@@ -22,7 +22,7 @@ Static SPA — Next.js 16, React 19, Tailwind v4, Rust/WASM. No SSR, no API rout
 | Tool               | Route             | Domain               |
 | ------------------ | ----------------- | -------------------- |
 | Background Remover | `/bg-remover`     | `src/bg-remover/`    |
-| Image Compressor   | `/img-compressor` | `src/imgcompressor/` |
+| Image Compressor   | `/img-compressor` | `src/img-compressor/` |
 | Image Resizer      | `/img-resizer`    | `src/img-resizer/`   |
 
 ### Key Patterns

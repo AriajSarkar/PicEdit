@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { AnimatePresence } from 'motion/react';
-import type { CompressionItem } from '@/imgcompressor/hooks/useCompression';
+import type { CompressionItem } from '@/img-compressor/hooks/useCompression';
 import type { ResizeItem } from '@/img-resizer/types';
 import type { ConversionItem } from '@/img-converter/hooks/useConversion';
 import { ScrollContainer, MAX_VISIBLE, ITEM_HEIGHT, ITEM_GAP } from './ScrollContainer';
@@ -64,13 +64,14 @@ export const ComparisonResults = memo(function ComparisonResults(
 	return (
 		<div className="space-y-3">
 			<div className="flex items-center justify-between">
-				<h3 className="text-sm font-medium text-muted uppercase tracking-wider">
+				<h3 className="text-sm font-medium text-muted uppercase tracking-wider flex items-center gap-2">
+					<div className="w-1 h-4 rounded-full bg-accent/60" />
 					Images ({items.length})
 				</h3>
 				<div className="flex items-center gap-2">
 					{processingCount > 0 && (
 						<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-accent/10 text-accent">
-							<span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+							<span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse [animation-iteration-count:3]" />
 							{processingCount} {props.mode === 'resize' ? 'resizing' : props.mode === 'convert' ? 'converting' : 'processing'}
 						</span>
 					)}
@@ -100,11 +101,12 @@ export const ComparisonResults = memo(function ComparisonResults(
 			{needsScroll && (
 				<div className="flex items-center justify-center gap-1.5 text-xs text-muted">
 					<svg
-						className="w-3.5 h-3.5 animate-bounce"
+						className="w-3.5 h-3.5"
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke="currentColor"
 						strokeWidth={2}
+						style={{ animation: 'bounce 1s ease-in-out 3' }}
 					>
 						<path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
 					</svg>

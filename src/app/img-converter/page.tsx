@@ -17,6 +17,10 @@ import { useTracer } from '@/img-converter/hooks/useTracer';
 
 type PageMode = 'convert' | 'trace';
 
+// Hoisted constants — prevent new array refs every render
+const CONVERT_FORMATS: string[] = ['JPEG', 'PNG', 'WebP', 'AVIF', 'BMP', 'TIFF', 'SVG', 'GIF'];
+const TRACE_FORMATS: string[] = ['JPEG', 'PNG', 'WebP', 'BMP', 'TIFF', 'GIF'];
+
 export default function ImgConverterPage() {
 	const [mode, setMode] = useState<PageMode>('convert');
 
@@ -32,26 +36,62 @@ export default function ImgConverterPage() {
 	const hasItems = activeItems.length > 0;
 
 	const convCounts = useMemo(() => {
-		let done = 0, pending = 0, retryable = 0;
+		let done = 0, pending = 0, retryable = 0, processing = 0;
 		for (const i of conv.items) {
 			if (i.status === 'done') { done++; retryable++; }
 			if (i.status === 'pending') pending++;
 			if (i.status === 'error') { pending++; retryable++; }
+			if (i.status === 'processing') processing++;
 		}
-		return { doneCount: done, pendingCount: pending, retryableCount: retryable };
+		return { doneCount: done, pendingCount: pending, retryableCount: retryable, processingCount: processing };
 	}, [conv.items]);
 
 	const tracerCounts = useMemo(() => {
-		let done = 0, pending = 0, retryable = 0;
+		let done = 0, pending = 0, retryable = 0, processing = 0;
 		for (const i of tracer.items) {
 			if (i.status === 'done') { done++; retryable++; }
 			if (i.status === 'pending') pending++;
 			if (i.status === 'error') { pending++; retryable++; }
+			if (i.status === 'processing') processing++;
 		}
-		return { doneCount: done, pendingCount: pending, retryableCount: retryable };
+		return { doneCount: done, pendingCount: pending, retryableCount: retryable, processingCount: processing };
 	}, [tracer.items]);
 
 	const counts = mode === 'convert' ? convCounts : tracerCounts;
+
+	// Memoize SummaryStatsBar columns to prevent memo bypass
+	const convSummaryColumns = useMemo(
+		() => [
+			{ label: 'Original', value: conv.stats.formattedOriginal },
+			{ label: 'Converted', value: conv.stats.formattedConverted },
+			{
+				label: conv.stats.increased ? 'Increase' : 'Saved',
+				value: `${conv.stats.increased ? '+' : ''}${conv.stats.formattedDiff}`,
+				color: conv.stats.increased ? 'text-amber-400' : 'text-green-400',
+				suffix:
+					conv.stats.diffPercent !== 0
+						? `(${conv.stats.increased ? '+' : ''}${Math.abs(conv.stats.diffPercent).toFixed(1)}%)`
+						: undefined,
+				suffixColor: conv.stats.increased ? 'text-amber-400/70' : 'text-green-400/70',
+			},
+		],
+		[conv.stats],
+	);
+	const convSummaryProgress = useMemo(
+		() => ({ done: convCounts.doneCount, total: conv.items.length }),
+		[convCounts.doneCount, conv.items.length],
+	);
+	const tracerSummaryColumns = useMemo(
+		() => [
+			{ label: 'Original', value: tracer.stats.formattedOriginal },
+			{ label: 'SVG Output', value: tracer.stats.formattedSvg, color: 'text-accent' },
+		],
+		[tracer.stats],
+	);
+	const tracerSummaryProgress = useMemo(
+		() => ({ done: tracer.stats.doneCount, total: tracer.items.length }),
+		[tracer.stats.doneCount, tracer.items.length],
+	);
 
 	return (
 		<div className="min-h-screen bg-background text-foreground">
@@ -64,9 +104,9 @@ export default function ImgConverterPage() {
 					animate={{ opacity: 1, y: 0 }}
 					className="text-center mb-8"
 				>
-					<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-(--accent)/5 mb-4">
-						<div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-						<span className="text-xs text-accent font-medium">
+					<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent/20 bg-accent/5 mb-4">
+						<div className="w-1.5 h-1.5 rounded-full bg-accent badge-dot animate-pulse [animation-iteration-count:3]" />
+						<span className="text-xs text-accent font-medium tracking-wide">
 							Rust WASM · Format Conversion · SVG Tracing · Batch Processing
 						</span>
 					</div>
@@ -75,7 +115,7 @@ export default function ImgConverterPage() {
 							{mode === 'convert' ? 'Format Converter' : 'SVG Tracer'}
 						</span>
 					</h1>
-					<p className="text-(--muted) text-sm max-w-md mx-auto">
+					<p className="text-muted text-sm max-w-md mx-auto">
 						{mode === 'convert'
 							? 'Convert images between JPEG, PNG, WebP, AVIF, BMP, TIFF, ICO, and PDF. Everything runs locally — your images never leave your device.'
 							: 'Convert raster images to scalable vector graphics using Rust WASM. Powered by vtracer — fast, precise, and fully local.'}
@@ -84,14 +124,14 @@ export default function ImgConverterPage() {
 
 				{/* Mode toggle */}
 				<div className="flex items-center justify-center mb-8">
-					<div className="inline-flex items-center rounded-xl bg-(--bg-elevated) border border-border p-1 gap-1">
+					<div className="inline-flex items-center rounded-xl bg-elevated border border-white/6 p-1 gap-1 shadow-lg shadow-black/20">
 						<button
 							onClick={() => setMode('convert')}
 							className={`
 								px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2
 								${mode === 'convert'
-									? 'bg-accent text-white shadow-lg shadow-(--accent)/25'
-									: 'text-(--muted) hover:text-foreground'}
+									? 'bg-accent text-white shadow-lg shadow-accent/25'
+									: 'text-muted hover:text-foreground'}
 							`}
 						>
 							<svg
@@ -116,8 +156,8 @@ export default function ImgConverterPage() {
 							className={`
 								px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2
 								${mode === 'trace'
-									? 'bg-accent text-white shadow-lg shadow-(--accent)/25'
-									: 'text-(--muted) hover:text-foreground'}
+									? 'bg-accent text-white shadow-lg shadow-accent/25'
+									: 'text-muted hover:text-foreground'}
 							`}
 						>
 							<svg
@@ -179,24 +219,10 @@ export default function ImgConverterPage() {
 											/>
 										</svg>
 									</div>
-									<span className="text-xs text-(--muted)">{s.label}</span>
+									<span className="text-xs text-muted">{s.label}</span>
 								</div>
 								{i < 2 && (
-									<svg
-										className="w-4 h-4 text-white/10 -mt-5"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										aria-hidden="true"
-										focusable={false}
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M9 5l7 7-7 7"
-										/>
-									</svg>
+									<div className="w-8 h-px bg-linear-to-r from-accent/30 to-transparent -mt-5" />
 								)}
 							</div>
 						))}
@@ -204,174 +230,150 @@ export default function ImgConverterPage() {
 				)}
 
 				{/* Main Layout */}
-				<div className={`grid gap-6 ${hasItems ? 'lg:grid-cols-[1fr_320px]' : ''}`}>
-					{/* Left: Upload + Results */}
-					<div className="space-y-6">
-						<FileUploader
-							onFilesSelect={mode === 'convert' ? conv.addFiles : tracer.addFiles}
-							disabled={activeIsProcessing}
-							multiple
-							title="Drop images here or click to browse"
-							subtitle={
-								mode === 'convert'
-									? 'Supports JPEG, PNG, WebP, AVIF, BMP, TIFF, SVG, GIF — batch upload'
-									: 'Upload raster images to vectorize — JPEG, PNG, WebP, BMP, TIFF, GIF'
-							}
-							formats={
-								mode === 'convert'
-									? ['JPEG', 'PNG', 'WebP', 'AVIF', 'BMP', 'TIFF', 'SVG', 'GIF']
-									: ['JPEG', 'PNG', 'WebP', 'BMP', 'TIFF', 'GIF']
-							}
-						/>
+				<FileUploader
+					onFilesSelect={mode === 'convert' ? conv.addFiles : tracer.addFiles}
+					disabled={activeIsProcessing}
+					multiple
+					title="Drop images here or click to browse"
+					subtitle={
+						mode === 'convert'
+							? 'Supports JPEG, PNG, WebP, AVIF, BMP, TIFF, SVG, GIF — batch upload'
+							: 'Upload raster images to vectorize — JPEG, PNG, WebP, BMP, TIFF, GIF'
+					}
+					formats={mode === 'convert' ? CONVERT_FORMATS : TRACE_FORMATS}
+				/>
 
-						{hasItems && (
-							<>
-								{/* Action bar */}
-								<div className="flex flex-wrap items-center justify-between gap-2">
-									<div className="flex items-center gap-2">
-										{counts.pendingCount > 0 && (
-											<button
-												onClick={mode === 'convert' ? conv.convertAll : tracer.traceAll}
-												disabled={activeIsProcessing}
-												className="btn-primary text-sm px-4 py-2"
-											>
-												{activeIsProcessing ? (
-													<span className="flex items-center gap-2">
-														<svg
-															className="w-4 h-4 animate-spin"
-															fill="none"
-															viewBox="0 0 24 24"
-															aria-hidden="true"
-															focusable={false}
-														>
-															<circle
-																className="opacity-25"
-																cx="12"
-																cy="12"
-																r="10"
-																stroke="currentColor"
-																strokeWidth="4"
-															/>
-															<path
-																className="opacity-75"
-																fill="currentColor"
-																d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-															/>
-														</svg>
-														{mode === 'convert' ? 'Converting...' : 'Tracing...'}
-													</span>
-												) : mode === 'convert' ? (
-													`Convert All (${counts.pendingCount})`
-												) : (
-													`Trace All (${counts.pendingCount})`
-												)}
-											</button>
-										)}
-										{activeIsProcessing && (
-											<CancelButton
-												onClick={mode === 'convert' ? conv.cancelAll : tracer.cancelAll}
-												variant="all"
-												count={activeItems.filter((i) => i.status === 'processing').length}
-												size="md"
-											/>
-										)}
-										{!activeIsProcessing && counts.retryableCount > 0 && (
-											<RetryButton
-												onClick={mode === 'convert' ? conv.retryAll : tracer.retryAll}
-												variant="all"
-												count={counts.retryableCount}
-												size="md"
-											/>
-										)}
-										{counts.doneCount > 0 && (
-											<button
-												onClick={mode === 'convert' ? conv.downloadAll : tracer.downloadAll}
-												className="btn-secondary text-sm px-4 py-2"
-											>
-												Download All ({counts.doneCount})
-											</button>
-										)}
-										{mode === 'convert' && conv.items.length >= 2 && (
-											<PdfMergePanel
-												items={conv.items}
-												isBuildingPdf={conv.isBuildingPdf}
-												pdfProgress={conv.pdfProgress}
-												onMerge={(selectedIds) => conv.downloadAsPdf(selectedIds)}
-											/>
-										)}
-									</div>
-									<button
-										onClick={mode === 'convert' ? conv.clearAll : tracer.clearAll}
-										disabled={activeIsProcessing}
-										className="text-sm text-(--muted) hover:text-red-400 transition-colors disabled:opacity-50"
-									>
-										Clear All
-									</button>
-								</div>
-
-								{/* Results */}
-								{mode === 'convert' ? (
-									<>
-										<ConversionResults
+				{hasItems && (
+					<div className="mt-5 flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_320px] lg:gap-6">
+						{/* Results & Stats */}
+						<div className="space-y-4 lg:space-y-5 min-w-0">
+							{/* Action bar */}
+							<div className="flex flex-wrap items-center justify-between gap-2">
+								<div className="flex items-center gap-2">
+									{counts.pendingCount > 0 && (
+										<button
+											onClick={mode === 'convert' ? conv.convertAll : tracer.traceAll}
+											disabled={activeIsProcessing}
+											className="btn-primary text-sm px-4 py-2"
+										>
+											{activeIsProcessing ? (
+												<span className="flex items-center gap-2">
+													<svg
+														className="w-4 h-4 animate-spin"
+														fill="none"
+														viewBox="0 0 24 24"
+														aria-hidden="true"
+														focusable={false}
+													>
+														<circle
+															className="opacity-25"
+															cx="12"
+															cy="12"
+															r="10"
+															stroke="currentColor"
+															strokeWidth="4"
+														/>
+														<path
+															className="opacity-75"
+															fill="currentColor"
+															d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+														/>
+													</svg>
+													{mode === 'convert' ? 'Converting...' : 'Tracing...'}
+												</span>
+											) : mode === 'convert' ? (
+												`Convert All (${counts.pendingCount})`
+											) : (
+												`Trace All (${counts.pendingCount})`
+											)}
+										</button>
+									)}
+									{activeIsProcessing && (
+										<CancelButton
+											onClick={mode === 'convert' ? conv.cancelAll : tracer.cancelAll}
+											variant="all"
+											count={counts.processingCount}
+											size="md"
+										/>
+									)}
+									{!activeIsProcessing && counts.retryableCount > 0 && (
+										<RetryButton
+											onClick={mode === 'convert' ? conv.retryAll : tracer.retryAll}
+											variant="all"
+											count={counts.retryableCount}
+											size="md"
+										/>
+									)}
+									{counts.doneCount > 0 && (
+										<button
+											onClick={mode === 'convert' ? conv.downloadAll : tracer.downloadAll}
+											className="btn-secondary text-sm px-4 py-2"
+										>
+											Download All ({counts.doneCount})
+										</button>
+									)}
+									{mode === 'convert' && conv.items.length >= 2 && (
+										<PdfMergePanel
 											items={conv.items}
-											onRemove={conv.removeItem}
-											onDownload={conv.downloadOne}
-											onConvert={conv.convertOne}
-											onRetry={conv.retryOne}
-											onCancel={conv.cancelOne}
+											isBuildingPdf={conv.isBuildingPdf}
+											pdfProgress={conv.pdfProgress}
+											onMerge={(selectedIds) => conv.downloadAsPdf(selectedIds)}
 										/>
-									<SummaryStatsBar
-										title="Conversion Summary"
-										countLabel={`${convCounts.doneCount}/${conv.items.length} converted`}
-										columns={[
-											{ label: 'Original', value: conv.stats.formattedOriginal },
-											{ label: 'Converted', value: conv.stats.formattedConverted },
-											{
-												label: conv.stats.increased ? 'Increase' : 'Saved',
-												value: `${conv.stats.increased ? '+' : ''}${conv.stats.formattedDiff}`,
-												color: conv.stats.increased ? 'text-amber-400' : 'text-green-400',
-												suffix: conv.stats.diffPercent !== 0
-													? `(${conv.stats.increased ? '+' : ''}${Math.abs(conv.stats.diffPercent).toFixed(1)}%)`
-													: undefined,
-												suffixColor: conv.stats.increased ? 'text-amber-400/70' : 'text-green-400/70',
-											},
-										]}
-										progress={{ done: convCounts.doneCount, total: conv.items.length }}
-										/>
-									</>
-								) : (
-									<>
-										<TracerResults
-											items={tracer.items}
-											onRemove={tracer.removeItem}
-											onDownload={tracer.downloadOne}
-											onTrace={tracer.traceOne}
-											onRetry={tracer.retryOne}
-											onCancel={tracer.cancelOne}
-										/>
-									<SummaryStatsBar
-										title="Trace Summary"
-										countLabel={`${tracer.stats.doneCount} of ${tracer.items.length} traced`}
-										columns={[
-											{ label: 'Original', value: tracer.stats.formattedOriginal },
-											{ label: 'SVG Output', value: tracer.stats.formattedSvg, color: 'text-accent' },
-										]}
-										progress={{ done: tracer.stats.doneCount, total: tracer.items.length }}
-										/>
-									</>
-								)}
-							</>
-						)}
-					</div>
+									)}
+								</div>
+								<button
+									onClick={mode === 'convert' ? conv.clearAll : tracer.clearAll}
+									disabled={activeIsProcessing}
+									className="text-sm text-muted hover:text-red-400 transition-colors disabled:opacity-50"
+								>
+									Clear All
+								</button>
+							</div>
 
-					{/* Right: Controls sidebar */}
-					{hasItems && (
+							{/* Results */}
+							{mode === 'convert' ? (
+								<>
+									<ConversionResults
+										items={conv.items}
+										onRemove={conv.removeItem}
+										onDownload={conv.downloadOne}
+										onConvert={conv.convertOne}
+										onRetry={conv.retryOne}
+										onCancel={conv.cancelOne}
+									/>
+								<SummaryStatsBar
+									title="Conversion Summary"
+									countLabel={`${convCounts.doneCount}/${conv.items.length} converted`}
+									columns={convSummaryColumns}
+									progress={convSummaryProgress}
+									/>
+								</>
+							) : (
+								<>
+									<TracerResults
+										items={tracer.items}
+										onRemove={tracer.removeItem}
+										onDownload={tracer.downloadOne}
+										onTrace={tracer.traceOne}
+										onRetry={tracer.retryOne}
+										onCancel={tracer.cancelOne}
+									/>
+								<SummaryStatsBar
+									title="Trace Summary"
+									countLabel={`${tracer.stats.doneCount} of ${tracer.items.length} traced`}
+									columns={tracerSummaryColumns}
+									progress={tracerSummaryProgress}
+									/>
+								</>
+							)}
+						</div>
+
+						{/* Settings panel */}
 						<motion.div
-							initial={{ opacity: 0, x: 20 }}
-							animate={{ opacity: 1, x: 0 }}
-							className="space-y-4"
+							initial={{ opacity: 0, y: 10 }}
+							animate={{ opacity: 1, y: 0 }}
 						>
-							<div className="glass rounded-xl p-5 sticky top-20">
+							<div className="glass-panel p-5 lg:sticky lg:top-20">
 								<h2 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
 									<svg
 										className="w-4 h-4 text-accent"
@@ -411,8 +413,8 @@ export default function ImgConverterPage() {
 								)}
 							</div>
 						</motion.div>
-					)}
-				</div>
+					</div>
+				)}
 			</main>
 		</div>
 	);

@@ -3,7 +3,7 @@
 
 import { memo } from 'react';
 import { motion } from 'motion/react';
-import type { CompressionItem } from '@/imgcompressor/hooks/useCompression';
+import type { CompressionItem } from '@/img-compressor/hooks/useCompression';
 import type { ResizeItem } from '@/img-resizer/types';
 import type { ConversionItem } from '@/img-converter/hooks/useConversion';
 import { formatBytes } from '@/lib/imageUtils';
@@ -41,7 +41,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 			animate={{ opacity: 1, x: 0 }}
 			exit={{ opacity: 0, x: 20 }}
 			transition={{ duration: 0.2 }}
-			className="flex items-center gap-3 p-3 rounded-xl bg-(--bg-elevated) border border-border group"
+			className="flex items-center gap-3 p-3 rounded-xl bg-elevated border border-border group"
 			style={{ contentVisibility: 'auto', containIntrinsicSize: '0 72px' }}
 		>
 			<div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-white/5">
@@ -59,7 +59,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 
 				{item.status === 'processing' && (
 					<div className="mt-1">
-						<div className="flex items-center justify-between text-xs text-(--muted) mb-1">
+						<div className="flex items-center justify-between text-xs text-muted mb-1">
 							<span>{item.stage}</span>
 							<span>{item.progress}%</span>
 						</div>
@@ -75,7 +75,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 
 				{!isResize && item.status === 'done' && compressionItem?.result && (
 					<div className="flex items-center gap-2 mt-0.5">
-						<span className="text-xs text-(--muted)">
+						<span className="text-xs text-muted">
 							{formatBytes(compressionItem.result.originalSize)}
 						</span>
 						<svg
@@ -104,7 +104,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 						</span>
 						{compressionItem.result.ssim !== undefined &&
 							compressionItem.result.ssim > 0 && (
-								<span className="text-xs text-(--muted) ml-1">
+								<span className="text-xs text-muted ml-1">
 									SSIM: {compressionItem.result.ssim.toFixed(4)}
 								</span>
 							)}
@@ -113,7 +113,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 
 				{isResize && item.status === 'done' && resizeItem?.result && resizeDims && (
 					<div className="flex items-center gap-2 mt-0.5">
-						<span className="text-xs text-(--muted)">
+						<span className="text-xs text-muted">
 							{resizeItem.originalWidth}x{resizeItem.originalHeight}
 						</span>
 						<svg
@@ -132,7 +132,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 						<span className="text-xs font-medium text-accent">
 							{resizeDims.width}x{resizeDims.height}
 						</span>
-						<span className="text-xs text-(--muted)">
+						<span className="text-xs text-muted">
 							{formatBytes(resizeItem.result.newSize)}
 						</span>
 					</div>
@@ -140,7 +140,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 
 				{isConvert && item.status === 'done' && conversionItem?.result && (
 					<div className="flex items-center gap-2 mt-0.5">
-						<span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-white/5 text-(--muted) uppercase">
+						<span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-white/5 text-muted uppercase">
 							{conversionItem.result.originalFormat}
 						</span>
 						<svg
@@ -159,10 +159,10 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 						<span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-accent/10 text-accent uppercase">
 							{conversionItem.result.outputFormat}
 						</span>
-						<span className="text-xs text-(--muted)">
+						<span className="text-xs text-muted">
 							{formatBytes(conversionItem.result.originalSize)}
 						</span>
-						<span className="text-xs text-(--muted)">→</span>
+						<span className="text-xs text-muted">→</span>
 						<span
 							className={`text-xs font-medium ${conversionItem.result.compressionRatio >= 0 ? 'text-green-400' : 'text-amber-400'}`}
 						>
@@ -176,7 +176,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 				)}
 
 				{!isResize && !isConvert && item.status === 'pending' && (
-					<p className="text-xs text-(--muted) mt-0.5">
+					<p className="text-xs text-muted mt-0.5">
 						{formatBytes(item.file.size)}
 						{props.getEstimate && (
 							<span className="text-accent/70 ml-2">
@@ -188,13 +188,13 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 				)}
 
 				{isConvert && item.status === 'pending' && (
-					<p className="text-xs text-(--muted) mt-0.5">
+					<p className="text-xs text-muted mt-0.5">
 						{formatBytes(item.file.size)} - Ready to convert
 					</p>
 				)}
 
 				{isResize && item.status === 'pending' && resizeDims && (
-					<p className="text-xs text-(--muted) mt-0.5">
+					<p className="text-xs text-muted mt-0.5">
 						{resizeItem!.originalWidth}x{resizeItem!.originalHeight}
 						<span className="text-accent/70 ml-2">
 							-&gt; {resizeDims.width}x{resizeDims.height}

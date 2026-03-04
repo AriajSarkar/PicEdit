@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import type { ToolbarProps } from '../types';
+import type { ToolbarProps } from '../utils/types';
 
 export const Toolbar = memo(function Toolbar({
 	config,
@@ -15,9 +15,9 @@ export const Toolbar = memo(function Toolbar({
 	selectedIndex,
 }: ToolbarProps) {
 	return (
-		<div className="flex items-center justify-between px-4 py-2 border-b border-border bg-(--bg-elevated)/60">
+		<div className="flex items-center justify-between px-4 py-2 border-b border-border bg-elevated/60">
 			<div className="flex items-center gap-2.5">
-				<div className="w-6 h-6 rounded-md bg-(--accent)/10 flex items-center justify-center">
+				<div className="w-6 h-6 rounded-md bg-accent/10 flex items-center justify-center">
 					<svg
 						className="w-3.5 h-3.5 text-accent"
 						fill="none"
@@ -43,7 +43,7 @@ export const Toolbar = memo(function Toolbar({
 			<div className="flex items-center gap-2">
 				<div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-md bg-background/60 border border-border">
 					<span className="text-[10px] text-muted">Orig</span>
-					<span className="text-[10px] font-mono text-(--text-secondary)">
+					<span className="text-[10px] font-mono text-secondary">
 						{originalWidth}×{originalHeight}
 					</span>
 				</div>
@@ -62,7 +62,7 @@ export const Toolbar = memo(function Toolbar({
 					/>
 				</svg>
 
-				<div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-(--accent)/8 border border-accent/20">
+				<div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent/8 border border-accent/20">
 					<span className="text-[10px] font-mono text-accent font-semibold">
 						{liveW}×{liveH}
 					</span>
@@ -81,7 +81,7 @@ export const Toolbar = memo(function Toolbar({
 				<div
 					className={`w-5 h-5 rounded flex items-center justify-center ${
 						config.lockAspectRatio
-							? 'text-accent bg-(--accent)/8'
+							? 'text-accent bg-accent/8'
 							: 'text-muted bg-background/40'
 					}`}
 					title={config.lockAspectRatio ? 'Aspect ratio locked' : 'Free resize'}

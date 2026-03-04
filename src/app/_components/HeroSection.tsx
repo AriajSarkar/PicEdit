@@ -4,8 +4,10 @@ export function HeroSection() {
 	return (
 		<section className="relative pt-20 pb-16 sm:pt-28 sm:pb-24">
 			<div className="max-w-6xl mx-auto px-6 text-center">
-				<div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-border bg-surface text-xs font-medium text-(--text-secondary) mb-8">
-					<span className="w-2 h-2 rounded-full bg-(--success) animate-pulse" />
+				<div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-border bg-surface text-xs font-medium text-secondary mb-8">
+					<span
+						className="w-2 h-2 rounded-full bg-success animate-pulse [animation-iteration-count:3]"
+					/>
 					100% free &middot; No sign-up &middot; Runs in your browser
 				</div>
 
@@ -15,7 +17,7 @@ export function HeroSection() {
 					<span className="text-gradient">others charge for.</span>
 				</h1>
 
-				<p className="text-lg sm:text-xl text-(--text-secondary) max-w-2xl mx-auto mb-10 leading-relaxed">
+				<p className="text-lg sm:text-xl text-secondary max-w-2xl mx-auto mb-12 leading-relaxed">
 					Professional background removal, WASM-powered compression, and more. Private,
 					fast, and completely free.
 				</p>
@@ -62,7 +64,7 @@ export function HeroSection() {
 				</div>
 
 				{/* 3-Tap flow */}
-				<div className="mt-12 inline-flex flex-wrap items-center justify-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 rounded-2xl border border-border bg-surface">
+				<div className="mt-14 inline-flex flex-wrap items-center justify-center gap-3 sm:gap-6 px-5 sm:px-8 py-4 rounded-2xl border border-border bg-surface">
 					{[
 						{
 							step: '1',
@@ -76,24 +78,14 @@ export function HeroSection() {
 							icon: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4',
 						},
 					].map((s, i) => (
-						<div key={s.step} className="flex items-center gap-3">
+						<div key={s.step} className="flex items-center gap-3 sm:gap-4">
 							{i > 0 && (
-								<svg
-									className="w-4 h-4 text-muted hidden sm:block"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M9 5l7 7-7 7"
-									/>
-								</svg>
+								<div className="hidden sm:flex items-center">
+									<div className="w-8 h-px bg-linear-to-r from-transparent via-border to-transparent" />
+								</div>
 							)}
 							<div className="flex items-center gap-2">
-								<div className="w-8 h-8 rounded-full bg-(--accent-soft) flex items-center justify-center">
+								<div className="w-8 h-8 rounded-full bg-accent-soft flex items-center justify-center">
 									<svg
 										className="w-4 h-4 text-accent"
 										fill="none"

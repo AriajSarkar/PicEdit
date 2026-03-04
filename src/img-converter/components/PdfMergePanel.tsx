@@ -123,11 +123,11 @@ export const PdfMergePanel = memo(function PdfMergePanel({
 						animate={{ opacity: 1, y: 0, scale: 1 }}
 						exit={{ opacity: 0, y: 8, scale: 0.95 }}
 						transition={{ duration: 0.15 }}
-						className="absolute left-0 top-full mt-2 z-50 w-80 rounded-xl border border-border bg-(--bg-elevated) shadow-2xl"
+						className="absolute left-0 top-full mt-2 z-50 w-80 rounded-xl border border-border bg-elevated shadow-2xl"
 					>
 						{/* Header */}
 						<div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-border">
-							<span className="text-xs font-medium text-(--text-secondary)">
+							<span className="text-xs font-medium text-secondary">
 								Select images for PDF
 							</span>
 							<div className="flex items-center gap-2">
@@ -159,7 +159,7 @@ export const PdfMergePanel = memo(function PdfMergePanel({
 										onClick={() => toggleItem(item.id)}
 										className={`w-full flex items-center gap-3 px-2 py-1.5 rounded-lg transition-colors ${
 											isChecked
-												? 'bg-(--accent-soft) border border-accent/30'
+												? 'bg-accent-soft border border-accent/30'
 												: 'hover:bg-surface-hover border border-transparent'
 										}`}
 									>
@@ -168,7 +168,7 @@ export const PdfMergePanel = memo(function PdfMergePanel({
 											className={`w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-colors ${
 												isChecked
 													? 'bg-accent border-accent'
-													: 'border-(--border-light) bg-surface'
+													: 'border-border-light bg-surface'
 											}`}
 										>
 											{isChecked && (

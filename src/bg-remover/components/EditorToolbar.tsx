@@ -1,5 +1,6 @@
 'use client';
 
+import { memo, useRef, useEffect, useCallback } from 'react';
 import { EditorState, BackgroundType, OutputFormat } from '@/types';
 import { formatBytes } from '@/lib/imageUtils';
 // bg-remover-specific imports come from @/bg-remover/lib/
@@ -14,7 +15,22 @@ interface EditorToolbarProps {
 	isProcessing: boolean;
 }
 
-export function EditorToolbar({
+// Constants moved OUTSIDE component body — zero allocation per render
+const bgOptions: { type: BackgroundType; label: string }[] = [
+	{ type: 'transparent', label: 'None' },
+	{ type: 'solid', label: 'Color' },
+	{ type: 'blur', label: 'Blur' },
+];
+
+const formatOptions: { format: OutputFormat; label: string }[] = [
+	{ format: 'image/png', label: 'PNG' },
+	{ format: 'image/jpeg', label: 'JPG' },
+	{ format: 'image/webp', label: 'WebP' },
+];
+
+const SCALE_PRESETS = [0.25, 0.5, 0.75, 1] as const;
+
+export const EditorToolbar = memo(function EditorToolbar({
 	state,
 	updateState,
 	setScale,
@@ -23,17 +39,33 @@ export function EditorToolbar({
 	onDownload,
 	isProcessing,
 }: EditorToolbarProps) {
-	const bgOptions: { type: BackgroundType; label: string }[] = [
-		{ type: 'transparent', label: 'None' },
-		{ type: 'solid', label: 'Color' },
-		{ type: 'blur', label: 'Blur' },
-	];
-
-	const formatOptions: { format: OutputFormat; label: string }[] = [
-		{ format: 'image/png', label: 'PNG' },
-		{ format: 'image/jpeg', label: 'JPG' },
-		{ format: 'image/webp', label: 'WebP' },
-	];
+	// RAF-throttled range handler for blur & scale & quality sliders
+	const rafRef = useRef(0);
+	const handleBlurChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			cancelAnimationFrame(rafRef.current);
+			const v = Number(e.target.value);
+			rafRef.current = requestAnimationFrame(() => updateState({ backgroundBlur: v }));
+		},
+		[updateState],
+	);
+	const handleScaleChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			cancelAnimationFrame(rafRef.current);
+			const v = Number(e.target.value) / 100;
+			rafRef.current = requestAnimationFrame(() => setScale(v));
+		},
+		[setScale],
+	);
+	const handleQualityChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			cancelAnimationFrame(rafRef.current);
+			const v = Number(e.target.value) / 100;
+			rafRef.current = requestAnimationFrame(() => updateState({ outputQuality: v }));
+		},
+		[updateState],
+	);
+	useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
 	return (
 		<div className="p-4 bg-surface rounded-2xl border border-border space-y-4">
@@ -73,9 +105,7 @@ export function EditorToolbar({
 								min="0"
 								max="50"
 								value={state.backgroundBlur}
-								onChange={(e) =>
-									updateState({ backgroundBlur: Number(e.target.value) })
-								}
+								onChange={handleBlurChange}
 								className="w-full sm:w-20"
 							/>
 							<span className="text-xs text-white/40">{state.backgroundBlur}px</span>
@@ -93,7 +123,7 @@ export function EditorToolbar({
 							onClick={() =>
 								updateState({ rotation: (state.rotation - 90 + 360) % 360 })
 							}
-							className="p-3 sm:p-2 rounded-md text-white/40 hover:text-white/80 hover:bg-white/5 transition-all"
+							className="p-3 sm:p-2 min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 flex items-center justify-center rounded-md text-white/40 hover:text-white/80 hover:bg-white/5 transition-all"
 							title="Rotate left"
 						>
 							<svg
@@ -112,7 +142,7 @@ export function EditorToolbar({
 						</button>
 						<button
 							onClick={() => updateState({ rotation: (state.rotation + 90) % 360 })}
-							className="p-3 sm:p-2 rounded-md text-white/40 hover:text-white/80 hover:bg-white/5 transition-all"
+							className="p-3 sm:p-2 min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 flex items-center justify-center rounded-md text-white/40 hover:text-white/80 hover:bg-white/5 transition-all"
 							title="Rotate right"
 						>
 							<svg
@@ -131,7 +161,7 @@ export function EditorToolbar({
 						</button>
 						<button
 							onClick={() => updateState({ flipH: !state.flipH })}
-							className={`p-3 sm:p-2 rounded-md transition-all ${
+							className={`p-3 sm:p-2 min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 flex items-center justify-center rounded-md transition-all ${
 								state.flipH
 									? 'bg-white/10 text-white'
 									: 'text-white/40 hover:text-white/80 hover:bg-white/5'
@@ -154,7 +184,7 @@ export function EditorToolbar({
 						</button>
 						<button
 							onClick={() => updateState({ flipV: !state.flipV })}
-							className={`p-3 sm:p-2 rounded-md transition-all ${
+							className={`p-3 sm:p-2 min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 flex items-center justify-center rounded-md transition-all ${
 								state.flipV
 									? 'bg-white/10 text-white'
 									: 'text-white/40 hover:text-white/80 hover:bg-white/5'
@@ -190,11 +220,11 @@ export function EditorToolbar({
 					<span className="text-xs text-white/60">{Math.round(currentScale * 100)}%</span>
 				</div>
 				<div className="grid grid-cols-4 gap-1.5 mb-2">
-					{[0.25, 0.5, 0.75, 1].map((s) => (
+					{SCALE_PRESETS.map((s) => (
 						<button
 							key={s}
 							onClick={() => setScale(s)}
-							className={`py-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-all ${
+							className={`py-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-all min-h-11 sm:min-h-0 ${
 								Math.abs(currentScale - s) < 0.01
 									? 'bg-white/10 text-white'
 									: 'bg-white/5 text-white/40 hover:text-white/70'
@@ -209,7 +239,7 @@ export function EditorToolbar({
 					min="10"
 					max="200"
 					value={Math.round(currentScale * 100)}
-					onChange={(e) => setScale(Number(e.target.value) / 100)}
+					onChange={handleScaleChange}
 					className="w-full"
 				/>
 			</div>
@@ -245,9 +275,7 @@ export function EditorToolbar({
 							min="10"
 							max="100"
 							value={Math.round(state.outputQuality * 100)}
-							onChange={(e) =>
-								updateState({ outputQuality: Number(e.target.value) / 100 })
-							}
+							onChange={handleQualityChange}
 							className="w-full"
 						/>
 					</div>
@@ -268,4 +296,4 @@ export function EditorToolbar({
 			</div>
 		</div>
 	);
-}
+});
