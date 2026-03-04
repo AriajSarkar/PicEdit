@@ -22,6 +22,7 @@
 		"format:rust": "cargo fmt --manifest-path wasm/Cargo.toml --all"
 	},
 	"dependencies": {
+		"@huggingface/transformers": "^3.8.1",
 		"@imgly/background-removal": "^1.7.0",
 		"motion": "^12.34.5",
 		"next": "16.1.6",

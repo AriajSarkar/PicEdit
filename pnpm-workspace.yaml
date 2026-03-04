@@ -1,6 +1,7 @@
 ignoredBuiltDependencies:
-    - sharp
-    - unrs-resolver
+  - sharp
+  - unrs-resolver
 
 onlyBuiltDependencies:
-    - protobufjs
+  - onnxruntime-node
+  - protobufjs

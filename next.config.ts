@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
 	env: {
 		NEXT_PUBLIC_BASE_PATH: basePath,
 	},
+	// Prevent Node-only ONNX runtime from leaking into static build
+	serverExternalPackages: ['onnxruntime-node', 'sharp'],
 };
 
 export default nextConfig;
