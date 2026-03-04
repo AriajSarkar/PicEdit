@@ -1,393 +1,396 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import { removeBackground, Config } from '@imgly/background-removal';
+import { type Config } from '@imgly/background-removal';
 import { DeviceType, ModelType, ProcessingProgress, MODEL_INFO } from '@/types';
+import { formatBytes, formatSpeed, blobToDataUrl, loadImage } from '@/lib/imageUtils';
 import {
-  installFetchInterceptor,
-  uninstallFetchInterceptor,
-  clearModelCache,
+	installFetchInterceptor,
+	uninstallFetchInterceptor,
+	clearModelCache,
 } from '@/bg-remover/lib/modelCache';
 import {
-  dataUrlToImageData,
-  blobToImageData,
-  imageDataToBlob,
+	dataUrlToImageData,
+	blobToImageData,
+	imageDataToBlob,
 } from '@/bg-remover/lib/dataConversion';
 import { preProcess } from '@/bg-remover/pre-refinement';
 import { postProcess } from '@/bg-remover/post-refinement';
 
 const DEFAULT_PROGRESS: ProcessingProgress = {
-  stage: 'complete',
-  progress: 0,
-  message: '',
+	stage: 'complete',
+	progress: 0,
+	message: '',
 };
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function formatSpeed(bytesPerSec: number): string {
-  if (bytesPerSec < 1024 * 1024) return `${(bytesPerSec / 1024).toFixed(0)} KB/s`;
-  return `${(bytesPerSec / (1024 * 1024)).toFixed(1)} MB/s`;
-}
+// formatBytes and formatSpeed are imported from @/lib/imageUtils
 
 export function useBackgroundRemoval() {
-  const processingRef = useRef(false);
-  const cancelledRef = useRef(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState<ProcessingProgress>(DEFAULT_PROGRESS);
+	const processingRef = useRef(false);
+	const cancelledRef = useRef(false);
+	const [isProcessing, setIsProcessing] = useState(false);
+	const [progress, setProgress] = useState<ProcessingProgress>(DEFAULT_PROGRESS);
 
-  // Track download speed
-  const downloadStartRef = useRef(0);
-  const lastBytesRef = useRef(0);
-  const lastSpeedTimeRef = useRef(0);
-  const speedRef = useRef(0);
-  const stageRef = useRef<string>('');
+	// Track download speed
+	const downloadStartRef = useRef(0);
+	const lastBytesRef = useRef(0);
+	const lastSpeedTimeRef = useRef(0);
+	const speedRef = useRef(0);
+	const stageRef = useRef<string>('');
 
-  // Force every update through — no throttle. React batches these anyway.
-  const updateProgress = useCallback((newProgress: ProcessingProgress) => {
-    setProgress(newProgress);
-  }, []);
+	// Force every update through — no throttle. React batches these anyway.
+	const updateProgress = useCallback((newProgress: ProcessingProgress) => {
+		setProgress(newProgress);
+	}, []);
 
-  const isModelCached = useCallback((): boolean => {
-    return false;
-  }, []);
+	const isModelCached = useCallback((): boolean => {
+		return false;
+	}, []);
 
-  const preloadModel = useCallback(async (): Promise<boolean> => {
-    return true;
-  }, []);
+	const preloadModel = useCallback(async (): Promise<boolean> => {
+		return true;
+	}, []);
 
-  const processImage = useCallback(
-    async (
-      imageSource: string | File | Blob,
-      device: DeviceType,
-      model: ModelType,
-      originalImageDataUrl?: string,
-    ): Promise<string | null> => {
-      if (processingRef.current) return null;
-      processingRef.current = true;
-      cancelledRef.current = false;
-      setIsProcessing(true);
+	const processImage = useCallback(
+		async (
+			imageSource: string | File | Blob,
+			device: DeviceType,
+			model: ModelType,
+			originalImageDataUrl?: string,
+		): Promise<string | null> => {
+			if (processingRef.current) return null;
+			processingRef.current = true;
+			cancelledRef.current = false;
+			setIsProcessing(true);
 
-      try {
-        // --- STAGE 1: PRE-PROCESSING (Rust/WASM) ---
-        updateProgress({
-          stage: 'preprocessing',
-          progress: 0,
-          message: 'Preparing image for AI...',
-        });
+			try {
+				// --- STAGE 1: PRE-PROCESSING (Rust/WASM) ---
+				updateProgress({
+					stage: 'preprocessing',
+					progress: 0,
+					message: 'Preparing image for AI...',
+				});
 
-        let sourceForAI: string | File | Blob = imageSource;
-        try {
-          const sourceDataUrl =
-            typeof imageSource === 'string'
-              ? imageSource
-              : await blobToDataUrlLocal(imageSource as Blob);
+				let sourceForAI: string | File | Blob = imageSource;
+				try {
+					const sourceDataUrl =
+						typeof imageSource === 'string'
+							? imageSource
+							: await blobToDataUrl(imageSource as Blob);
 
-          updateProgress({
-            stage: 'preprocessing',
-            progress: 20,
-            message: 'Denoising & enhancing contrast...',
-          });
+					updateProgress({
+						stage: 'preprocessing',
+						progress: 20,
+						message: 'Denoising & enhancing contrast...',
+					});
 
-          const rawData = await dataUrlToImageData(sourceDataUrl);
+					const rawData = await dataUrlToImageData(sourceDataUrl);
 
-          updateProgress({
-            stage: 'preprocessing',
-            progress: 50,
-            message: 'Running bilateral filter + CLAHE...',
-          });
+					updateProgress({
+						stage: 'preprocessing',
+						progress: 50,
+						message: 'Running bilateral filter + CLAHE...',
+					});
 
-          const enhanced = await preProcess(rawData);
+					const enhanced = await preProcess(rawData);
 
-          updateProgress({
-            stage: 'preprocessing',
-            progress: 80,
-            message: 'Converting enhanced image...',
-          });
+					updateProgress({
+						stage: 'preprocessing',
+						progress: 80,
+						message: 'Converting enhanced image...',
+					});
 
-          sourceForAI = await imageDataToBlob(enhanced.data, enhanced.width, enhanced.height);
+					sourceForAI = await imageDataToBlob(
+						enhanced.data,
+						enhanced.width,
+						enhanced.height,
+					);
 
-          updateProgress({
-            stage: 'preprocessing',
-            progress: 100,
-            message: 'Enhancement complete',
-          });
-        } catch (err) {
-          console.warn('[pipeline] Pre-processing failed, using original:', err);
-        }
+					updateProgress({
+						stage: 'preprocessing',
+						progress: 100,
+						message: 'Enhancement complete',
+					});
+				} catch (err) {
+					console.warn('[pipeline] Pre-processing failed, using original:', err);
+				}
 
-        // --- STAGE 2: MODEL DOWNLOAD + AI INFERENCE ---
-        if (cancelledRef.current) throw new Error('Cancelled');
+				// --- STAGE 2: MODEL DOWNLOAD + AI INFERENCE ---
+				if (cancelledRef.current) throw new Error('Cancelled');
 
-        // Reset download tracking
-        downloadStartRef.current = performance.now();
-        lastBytesRef.current = 0;
-        lastSpeedTimeRef.current = performance.now();
-        speedRef.current = 0;
-        stageRef.current = '';
+				// Reset download tracking
+				downloadStartRef.current = performance.now();
+				lastBytesRef.current = 0;
+				lastSpeedTimeRef.current = performance.now();
+				speedRef.current = 0;
+				stageRef.current = '';
 
-        updateProgress({
-          stage: 'downloading',
-          progress: 0,
-          message: `Loading ${MODEL_INFO[model].name} model...`,
-        });
+				updateProgress({
+					stage: 'downloading',
+					progress: 0,
+					message: `Loading ${MODEL_INFO[model].name} model...`,
+				});
 
-        const config: Partial<Config> = {
-          device,
-          model,
-          output: { format: 'image/png', quality: 1 },
-          progress: (progressKey: string, current: number, total: number) => {
-            const pct = total > 0 ? Math.round((current / total) * 100) : 0;
-            const now = performance.now();
+				const config: Partial<Config> = {
+					device,
+					model,
+					output: { format: 'image/png', quality: 1 },
+					progress: (progressKey: string, current: number, total: number) => {
+						const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+						const now = performance.now();
 
-            if (progressKey.includes('fetch') || progressKey.includes('download')) {
-              // Track actual bytes and speed
-              const elapsed = now - downloadStartRef.current;
-              const bytesLoaded = current;
-              const bytesTotal = total;
+						if (progressKey.includes('fetch') || progressKey.includes('download')) {
+							// Track actual bytes and speed
+							const elapsed = now - downloadStartRef.current;
+							const bytesLoaded = current;
+							const bytesTotal = total;
 
-              // Calculate speed (smoothed, update every 200ms)
-              if (now - lastSpeedTimeRef.current > 200 && bytesLoaded > lastBytesRef.current) {
-                const dt = (now - lastSpeedTimeRef.current) / 1000;
-                const db = bytesLoaded - lastBytesRef.current;
-                const instantSpeed = db / dt;
-                // Exponential smoothing
-                speedRef.current =
-                  speedRef.current === 0
-                    ? instantSpeed
-                    : speedRef.current * 0.7 + instantSpeed * 0.3;
-                lastBytesRef.current = bytesLoaded;
-                lastSpeedTimeRef.current = now;
-              }
+							// Calculate speed (smoothed, update every 200ms)
+							if (
+								now - lastSpeedTimeRef.current > 200 &&
+								bytesLoaded > lastBytesRef.current
+							) {
+								const dt = (now - lastSpeedTimeRef.current) / 1000;
+								const db = bytesLoaded - lastBytesRef.current;
+								const instantSpeed = db / dt;
+								// Exponential smoothing
+								speedRef.current =
+									speedRef.current === 0
+										? instantSpeed
+										: speedRef.current * 0.7 + instantSpeed * 0.3;
+								lastBytesRef.current = bytesLoaded;
+								lastSpeedTimeRef.current = now;
+							}
 
-              const speed = speedRef.current;
-              const loaded = formatBytes(bytesLoaded);
-              const totalStr = formatBytes(bytesTotal);
-              const speedStr = speed > 0 ? ` - ${formatSpeed(speed)}` : '';
+							const speed = speedRef.current;
+							const loaded = formatBytes(bytesLoaded);
+							const totalStr = formatBytes(bytesTotal);
+							const speedStr = speed > 0 ? ` - ${formatSpeed(speed)}` : '';
 
-              updateProgress({
-                stage: 'downloading',
-                progress: pct,
-                message: `Downloading: ${loaded} / ${totalStr}${speedStr}`,
-                bytesLoaded,
-                bytesTotal,
-                speed,
-                elapsed,
-              });
+							updateProgress({
+								stage: 'downloading',
+								progress: pct,
+								message: `Downloading: ${loaded} / ${totalStr}${speedStr}`,
+								bytesLoaded,
+								bytesTotal,
+								speed,
+								elapsed,
+							});
 
-              stageRef.current = 'downloading';
-            } else {
-              // AI inference — show actual sub-step
-              let message = `Removing background: ${pct}%`;
-              if (pct < 15) {
-                message = `Loading model into ${device === 'gpu' ? 'GPU' : 'CPU'}...`;
-              } else if (pct < 40) {
-                message = `Running segmentation network...`;
-              } else if (pct < 70) {
-                message = `Computing foreground mask...`;
-              } else if (pct < 95) {
-                message = `Generating alpha matte...`;
-              } else {
-                message = `Finalizing mask output...`;
-              }
+							stageRef.current = 'downloading';
+						} else {
+							// AI inference — show actual sub-step
+							let message = `Removing background: ${pct}%`;
+							if (pct < 15) {
+								message = `Loading model into ${device === 'gpu' ? 'GPU' : 'CPU'}...`;
+							} else if (pct < 40) {
+								message = `Running segmentation network...`;
+							} else if (pct < 70) {
+								message = `Computing foreground mask...`;
+							} else if (pct < 95) {
+								message = `Generating alpha matte...`;
+							} else {
+								message = `Finalizing mask output...`;
+							}
 
-              const elapsed = now - downloadStartRef.current;
-              updateProgress({
-                stage: 'processing',
-                progress: pct,
-                message,
-                elapsed,
-              });
+							const elapsed = now - downloadStartRef.current;
+							updateProgress({
+								stage: 'processing',
+								progress: pct,
+								message,
+								elapsed,
+							});
 
-              stageRef.current = 'processing';
-            }
-          },
-        };
+							stageRef.current = 'processing';
+						}
+					},
+				};
 
-        // Install global fetch interceptor to cache model downloads in IndexedDB.
-        // The @imgly/background-removal library calls native fetch() directly —
-        // there is no customFetch hook. This is the only way to intercept.
-        installFetchInterceptor();
-        let aiResult: Blob;
-        try {
-          try {
-            aiResult = await removeBackground(sourceForAI, config);
-          } catch (firstErr) {
-            // If the library reports a size mismatch, the cache likely has a
-            // truncated/corrupt entry from a previous interrupted download.
-            // Clear it and retry once.
-            const msg = firstErr instanceof Error ? firstErr.message : '';
-            if (msg.includes('but got') && msg.includes('with size')) {
-              console.warn(
-                '[pipeline] Size mismatch detected — clearing corrupt cache and retrying...',
-                msg,
-              );
-              await clearModelCache();
-              aiResult = await removeBackground(sourceForAI, config);
-            } else {
-              throw firstErr;
-            }
-          }
-        } finally {
-          uninstallFetchInterceptor();
-        }
+				// Install global fetch interceptor to cache model downloads in IndexedDB.
+				// The @imgly/background-removal library calls native fetch() directly —
+				// there is no customFetch hook. This is the only way to intercept.
+				installFetchInterceptor();
+				let aiResult: Blob;
+				const { removeBackground } = await import('@imgly/background-removal');
+				try {
+					try {
+						aiResult = await removeBackground(sourceForAI, config);
+					} catch (firstErr) {
+						// If the library reports a size mismatch, the cache likely has a
+						// truncated/corrupt entry from a previous interrupted download.
+						// Clear it and retry once.
+						const msg = firstErr instanceof Error ? firstErr.message : '';
+						if (msg.includes('but got') && msg.includes('with size')) {
+							console.warn(
+								'[pipeline] Size mismatch detected — clearing corrupt cache and retrying...',
+								msg,
+							);
+							await clearModelCache();
+							aiResult = await removeBackground(sourceForAI, config);
+						} else {
+							throw firstErr;
+						}
+					}
+				} finally {
+					uninstallFetchInterceptor();
+				}
 
-        if (cancelledRef.current) throw new Error('Cancelled');
+				if (cancelledRef.current) throw new Error('Cancelled');
 
-        // --- STAGE 3: POST-PROCESSING (Rust/WASM) ---
-        updateProgress({
-          stage: 'postprocessing',
-          progress: 0,
-          message: 'Refining edges with guided filter...',
-        });
+				// --- STAGE 3: POST-PROCESSING (Rust/WASM) ---
+				updateProgress({
+					stage: 'postprocessing',
+					progress: 0,
+					message: 'Refining edges with guided filter...',
+				});
 
-        let finalBlob = aiResult;
-        try {
-          const maskData = await blobToImageData(aiResult);
+				let finalBlob = aiResult;
+				try {
+					const maskData = await blobToImageData(aiResult);
 
-          updateProgress({
-            stage: 'postprocessing',
-            progress: 15,
-            message: 'Building trimap (BFS distance transform)...',
-          });
+					updateProgress({
+						stage: 'postprocessing',
+						progress: 15,
+						message: 'Building trimap (BFS distance transform)...',
+					});
 
-          const origDataUrl =
-            originalImageDataUrl || (typeof imageSource === 'string' ? imageSource : null);
+					const origDataUrl =
+						originalImageDataUrl ||
+						(typeof imageSource === 'string' ? imageSource : null);
 
-          if (origDataUrl) {
-            const originalData = await dataUrlToImageData(origDataUrl);
+					if (origDataUrl) {
+						const originalData = await dataUrlToImageData(origDataUrl);
 
-            updateProgress({
-              stage: 'postprocessing',
-              progress: 30,
-              message: 'Running fast guided filter...',
-            });
+						updateProgress({
+							stage: 'postprocessing',
+							progress: 30,
+							message: 'Running fast guided filter...',
+						});
 
-            if (originalData.width === maskData.width && originalData.height === maskData.height) {
-              const refined = await postProcess(maskData, originalData);
+						if (
+							originalData.width === maskData.width &&
+							originalData.height === maskData.height
+						) {
+							const refined = await postProcess(maskData, originalData);
 
-              updateProgress({
-                stage: 'postprocessing',
-                progress: 85,
-                message: 'Compositing final output...',
-              });
+							updateProgress({
+								stage: 'postprocessing',
+								progress: 85,
+								message: 'Compositing final output...',
+							});
 
-              finalBlob = await imageDataToBlob(refined.data, refined.width, refined.height);
-            } else {
-              updateProgress({
-                stage: 'postprocessing',
-                progress: 40,
-                message: 'Resizing to match dimensions...',
-              });
+							finalBlob = await imageDataToBlob(
+								refined.data,
+								refined.width,
+								refined.height,
+							);
+						} else {
+							updateProgress({
+								stage: 'postprocessing',
+								progress: 40,
+								message: 'Resizing to match dimensions...',
+							});
 
-              const resized = await resizeImageData(origDataUrl, maskData.width, maskData.height);
+							const resized = await resizeImageData(
+								origDataUrl,
+								maskData.width,
+								maskData.height,
+							);
 
-              updateProgress({
-                stage: 'postprocessing',
-                progress: 50,
-                message: 'Running shared matting + edge refinement...',
-              });
+							updateProgress({
+								stage: 'postprocessing',
+								progress: 50,
+								message: 'Running shared matting + edge refinement...',
+							});
 
-              const refined = await postProcess(maskData, resized);
+							const refined = await postProcess(maskData, resized);
 
-              updateProgress({
-                stage: 'postprocessing',
-                progress: 85,
-                message: 'Compositing final output...',
-              });
+							updateProgress({
+								stage: 'postprocessing',
+								progress: 85,
+								message: 'Compositing final output...',
+							});
 
-              finalBlob = await imageDataToBlob(refined.data, refined.width, refined.height);
-            }
-          }
+							finalBlob = await imageDataToBlob(
+								refined.data,
+								refined.width,
+								refined.height,
+							);
+						}
+					}
 
-          updateProgress({
-            stage: 'postprocessing',
-            progress: 100,
-            message: 'Refinement complete',
-          });
-        } catch (err) {
-          console.warn('[pipeline] Post-processing failed, using AI output:', err);
-        }
+					updateProgress({
+						stage: 'postprocessing',
+						progress: 100,
+						message: 'Refinement complete',
+					});
+				} catch (err) {
+					console.warn('[pipeline] Post-processing failed, using AI output:', err);
+				}
 
-        // --- STAGE 4: CONVERT TO DATA URL ---
-        const dataUrl = await blobToDataUrlLocal(finalBlob);
-        updateProgress({ stage: 'complete', progress: 100, message: 'Done!' });
-        return dataUrl;
-      } catch (error) {
-        if (cancelledRef.current) {
-          updateProgress({ stage: 'complete', progress: 0, message: 'Cancelled' });
-          return null;
-        }
-        const msg = error instanceof Error ? error.message : 'Processing failed';
-        if (msg === 'Cancelled') {
-          updateProgress({ stage: 'complete', progress: 0, message: 'Cancelled' });
-          return null;
-        }
-        console.error('Background removal failed:', error);
-        updateProgress({ stage: 'error', progress: 0, message: msg });
-        return null;
-      } finally {
-        processingRef.current = false;
-        setIsProcessing(false);
-      }
-    },
-    [updateProgress],
-  );
+				// --- STAGE 4: CONVERT TO DATA URL ---
+				const dataUrl = await blobToDataUrl(finalBlob);
+				updateProgress({ stage: 'complete', progress: 100, message: 'Done!' });
+				return dataUrl;
+			} catch (error) {
+				if (cancelledRef.current) {
+					updateProgress({ stage: 'complete', progress: 0, message: 'Cancelled' });
+					return null;
+				}
+				const msg = error instanceof Error ? error.message : 'Processing failed';
+				if (msg === 'Cancelled') {
+					updateProgress({ stage: 'complete', progress: 0, message: 'Cancelled' });
+					return null;
+				}
+				console.error('Background removal failed:', error);
+				updateProgress({ stage: 'error', progress: 0, message: msg });
+				return null;
+			} finally {
+				processingRef.current = false;
+				setIsProcessing(false);
+			}
+		},
+		[updateProgress],
+	);
 
-  const cancel = useCallback(() => {
-    cancelledRef.current = true;
-    processingRef.current = false;
-    setIsProcessing(false);
-    setProgress({ stage: 'complete', progress: 0, message: 'Cancelled' });
-  }, []);
+	const cancel = useCallback(() => {
+		cancelledRef.current = true;
+		processingRef.current = false;
+		setIsProcessing(false);
+		setProgress({ stage: 'complete', progress: 0, message: 'Cancelled' });
+	}, []);
 
-  return {
-    processImage,
-    preloadModel,
-    isModelCached,
-    progress,
-    isProcessing,
-    cancel,
-  };
+	return {
+		processImage,
+		preloadModel,
+		isModelCached,
+		progress,
+		isProcessing,
+		cancel,
+	};
 }
 
-async function blobToDataUrlLocal(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
+// blobToDataUrl is imported from @/lib/imageUtils
 
 async function resizeImageData(
-  dataUrl: string,
-  targetW: number,
-  targetH: number,
+	dataUrl: string,
+	targetW: number,
+	targetH: number,
 ): Promise<{ data: Uint8Array; width: number; height: number }> {
-  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const el = new Image();
-    el.crossOrigin = 'anonymous';
-    el.onload = () => resolve(el);
-    el.onerror = reject;
-    el.src = dataUrl;
-  });
+	const img = await loadImage(dataUrl);
 
-  const canvas = document.createElement('canvas');
-  canvas.width = targetW;
-  canvas.height = targetH;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    throw new Error('Failed to get 2D canvas context');
-  }
-  ctx.drawImage(img, 0, 0, targetW, targetH);
-  const imgData = ctx.getImageData(0, 0, targetW, targetH);
-  return {
-    data: new Uint8Array(imgData.data.buffer),
-    width: targetW,
-    height: targetH,
-  };
+	const canvas = document.createElement('canvas');
+	canvas.width = targetW;
+	canvas.height = targetH;
+	const ctx = canvas.getContext('2d');
+	if (!ctx) {
+		throw new Error('Failed to get 2D canvas context');
+	}
+	ctx.drawImage(img, 0, 0, targetW, targetH);
+	const imgData = ctx.getImageData(0, 0, targetW, targetH);
+	return {
+		data: new Uint8Array(imgData.data.buffer),
+		width: targetW,
+		height: targetH,
+	};
 }

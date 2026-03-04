@@ -29,7 +29,7 @@ It currently includes:
 ```text
 src/app/                    # Thin route shells (pages/layouts)
 src/bg-remover/             # Background remover domain module
-src/imgcompressor/          # Image compressor domain module
+src/img-compressor/         # Image compressor domain module
 src/components/             # Shared UI components
 src/hooks/                  # Shared hooks (includes useBatchProcessor)
 src/lib/                    # Shared utilities (worker pool, zip, image utils)
@@ -81,12 +81,12 @@ pnpm preview       # local static preview for /out
 
 ## Rust/WASM Crates
 
-| Crate | Purpose |
-|------|---------|
-| `pre-refinement` | CLAHE, denoise, sharpen for background-removal preprocessing |
-| `post-refinement` | Edge refinement, guided filter, Poisson blend |
-| `server` | Chunked model download helpers |
-| `compressor` | Compression algorithms (denoise, quantization, SSIM, PNG filtering) |
+| Crate             | Purpose                                                             |
+| ----------------- | ------------------------------------------------------------------- |
+| `pre-refinement`  | CLAHE, denoise, sharpen for background-removal preprocessing        |
+| `post-refinement` | Edge refinement, guided filter, Poisson blend                       |
+| `server`          | Chunked model download helpers                                      |
+| `compressor`      | Compression algorithms (denoise, quantization, SSIM, PNG filtering) |
 
 ## Deployment
 

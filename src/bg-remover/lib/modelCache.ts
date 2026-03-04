@@ -34,182 +34,182 @@ const BASE_DELAY_MS = 1_000;
 const INTERCEPT_PATTERNS = ['staticimgly.com', 'cdn.img.ly', '@imgly/background-removal'] as const;
 
 interface CachedModel {
-  key: string;
-  data: ArrayBuffer;
-  timestamp: number;
-  size: number;
+	key: string;
+	data: ArrayBuffer;
+	timestamp: number;
+	size: number;
 }
 
 // ── IndexedDB Cache ─────────────────────────────────────────────
 
 class ModelCache {
-  private db: IDBDatabase | null = null;
-  private initPromise: Promise<void> | null = null;
+	private db: IDBDatabase | null = null;
+	private initPromise: Promise<void> | null = null;
 
-  async init(): Promise<void> {
-    if (this.db) return;
-    if (this.initPromise) return this.initPromise;
+	async init(): Promise<void> {
+		if (this.db) return;
+		if (this.initPromise) return this.initPromise;
 
-    this.initPromise = new Promise<void>((resolve, reject) => {
-      try {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
+		this.initPromise = new Promise<void>((resolve, reject) => {
+			try {
+				const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-        request.onerror = () => {
-          console.error('[ModelCache] IndexedDB open failed:', request.error);
-          reject(request.error);
-        };
+				request.onerror = () => {
+					console.error('[ModelCache] IndexedDB open failed:', request.error);
+					reject(request.error);
+				};
 
-        request.onsuccess = () => {
-          this.db = request.result;
-          this.db.onversionchange = () => {
-            this.db?.close();
-            this.db = null;
-            this.initPromise = null;
-          };
-          resolve();
-        };
+				request.onsuccess = () => {
+					this.db = request.result;
+					this.db.onversionchange = () => {
+						this.db?.close();
+						this.db = null;
+						this.initPromise = null;
+					};
+					resolve();
+				};
 
-        request.onupgradeneeded = (event) => {
-          const db = (event.target as IDBOpenDBRequest).result;
-          if (!db.objectStoreNames.contains(MODEL_STORE)) {
-            db.createObjectStore(MODEL_STORE, { keyPath: 'key' });
-          }
-        };
-      } catch (err) {
-        console.error('[ModelCache] IndexedDB not available:', err);
-        reject(err);
-      }
-    }).catch((err) => {
-      console.warn('[ModelCache] Running without cache:', err);
-      this.db = null;
-    });
+				request.onupgradeneeded = (event) => {
+					const db = (event.target as IDBOpenDBRequest).result;
+					if (!db.objectStoreNames.contains(MODEL_STORE)) {
+						db.createObjectStore(MODEL_STORE, { keyPath: 'key' });
+					}
+				};
+			} catch (err) {
+				console.error('[ModelCache] IndexedDB not available:', err);
+				reject(err);
+			}
+		}).catch((err) => {
+			console.warn('[ModelCache] Running without cache:', err);
+			this.db = null;
+		});
 
-    return this.initPromise;
-  }
+		return this.initPromise;
+	}
 
-  async get(key: string): Promise<ArrayBuffer | null> {
-    await this.init();
-    if (!this.db) return null;
+	async get(key: string): Promise<ArrayBuffer | null> {
+		await this.init();
+		if (!this.db) return null;
 
-    return new Promise((resolve) => {
-      try {
-        const tx = this.db!.transaction(MODEL_STORE, 'readonly');
-        const store = tx.objectStore(MODEL_STORE);
-        const request = store.get(key);
+		return new Promise((resolve) => {
+			try {
+				const tx = this.db!.transaction(MODEL_STORE, 'readonly');
+				const store = tx.objectStore(MODEL_STORE);
+				const request = store.get(key);
 
-        request.onsuccess = () => {
-          const result = request.result as CachedModel | undefined;
-          if (result?.data && result.data.byteLength > 0) {
-            resolve(result.data);
-          } else {
-            resolve(null);
-          }
-        };
+				request.onsuccess = () => {
+					const result = request.result as CachedModel | undefined;
+					if (result?.data && result.data.byteLength > 0) {
+						resolve(result.data);
+					} else {
+						resolve(null);
+					}
+				};
 
-        request.onerror = () => {
-          console.warn('[ModelCache] IDB read error:', request.error);
-          resolve(null);
-        };
+				request.onerror = () => {
+					console.warn('[ModelCache] IDB read error:', request.error);
+					resolve(null);
+				};
 
-        tx.onerror = () => {
-          console.warn('[ModelCache] IDB read tx error:', tx.error);
-          resolve(null);
-        };
-      } catch (err) {
-        console.warn('[ModelCache] IDB read exception:', err);
-        resolve(null);
-      }
-    });
-  }
+				tx.onerror = () => {
+					console.warn('[ModelCache] IDB read tx error:', tx.error);
+					resolve(null);
+				};
+			} catch (err) {
+				console.warn('[ModelCache] IDB read exception:', err);
+				resolve(null);
+			}
+		});
+	}
 
-  async set(key: string, data: ArrayBuffer): Promise<boolean> {
-    await this.init();
-    if (!this.db) return false;
+	async set(key: string, data: ArrayBuffer): Promise<boolean> {
+		await this.init();
+		if (!this.db) return false;
 
-    if (!data || data.byteLength === 0) {
-      console.warn('[ModelCache] Refusing to cache empty buffer for:', key);
-      return false;
-    }
+		if (!data || data.byteLength === 0) {
+			console.warn('[ModelCache] Refusing to cache empty buffer for:', key);
+			return false;
+		}
 
-    return new Promise<boolean>((resolve) => {
-      try {
-        const tx = this.db!.transaction(MODEL_STORE, 'readwrite');
-        const store = tx.objectStore(MODEL_STORE);
+		return new Promise<boolean>((resolve) => {
+			try {
+				const tx = this.db!.transaction(MODEL_STORE, 'readwrite');
+				const store = tx.objectStore(MODEL_STORE);
 
-        const entry: CachedModel = {
-          key,
-          data,
-          timestamp: Date.now(),
-          size: data.byteLength,
-        };
+				const entry: CachedModel = {
+					key,
+					data,
+					timestamp: Date.now(),
+					size: data.byteLength,
+				};
 
-        store.put(entry);
+				store.put(entry);
 
-        tx.oncomplete = () => {
-          resolve(true);
-        };
+				tx.oncomplete = () => {
+					resolve(true);
+				};
 
-        tx.onerror = () => {
-          console.error('[ModelCache] IDB write tx error:', tx.error);
-          resolve(false);
-        };
+				tx.onerror = () => {
+					console.error('[ModelCache] IDB write tx error:', tx.error);
+					resolve(false);
+				};
 
-        tx.onabort = () => {
-          console.error('[ModelCache] IDB write tx aborted:', tx.error);
-          resolve(false);
-        };
-      } catch (err) {
-        console.error('[ModelCache] IDB write exception:', err);
-        resolve(false);
-      }
-    });
-  }
+				tx.onabort = () => {
+					console.error('[ModelCache] IDB write tx aborted:', tx.error);
+					resolve(false);
+				};
+			} catch (err) {
+				console.error('[ModelCache] IDB write exception:', err);
+				resolve(false);
+			}
+		});
+	}
 
-  async has(key: string): Promise<boolean> {
-    const data = await this.get(key);
-    return data !== null;
-  }
+	async has(key: string): Promise<boolean> {
+		const data = await this.get(key);
+		return data !== null;
+	}
 
-  async clear(): Promise<void> {
-    await this.init();
-    if (!this.db) return;
+	async clear(): Promise<void> {
+		await this.init();
+		if (!this.db) return;
 
-    return new Promise((resolve) => {
-      try {
-        const tx = this.db!.transaction(MODEL_STORE, 'readwrite');
-        const store = tx.objectStore(MODEL_STORE);
-        store.clear();
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => resolve();
-      } catch {
-        resolve();
-      }
-    });
-  }
+		return new Promise((resolve) => {
+			try {
+				const tx = this.db!.transaction(MODEL_STORE, 'readwrite');
+				const store = tx.objectStore(MODEL_STORE);
+				store.clear();
+				tx.oncomplete = () => resolve();
+				tx.onerror = () => resolve();
+			} catch {
+				resolve();
+			}
+		});
+	}
 
-  async getSize(): Promise<number> {
-    await this.init();
-    if (!this.db) return 0;
+	async getSize(): Promise<number> {
+		await this.init();
+		if (!this.db) return 0;
 
-    return new Promise((resolve) => {
-      try {
-        const tx = this.db!.transaction(MODEL_STORE, 'readonly');
-        const store = tx.objectStore(MODEL_STORE);
-        const request = store.getAll();
-        request.onsuccess = () => {
-          const entries = request.result as CachedModel[];
-          const totalSize = entries.reduce(
-            (sum, e) => sum + (e.size || e.data?.byteLength || 0),
-            0,
-          );
-          resolve(totalSize);
-        };
-        request.onerror = () => resolve(0);
-      } catch {
-        resolve(0);
-      }
-    });
-  }
+		return new Promise((resolve) => {
+			try {
+				const tx = this.db!.transaction(MODEL_STORE, 'readonly');
+				const store = tx.objectStore(MODEL_STORE);
+				const request = store.getAll();
+				request.onsuccess = () => {
+					const entries = request.result as CachedModel[];
+					const totalSize = entries.reduce(
+						(sum, e) => sum + (e.size || e.data?.byteLength || 0),
+						0,
+					);
+					resolve(totalSize);
+				};
+				request.onerror = () => resolve(0);
+			} catch {
+				resolve(0);
+			}
+		});
+	}
 }
 
 const modelCache = new ModelCache();
@@ -219,37 +219,37 @@ const modelCache = new ModelCache();
 const VERSION_STORAGE_KEY = 'picedit-model-cache-version';
 
 function extractVersion(url: string): string | null {
-  const match = url.match(/\/@imgly\/background-removal-data\/([^/]+)\//);
-  return match?.[1] ?? null;
+	const match = url.match(/\/@imgly\/background-removal-data\/([^/]+)\//);
+	return match?.[1] ?? null;
 }
 
 let versionChecked = false;
 
 async function evictStaleCache(currentVersion: string): Promise<void> {
-  if (versionChecked) return;
-  versionChecked = true;
+	if (versionChecked) return;
+	versionChecked = true;
 
-  try {
-    const storedVersion = localStorage.getItem(VERSION_STORAGE_KEY);
+	try {
+		const storedVersion = localStorage.getItem(VERSION_STORAGE_KEY);
 
-    if (storedVersion && storedVersion !== currentVersion) {
-      console.log(
-        `[ModelCache] Library version changed: ${storedVersion} → ${currentVersion}. Purging old cache...`,
-      );
-      await modelCache.clear();
-      console.log('[ModelCache] Old cache purged.');
-    }
+		if (storedVersion && storedVersion !== currentVersion) {
+			console.log(
+				`[ModelCache] Library version changed: ${storedVersion} → ${currentVersion}. Purging old cache...`,
+			);
+			await modelCache.clear();
+			console.log('[ModelCache] Old cache purged.');
+		}
 
-    localStorage.setItem(VERSION_STORAGE_KEY, currentVersion);
-  } catch {
-    // localStorage unavailable — skip
-  }
+		localStorage.setItem(VERSION_STORAGE_KEY, currentVersion);
+	} catch {
+		// localStorage unavailable — skip
+	}
 }
 
 // ── Helpers ─────────────────────────────────────────────────────
 
 function delay(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms));
+	return new Promise((r) => setTimeout(r, ms));
 }
 
 /**
@@ -262,67 +262,67 @@ function delay(ms: number): Promise<void> {
  * to prevent caching partial/corrupt data.
  */
 async function robustDownload(
-  nativeFn: typeof fetch,
-  input: RequestInfo | URL,
-  init?: RequestInit,
+	nativeFn: typeof fetch,
+	input: RequestInfo | URL,
+	init?: RequestInit,
 ): Promise<ArrayBuffer> {
-  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-  const fileName = url.split('/').pop() || url;
+	const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+	const fileName = url.split('/').pop() || url;
 
-  let lastError: Error | null = null;
+	let lastError: Error | null = null;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    if (attempt > 0) {
-      const backoff = BASE_DELAY_MS * Math.pow(2, attempt - 1) + Math.random() * 500;
-      console.log(
-        `[ModelCache] Retry ${attempt}/${MAX_RETRIES} for ${fileName} in ${Math.round(backoff)}ms`,
-      );
-      await delay(backoff);
-    }
+	for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+		if (attempt > 0) {
+			const backoff = BASE_DELAY_MS * Math.pow(2, attempt - 1) + Math.random() * 500;
+			console.log(
+				`[ModelCache] Retry ${attempt}/${MAX_RETRIES} for ${fileName} in ${Math.round(backoff)}ms`,
+			);
+			await delay(backoff);
+		}
 
-    try {
-      if (init?.signal?.aborted) throw new Error('Aborted');
+		try {
+			if (init?.signal?.aborted) throw new Error('Aborted');
 
-      const response = await nativeFn(input, init);
+			const response = await nativeFn(input, init);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status} ${response.statusText}`);
-      }
+			if (!response.ok) {
+				throw new Error(`HTTP ${response.status} ${response.statusText}`);
+			}
 
-      // Plain arrayBuffer() — no stall timeout, no size limits.
-      // The browser handles network timeouts natively.
-      const data = await response.arrayBuffer();
+			// Plain arrayBuffer() — no stall timeout, no size limits.
+			// The browser handles network timeouts natively.
+			const data = await response.arrayBuffer();
 
-      if (data.byteLength === 0) {
-        throw new Error('Received empty response body');
-      }
+			if (data.byteLength === 0) {
+				throw new Error('Received empty response body');
+			}
 
-      // Verify against Content-Length if present to catch truncated responses
-      const contentLength = response.headers.get('Content-Length');
-      if (contentLength) {
-        const expected = parseInt(contentLength, 10);
-        if (!isNaN(expected) && data.byteLength !== expected) {
-          throw new Error(
-            `Incomplete download: expected ${expected} bytes but got ${data.byteLength}`,
-          );
-        }
-      }
+			// Verify against Content-Length if present to catch truncated responses
+			const contentLength = response.headers.get('Content-Length');
+			if (contentLength) {
+				const expected = parseInt(contentLength, 10);
+				if (!isNaN(expected) && data.byteLength !== expected) {
+					throw new Error(
+						`Incomplete download: expected ${expected} bytes but got ${data.byteLength}`,
+					);
+				}
+			}
 
-      console.log(`[ModelCache] Downloaded ${fileName}: ${formatBytes(data.byteLength)}`);
-      return data;
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
+			console.log(`[ModelCache] Downloaded ${fileName}: ${formatBytes(data.byteLength)}`);
+			return data;
+		} catch (err) {
+			lastError = err instanceof Error ? err : new Error(String(err));
 
-      if (init?.signal?.aborted) throw lastError;
+			if (init?.signal?.aborted) throw lastError;
 
-      console.warn(
-        `[ModelCache] Attempt ${attempt + 1} failed for ${fileName}:`,
-        lastError.message,
-      );
-    }
-  }
+			console.warn(
+				`[ModelCache] Attempt ${attempt + 1} failed for ${fileName}:`,
+				lastError.message,
+			);
+		}
+	}
 
-  throw lastError ?? new Error(`Failed to download ${fileName}`);
+	throw lastError ?? new Error(`Failed to download ${fileName}`);
 }
 
 // ── Global Fetch Interceptor ────────────────────────────────────
@@ -353,7 +353,7 @@ let interceptorRefCount = 0;
 
 /** Check if a URL should be intercepted (imgly CDN) */
 function shouldIntercept(url: string): boolean {
-  return INTERCEPT_PATTERNS.some((pattern) => url.includes(pattern));
+	return INTERCEPT_PATTERNS.some((pattern) => url.includes(pattern));
 }
 
 /**
@@ -361,63 +361,65 @@ function shouldIntercept(url: string): boolean {
  * and if so routes through IndexedDB cache. All other URLs pass through.
  */
 async function interceptedFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  // Extract URL string from any input type
-  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+	// Extract URL string from any input type
+	const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
 
-  // Non-imgly URLs: pass straight through to native fetch
-  if (!shouldIntercept(url)) {
-    return nativeFetch(input, init);
-  }
+	// Non-imgly URLs: pass straight through to native fetch
+	if (!shouldIntercept(url)) {
+		return nativeFetch(input, init);
+	}
 
-  const fileName = url.split('/').pop()?.split('?')[0] || 'file';
+	const fileName = url.split('/').pop()?.split('?')[0] || 'file';
 
-  // ── Version eviction (once per session) ───────────────────────
-  const version = extractVersion(url);
-  if (version) {
-    await evictStaleCache(version);
-  }
+	// ── Version eviction (once per session) ───────────────────────
+	const version = extractVersion(url);
+	if (version) {
+		await evictStaleCache(version);
+	}
 
-  // ── Check IndexedDB cache ───────────────────────────────────
-  try {
-    const cachedData = await modelCache.get(url);
-    if (cachedData && cachedData.byteLength > 0) {
-      console.log(`[ModelCache] ✓ Cache hit: ${fileName} (${formatBytes(cachedData.byteLength)})`);
-      // Return a proper Response that the library can .blob() on
-      return new Response(cachedData, {
-        status: 200,
-        statusText: 'OK',
-        headers: {
-          'Content-Type': 'application/octet-stream',
-          'Content-Length': String(cachedData.byteLength),
-        },
-      });
-    }
-  } catch (err) {
-    console.warn('[ModelCache] Cache read failed, falling through:', err);
-  }
+	// ── Check IndexedDB cache ───────────────────────────────────
+	try {
+		const cachedData = await modelCache.get(url);
+		if (cachedData && cachedData.byteLength > 0) {
+			console.log(
+				`[ModelCache] ✓ Cache hit: ${fileName} (${formatBytes(cachedData.byteLength)})`,
+			);
+			// Return a proper Response that the library can .blob() on
+			return new Response(cachedData, {
+				status: 200,
+				statusText: 'OK',
+				headers: {
+					'Content-Type': 'application/octet-stream',
+					'Content-Length': String(cachedData.byteLength),
+				},
+			});
+		}
+	} catch (err) {
+		console.warn('[ModelCache] Cache read failed, falling through:', err);
+	}
 
-  // ── Download with retry (no stall timeout — user's speed is respected) ──
-  console.log(`[ModelCache] ↓ Downloading: ${fileName}`);
-  const data = await robustDownload(nativeFetch, input, init);
+	// ── Download with retry (no stall timeout — user's speed is respected) ──
+	console.log(`[ModelCache] ↓ Downloading: ${fileName}`);
+	const data = await robustDownload(nativeFetch, input, init);
 
-  // ── Cache to IndexedDB ────────────────────────────────────────
-  // Await the write so we know it succeeded before returning.
-  const cached = await modelCache.set(url, data);
-  if (cached) {
-    console.log(`[ModelCache] ✓ Cached: ${fileName} (${formatBytes(data.byteLength)})`);
-  } else {
-    console.warn(`[ModelCache] ✗ Failed to cache: ${fileName}`);
-  }
+	// ── Cache to IndexedDB ────────────────────────────────────────
+	// Await the write so we know it succeeded before returning.
+	const cached = await modelCache.set(url, data);
+	if (cached) {
+		console.log(`[ModelCache] ✓ Cached: ${fileName} (${formatBytes(data.byteLength)})`);
+	} else {
+		console.warn(`[ModelCache] ✗ Failed to cache: ${fileName}`);
+	}
 
-  // ── Return Response from buffered data ────────────────────────
-  return new Response(data, {
-    status: 200,
-    statusText: 'OK',
-    headers: {
-      'Content-Type': 'application/octet-stream',
-      'Content-Length': String(data.byteLength),
-    },
-  });
+	// ── Return Response from buffered data ────────────────────────
+	return new Response(data, {
+		status: 200,
+		statusText: 'OK',
+		headers: {
+			'Content-Type': 'application/octet-stream',
+			'Content-Length': String(data.byteLength),
+		},
+	});
 }
 
 /**
@@ -426,13 +428,13 @@ async function interceptedFetch(input: RequestInfo | URL, init?: RequestInit): P
  * Safe to nest — uses reference counting.
  */
 export function installFetchInterceptor(): void {
-  interceptorRefCount++;
+	interceptorRefCount++;
 
-  if (interceptorRefCount === 1) {
-    // First install — replace global fetch
-    globalThis.fetch = interceptedFetch as typeof fetch;
-    console.log('[ModelCache] Fetch interceptor installed');
-  }
+	if (interceptorRefCount === 1) {
+		// First install — replace global fetch
+		globalThis.fetch = interceptedFetch as typeof fetch;
+		console.log('[ModelCache] Fetch interceptor installed');
+	}
 }
 
 /**
@@ -441,13 +443,13 @@ export function installFetchInterceptor(): void {
  * Only actually restores native fetch when all nested installs are undone.
  */
 export function uninstallFetchInterceptor(): void {
-  interceptorRefCount = Math.max(0, interceptorRefCount - 1);
+	interceptorRefCount = Math.max(0, interceptorRefCount - 1);
 
-  if (interceptorRefCount === 0) {
-    // Last uninstall — restore native fetch
-    globalThis.fetch = nativeFetch;
-    console.log('[ModelCache] Fetch interceptor uninstalled');
-  }
+	if (interceptorRefCount === 0) {
+		// Last uninstall — restore native fetch
+		globalThis.fetch = nativeFetch;
+		console.log('[ModelCache] Fetch interceptor uninstalled');
+	}
 }
 
 // ── Exported utilities ──────────────────────────────────────────
@@ -460,7 +462,7 @@ export { modelCache };
  * likely has a truncated/corrupt entry from a previous failed download.
  */
 export async function clearModelCache(): Promise<void> {
-  console.log('[ModelCache] Clearing entire cache (corrupt entry recovery)...');
-  await modelCache.clear();
-  console.log('[ModelCache] Cache cleared.');
+	console.log('[ModelCache] Clearing entire cache (corrupt entry recovery)...');
+	await modelCache.clear();
+	console.log('[ModelCache] Cache cleared.');
 }

@@ -8,12 +8,17 @@ Static SPA (Next.js 16 + `output: "export"`) with modular image tools:
 src/app/bg-remover/page.tsx      → thin route shell (metadata in layout.tsx)
 src/bg-remover/                  → domain: components/, hooks/, lib/, types/, workers/
 src/app/img-compressor/page.tsx  → thin route shell
-src/imgcompressor/               → domain: components/, hooks/, lib/, types/, worker.ts, index.ts
-src/components/                  → shared: FileUploader, RetryButton, CancelButton, DownloadButton, StatsBar
+src/img-compressor/              → domain: components/, hooks/, lib/, types/, worker.ts, index.ts
+src/app/img-resizer/page.tsx     → thin route shell
+src/img-resizer/                 → domain: components/, hooks/, lib/, types/
+src/app/page.tsx                 → landing page (thin orchestrator importing _data/ + _components/)
+src/app/_data/landing.tsx        → static data arrays for landing page
+src/app/_components/             → landing page section components
+src/components/                  → shared: FileUploader, RetryButton, CancelButton, DownloadButton, StatsBar, ComparisonResults/
 src/hooks/                       → shared: useBatchProcessor (generic batch engine)
-src/lib/                         → shared: imageUtils, workerPool, zipUtil
-src/types/index.ts               → shared type definitions
-wasm/                            → Rust workspace (4 crates) → built to public/wasm/
+src/lib/                         → shared: imageUtils, workerPool, workerPoolBridge, zipUtil, crc32, thumbnailUtils, downloadUtils
+src/types/                       → shared type definitions (barrel index.ts → image.ts, bgRemover.ts, compressor.ts, worker.ts)
+wasm/                            → Rust workspace (5 crates) → built to public/wasm/
 ```
 
 **Key pattern:** Routes are thin wrappers. Domain logic lives in `src/<feature>/`, NOT `src/app/<feature>/`. New tools follow this same split.
@@ -23,7 +28,7 @@ wasm/                            → Rust workspace (4 crates) → built to publ
 - **Next.js 16.1.6**, React 19, TypeScript 5, pnpm 10
 - **Tailwind CSS v4** — NO `tailwind.config.js`. Theme via `@theme inline` in `globals.css`
 - **Motion** — import from `'motion/react'` (NOT `'framer-motion'`)
-- **Rust/WASM** — 4 crates (`pre-refinement`, `post-refinement`, `server`, `compressor`) in `wasm/` workspace
+- **Rust/WASM** — 5 crates (`pre-refinement`, `post-refinement`, `server`, `compressor`, `resizer`) in `wasm/` workspace
 - **All pages are `'use client'`** — no SSR, no API routes, no middleware
 
 ## Build & Dev
@@ -35,24 +40,48 @@ pnpm build              # build:wasm → build:next → /out
 pnpm build:next         # skip WASM (uses pre-built from public/wasm/)
 pnpm build:wasm         # auto-installs wasm-pack if cargo available
 pnpm lint               # eslint (flat config)
+pnpm format             # prettier (tabs)
 ```
 
 `build-wasm.mjs` auto-installs `wasm-pack` via `cargo install` if missing. Falls back to pre-built `public/wasm/` artifacts when no Rust toolchain exists (Vercel). Always exits 0. The `compressor` crate is optional — app uses Canvas fallback.
 
 ## WASM Crates
 
-| Crate | Purpose | Output |
-|-------|---------|--------|
-| `pre-refinement` | CLAHE, denoise, sharpen for BG removal | `public/wasm/pre-refinement/` |
-| `post-refinement` | Edge refine, guided filter, Poisson blend | `public/wasm/post-refinement/` |
-| `server` | Chunked model download | `public/wasm/server/` |
-| `compressor` | Bilateral denoise, median-cut quantize, SSIM, PNG filters | `public/wasm/compressor/` |
+| Crate             | Purpose                                                   | Output                         |
+| ----------------- | --------------------------------------------------------- | ------------------------------ |
+| `pre-refinement`  | CLAHE, denoise, sharpen for BG removal                    | `public/wasm/pre-refinement/`  |
+| `post-refinement` | Edge refine, guided filter, Poisson blend                 | `public/wasm/post-refinement/` |
+| `server`          | Chunked model download                                    | `public/wasm/server/`          |
+| `compressor`      | Bilateral denoise, median-cut quantize, SSIM, PNG filters | `public/wasm/compressor/`      |
+| `resizer`         | Lanczos3 resize kernel                                    | `public/wasm/resizer/`         |
 
 All Cargo.toml files have `wasm-opt = false` (avoids wasm-opt binary crashes). Pre-built `.wasm`/`.js`/`.d.ts` files are committed to git. The build script cleans wasm-pack junk (`.gitignore`, `package.json`, `README.md`) from output dirs automatically.
+
+## Shared Libraries
+
+| Module                        | Purpose                                                                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- |
+| `src/lib/imageUtils.ts`       | `loadImage`, `blobToDataUrl`, `formatBytes`, `formatSpeed`, `getMimeType`, `formatToExtension` |
+| `src/lib/crc32.ts`            | Shared CRC-32 lookup table (used by zipUtil + bg-remover)                                      |
+| `src/lib/thumbnailUtils.ts`   | `createThumbnailItems<T>()`, `cleanupItemUrls()`, `cleanupAllItemUrls()`                       |
+| `src/lib/downloadUtils.ts`    | `downloadOne<T>()`, `downloadAll<T>()` (single file + ZIP)                                     |
+| `src/lib/workerPoolBridge.ts` | `WorkerPoolBridge<TResult>` — generic multi-worker bridge with message-ID routing              |
+| `src/lib/workerPool.ts`       | Lower-level worker pool management                                                             |
+| `src/lib/zipUtil.ts`          | Zero-dependency ZIP builder (Store method)                                                     |
+
+## Shared Types
+
+`src/types/index.ts` is a barrel that re-exports from domain files:
+
+- `image.ts` — `OutputFormat`, `ImageInfo`, `DEFAULT_IMAGE_INFO`
+- `bgRemover.ts` — `DeviceType`, `ModelType`, `EditorState`, `HistoryItem`, etc.
+- `compressor.ts` — `CompressionMode`, `CompressionSettings`, `CompressedImage`, etc.
+- `worker.ts` — `TaskStatus`, `WorkerTask`, `WorkerResult`, `PoolTaskInfo`
 
 ## Design System ("Obsidian Studio")
 
 CSS custom properties in `globals.css`:
+
 - Backgrounds: `--bg-primary`, `--bg-surface`, `--bg-elevated`, `--bg-hover`
 - Text: `--foreground`, `--text-secondary`, `--text-muted`
 - Accent: `--accent` (#e07a5f copper), `--accent-hover`, `--accent-soft`, `--accent-glow`
@@ -74,18 +103,21 @@ All batch/retry/cancel logic uses `useBatchProcessor<T>` from `src/hooks/useBatc
 
 ```tsx
 const { items, processOne, processAll, retryOne, retryAll, cancelOne, cancelAll } =
-  useBatchProcessor<MyItem>({ processFn, onRemove, onClear });
+	useBatchProcessor<MyItem>({ processFn, onRemove, onClear });
 ```
 
 `ProcessFn` signature: `(item, signal: AbortSignal, onProgress) => Promise<Partial<T>>`
 Items extend `BatchItem { id, status, progress, stage, error? }`.
 
-## Worker Bridge Pattern (Compressor)
+## Worker Bridge Pattern
 
-`src/imgcompressor/index.ts` uses message-ID based concurrency-safe worker bridge:
-- Singleton worker with `initPromise` guard (check promise FIRST, not worker ref)
-- Numeric `id` on every message for request/response correlation via `pending` Map
+Both compressor and resizer use `WorkerPoolBridge<TResult>` from `src/lib/workerPoolBridge.ts`:
+
+- Spawns N workers (configurable, default 2-4 based on `navigator.hardwareConcurrency`)
+- Routes messages via numeric `id` for concurrency-safe request/response correlation
+- Least-busy worker selection with configurable timeout
 - Init uses `'ready'`/`'init-error'` types; operations use `'error'` + `msg.id`
+- Thin domain wrappers in `src/img-compressor/lib/compressionWorkerBridge.ts` and `src/img-resizer/lib/resizeWorkerBridge.ts`
 - Worker (`worker.ts`) queues operations behind `initDone` promise during async WASM load
 
 ## Download Pattern
@@ -115,3 +147,7 @@ Items extend `BatchItem { id, status, progress, stage, error? }`.
 8. **ESLint flat config** (`eslint.config.mjs`) — ignores `public/wasm/**`, `public/workers/**`
 9. **wasm-pack outputs junk** — `.gitignore` (with `*`), `package.json`, `README.md` must be deleted after builds
 10. **Pre-built WASM is committed** — `public/wasm/` files are tracked in git for serverless deploys
+
+## Skills
+
+- **Code Quality** — [`.github/skills/code-quality.md`](./skills/code-quality.md): Refactoring workflow, DRY principles, file split criteria, module patterns, anti-patterns to avoid. Reference this skill when restructuring code, adding features, or reviewing architecture.
