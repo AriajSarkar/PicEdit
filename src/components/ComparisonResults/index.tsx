@@ -69,7 +69,7 @@ export const ComparisonResults = memo(function ComparisonResults(
 				</h3>
 				<div className="flex items-center gap-2">
 					{processingCount > 0 && (
-						<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-(--accent)/10 text-accent">
+						<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-accent/10 text-accent">
 							<span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
 							{processingCount} {props.mode === 'resize' ? 'resizing' : props.mode === 'convert' ? 'converting' : 'processing'}
 						</span>

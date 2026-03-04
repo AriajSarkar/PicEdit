@@ -210,7 +210,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 						type="button"
 						aria-label={`Compress ${item.file.name}`}
 						onClick={() => props.onCompress(item.id)}
-						className="p-1.5 rounded-lg hover:bg-(--accent)/10 text-accent transition-colors"
+						className="p-1.5 rounded-lg hover:bg-accent/10 text-accent transition-colors"
 						title="Compress"
 					>
 						<svg
@@ -234,7 +234,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 						type="button"
 						aria-label={`Convert ${item.file.name}`}
 						onClick={() => props.onConvert(item.id)}
-						className="p-1.5 rounded-lg hover:bg-(--accent)/10 text-accent transition-colors"
+						className="p-1.5 rounded-lg hover:bg-accent/10 text-accent transition-colors"
 						title="Convert"
 					>
 						<svg
@@ -258,7 +258,7 @@ export const ResultRow = memo(function ResultRow({ item, props }: ResultRowProps
 						type="button"
 						aria-label={`Resize ${item.file.name}`}
 						onClick={() => props.onResize(item.id)}
-						className="p-1.5 rounded-lg hover:bg-(--accent)/10 text-accent transition-colors"
+						className="p-1.5 rounded-lg hover:bg-accent/10 text-accent transition-colors"
 						title="Resize"
 					>
 						<svg

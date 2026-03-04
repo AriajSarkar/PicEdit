@@ -108,7 +108,7 @@ export default function ImgCompressorPage() {
 						].map((s, i) => (
 							<div key={s.step} className="flex items-center gap-4">
 								<div className="flex flex-col items-center gap-1.5">
-									<div className="w-10 h-10 rounded-xl bg-(--accent)/10 flex items-center justify-center">
+									<div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
 										<svg
 											className="w-5 h-5 text-accent"
 											fill="none"
